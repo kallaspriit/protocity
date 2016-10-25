@@ -6,9 +6,14 @@
 class Config {
 
 public:
+	// serial
 	PinName serialTxPin = USBTX;
 	PinName serialRxPin = USBRX;
 	int serialBaudRate = 115200;
+
+	// debug
+	PinName debugBreatheLedPin = LED1;
+	PinName debugCommandReceivedLedPin = LED2;
 
 };
 

@@ -31,7 +31,10 @@ void Application::loop() {
 }
 
 void Application::setupDebug() {
-	debug = new Debug();
+	debug = new Debug(
+		config->debugBreatheLedPin,
+		config->debugCommandReceivedLedPin
+	);
 }
 
 void Application::setupCommandManager() {
@@ -54,6 +57,8 @@ void Application::handleSerialRx() {
 	if (receivedChar == '\n') {
 		commandManager->handleCommand(commandBuffer);
 		commandBuffer = "";
+
+		debug->handleCommandReceived();
 	} else {
 		commandBuffer += receivedChar;
 	}

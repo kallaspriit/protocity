@@ -1,11 +1,15 @@
 #include "Debug.hpp"
 
+#include "Config.hpp"
+
 #include <algorithm>
 
-Debug::Debug() :
- 	breatheLed(LED1)
+Debug::Debug(PinName breatheLedPin, PinName commandReceivedLedPin) :
+ 	breatheLed(breatheLedPin),
+	commandReceivedLed(commandReceivedLedPin)
 {
 	breatheThread.start(this, &Debug::runBreatheThread);
+	commandReceivedThread.start(this, &Debug::runCommandReceivedThread);
 }
 
 void Debug::runBreatheThread() {
@@ -21,8 +25,20 @@ void Debug::runBreatheThread() {
 
 		breatheLed = breatheDutyCycle;
 
-		// printf("> LED: %f\n", breatheDutyCycle);
-
 		Thread::wait(frameDuration);
 	}
+}
+
+void Debug::runCommandReceivedThread() {
+	while (true) {
+		Thread::signal_wait(SIGNAL_COMMAND_RECEIVED);
+
+		commandReceivedLed = 1;
+		Thread::wait(LED_NOTIFICATION_DURATION_MS);
+		commandReceivedLed = 0;
+	}
+}
+
+void Debug::handleCommandReceived() {
+	commandReceivedThread.signal_set(SIGNAL_COMMAND_RECEIVED);
 }
