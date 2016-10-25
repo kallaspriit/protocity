@@ -1,11 +1,26 @@
+// mbed dependencies
 #include "mbed.h"
 #include "rtos.h"
 
-#include <string>
-using namespace std;
+// standard libraries
+// #include <string>
 
-#include <picojson.h>
+// project libraries
+// #include <picojson.hpp>
 
+// project dependencies
+#include "Config.hpp"
+#include "Application.hpp"
+
+int main() {
+	Config config;
+
+	Application application(&config);
+
+	application.run();
+}
+
+/*
 // serials
 Serial serial(USBTX, USBRX);
 
@@ -114,6 +129,7 @@ int main() {
 		// serial.printf("> updated led1 state: %d\n", led1.read());
     }
 }
+*/
 
 /*
 void parse() {
