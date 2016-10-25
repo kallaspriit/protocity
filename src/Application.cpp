@@ -2,12 +2,13 @@
 #include "rtos.h"
 
 #include "Application.hpp"
+#include "Config.hpp"
+#include "Debug.hpp"
+#include "CommandManager.hpp"
 
 Application::Application(Config *config) :
 	config(config)
-{
-
-}
+{}
 
 void Application::run() {
 	setup();
@@ -18,6 +19,7 @@ void Application::run() {
 }
 
 void Application::setup() {
+	setupDebug();
 	setupCommandManager();
 	setupSerial();
 }
@@ -26,6 +28,10 @@ void Application::loop() {
 	printf("> main loop\n");
 
 	Thread::wait(1000);
+}
+
+void Application::setupDebug() {
+	debug = new Debug();
 }
 
 void Application::setupCommandManager() {

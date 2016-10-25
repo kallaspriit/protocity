@@ -4,8 +4,11 @@
 #include "mbed.h"
 #include "rtos.h"
 
-#include "Config.hpp"
-#include "CommandManager.hpp"
+#include <string>
+
+class Config;
+class Debug;
+class CommandManager;
 
 class Application {
 
@@ -19,6 +22,7 @@ private:
 	void setup();
 	void loop();
 
+	void setupDebug();
 	void setupCommandManager();
 	void setupSerial();
 
@@ -26,8 +30,9 @@ private:
 	void handleSerialTx();
 
 	Config *config = NULL;
+	Debug *debug = NULL;
+	CommandManager *commandManager = NULL;
 	Serial *serial = NULL;
-	CommandManager *commandManager;
 
 	std::string commandBuffer;
 };

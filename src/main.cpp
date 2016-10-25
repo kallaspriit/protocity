@@ -1,6 +1,6 @@
 // mbed dependencies
 #include "mbed.h"
-#include "rtos.h"
+// #include "rtos.h"
 
 // standard libraries
 // #include <string>
