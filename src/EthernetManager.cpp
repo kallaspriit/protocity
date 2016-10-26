@@ -11,7 +11,7 @@ bool EthernetManager::initialize() {
     // int initResult = eth.init("10.220.20.123", "255.255.255.0", "10.220.20.1"); // use static IP
 
 	if (initResult == 0) {
-		printf("  success!\n");
+		printf("  success\n");
 	} else {
 		printf("  failed with code %d\n", initResult);
 
@@ -30,27 +30,9 @@ bool EthernetManager::initialize() {
 		return false;
 	}
 
-	/*
-    TCPSocketConnection sock;
-    sock.connect("mbed.org", 80);
-
-    char http_cmd[] = "GET /media/uploads/mbed_official/hello.txt HTTP/1.0\n\n";
-    sock.send_all(http_cmd, sizeof(http_cmd)-1);
-
-    char buffer[300];
-    int ret;
-    while (true) {
-        ret = sock.receive(buffer, sizeof(buffer)-1);
-        if (ret <= 0)
-            break;
-        buffer[ret] = '\0';
-        printf("Received %d chars from server:\n%s\n", ret, buffer);
-    }
-
-    sock.close();
-
-    ethernetInterface->disconnect();
-	*/
-
 	return true;
+}
+
+EthernetInterface *EthernetManager::getEthernetInterface() {
+	return ethernetInterface;
 }

@@ -10,6 +10,8 @@ class EthernetManager {
 public:
 	bool initialize();
 
+	EthernetInterface *getEthernetInterface();
+
 private:
 	EthernetInterface *ethernetInterface = NULL;
 };

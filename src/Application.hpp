@@ -10,6 +10,7 @@ class Config;
 class Debug;
 class CommandManager;
 class EthernetManager;
+class SocketServer;
 
 class Application {
 
@@ -26,6 +27,7 @@ private:
 	void setupDebug();
 	void setupCommandManager();
 	void setupEthernetManager();
+	void setupSocketServer();
 
 	void handleSerialRx();
 
@@ -34,10 +36,11 @@ private:
 	const int LED_ETHERNET_STATUS_INDEX = 2;
 
 	Config *config = NULL;
+	Serial *serial = NULL;
 	Debug *debug = NULL;
 	CommandManager *commandManager = NULL;
 	EthernetManager *ethernetManager = NULL;
-	Serial *serial = NULL;
+	SocketServer *socketServer = NULL;
 
 	std::string commandBuffer;
 };

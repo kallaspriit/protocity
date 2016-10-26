@@ -6,6 +6,7 @@
 #include "Debug.hpp"
 #include "CommandManager.hpp"
 #include "EthernetManager.hpp"
+#include "SocketServer.hpp"
 
 Application::Application(Config *config) :
 	config(config)
@@ -24,12 +25,22 @@ void Application::setup() {
 	setupDebug();
 	setupCommandManager();
 	setupEthernetManager();
+	setupSocketServer();
 }
 
 void Application::loop() {
 	printf("> main loop\n");
 
 	Thread::wait(1000);
+}
+
+void Application::setupSerial() {
+	serial = new Serial(config->serialTxPin, config->serialRxPin);
+	serial->baud(config->serialBaudRate);
+
+	serial->attach(this, &Application::handleSerialRx, Serial::RxIrq);
+
+	printf("\n\n-- initializing --\n");
 }
 
 void Application::setupDebug() {
@@ -56,13 +67,10 @@ void Application::setupEthernetManager() {
 	}
 }
 
-void Application::setupSerial() {
-	serial = new Serial(config->serialTxPin, config->serialRxPin);
-	serial->baud(config->serialBaudRate);
+void Application::setupSocketServer() {
+	socketServer = new SocketServer();
 
-	serial->attach(this, &Application::handleSerialRx, Serial::RxIrq);
-
-	printf("-- initializing --\n");
+	socketServer->start(ethernetManager->getEthernetInterface(), 8080);
 }
 
 void Application::handleSerialRx() {
