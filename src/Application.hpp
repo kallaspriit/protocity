@@ -28,7 +28,10 @@ private:
 	void setupEthernetManager();
 
 	void handleSerialRx();
-	void handleSerialTx();
+
+	const int LED_BREATHE_INDEX = 0;
+	const int LED_COMMAND_RECEIVED_INDEX = 1;
+	const int LED_ETHERNET_STATUS_INDEX = 2;
 
 	Config *config = NULL;
 	Debug *debug = NULL;

@@ -33,10 +33,9 @@ void Application::loop() {
 }
 
 void Application::setupDebug() {
-	debug = new Debug(
-		config->debugBreatheLedPin,
-		config->debugCommandReceivedLedPin
-	);
+	debug = new Debug();
+
+	debug->setLedMode(LED_BREATHE_INDEX, Debug::LedMode::BREATHE);
 }
 
 void Application::setupCommandManager() {
@@ -46,7 +45,15 @@ void Application::setupCommandManager() {
 void Application::setupEthernetManager() {
 	ethernetManager = new EthernetManager();
 
-	ethernetManager->initialize();
+	debug->setLedMode(LED_ETHERNET_STATUS_INDEX, Debug::LedMode::BLINK_FAST);
+
+	bool isConnected = ethernetManager->initialize();
+
+	if (isConnected) {
+		debug->setLedMode(LED_ETHERNET_STATUS_INDEX, Debug::LedMode::ON);
+	} else {
+		debug->setLedMode(LED_ETHERNET_STATUS_INDEX, Debug::LedMode::OFF);
+	}
 }
 
 void Application::setupSerial() {
@@ -54,12 +61,11 @@ void Application::setupSerial() {
 	serial->baud(config->serialBaudRate);
 
 	serial->attach(this, &Application::handleSerialRx, Serial::RxIrq);
-	serial->attach(this, &Application::handleSerialTx, Serial::TxIrq);
+
+	printf("-- initializing --\n");
 }
 
 void Application::handleSerialRx() {
-	// serialRxNotifierThread.signal_set(SIGNAL_SERIAL_RX);
-
 	char receivedChar = serial->getc();
 
 	if (receivedChar == '\n') {
@@ -71,12 +77,8 @@ void Application::handleSerialRx() {
 
 		commandBuffer = "";
 
-		debug->handleCommandReceived();
+		debug->setLedMode(LED_COMMAND_RECEIVED_INDEX, Debug::LedMode::BLINK_ONCE);
 	} else {
 		commandBuffer += receivedChar;
 	}
-}
-
-void Application::handleSerialTx() {
-	//serialTxNotifierThread.signal_set(SIGNAL_SERIAL_TX);
 }

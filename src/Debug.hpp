@@ -7,26 +7,43 @@
 class Debug {
 
 public:
-	Debug(PinName breatheLedPin, PinName commandReceivedLedPin);
+	enum LedMode {
+		OFF,
+		ON,
+		BLINK_SLOW,
+		BLINK_FAST,
+		BLINK_ONCE,
+		BREATHE
+	};
 
-	void handleCommandReceived();
+	Debug();
+
+	void setLedMode(int index, LedMode mode);
 
 private:
-	void runBreatheThread();
-	void runCommandReceivedThread();
+	void runLedUpdateThread();
 
-	Thread breatheThread;
-	Thread commandReceivedThread;
-	PwmOut breatheLed;
-	DigitalOut commandReceivedLed;
+	Thread ledUpdateThread;
 
 	float breatheDutyCycle = 0.0f;
 	int breatheDirection = 1.0f;
+	int blinkFastTimeAccumulator = 0;
+	int blinkSlowTimeAccumulator = 0;
+	int blickOnceTimeAccumulator = 0;
+	bool blinkFastState = false;
+	bool blinkSlowState = false;
+	bool blinkOnceState = false;
+	bool blickOncePerformed = true;
 
+	static const int LED_COUNT = 4;
 	const float BREATHE_PERIOD = 5.0f;
-	const int BREATHE_FPS = 60;
-	const int SIGNAL_COMMAND_RECEIVED = 1;
-	const int LED_NOTIFICATION_DURATION_MS = 100;
+	const int UPDATE_FPS = 60;
+	const int FAST_BLINK_INTERVAL_MS = 200;
+	const int SLOW_BLINK_INTERVAL_MS = 2000;
+	const int BLINK_ONCE_DURATION_MS = 100;
+
+	LedMode ledMode[LED_COUNT] = { LedMode::OFF };
+	PwmOut ledState[LED_COUNT] = { LED1, LED2, LED3, LED4 };
 };
 
 #endif

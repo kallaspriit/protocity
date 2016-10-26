@@ -2,7 +2,7 @@
 
 #include "EthernetInterface.h"
 
-void EthernetManager::initialize() {
+bool EthernetManager::initialize() {
 	ethernetInterface = new EthernetInterface();
 
 	printf("> initializing ethernet interface..\n");
@@ -15,7 +15,7 @@ void EthernetManager::initialize() {
 	} else {
 		printf("  failed with code %d\n", initResult);
 
-		return;
+		return false;
 	}
 
 	printf("> connecting to ethernet..\n");
@@ -27,9 +27,10 @@ void EthernetManager::initialize() {
 	} else {
 		printf("  failed with code %d\n", connectResult);
 
-		return;
+		return false;
 	}
 
+	/*
     TCPSocketConnection sock;
     sock.connect("mbed.org", 80);
 
@@ -49,4 +50,7 @@ void EthernetManager::initialize() {
     sock.close();
 
     ethernetInterface->disconnect();
+	*/
+
+	return true;
 }

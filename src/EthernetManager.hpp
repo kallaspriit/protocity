@@ -8,7 +8,7 @@ class EthernetInterface;
 class EthernetManager {
 
 public:
-	void initialize();
+	bool initialize();
 
 private:
 	EthernetInterface *ethernetInterface = NULL;
