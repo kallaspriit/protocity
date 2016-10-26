@@ -9,6 +9,7 @@
 class Config;
 class Debug;
 class CommandManager;
+class EthernetManager;
 
 class Application {
 
@@ -21,9 +22,10 @@ private:
 	void setup();
 	void loop();
 
+	void setupSerial();
 	void setupDebug();
 	void setupCommandManager();
-	void setupSerial();
+	void setupEthernetManager();
 
 	void handleSerialRx();
 	void handleSerialTx();
@@ -31,6 +33,7 @@ private:
 	Config *config = NULL;
 	Debug *debug = NULL;
 	CommandManager *commandManager = NULL;
+	EthernetManager *ethernetManager = NULL;
 	Serial *serial = NULL;
 
 	std::string commandBuffer;

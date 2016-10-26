@@ -5,6 +5,7 @@
 #include "Config.hpp"
 #include "Debug.hpp"
 #include "CommandManager.hpp"
+#include "EthernetManager.hpp"
 
 Application::Application(Config *config) :
 	config(config)
@@ -19,9 +20,10 @@ void Application::run() {
 }
 
 void Application::setup() {
+	setupSerial();
 	setupDebug();
 	setupCommandManager();
-	setupSerial();
+	setupEthernetManager();
 }
 
 void Application::loop() {
@@ -41,6 +43,12 @@ void Application::setupCommandManager() {
 	commandManager = new CommandManager();
 }
 
+void Application::setupEthernetManager() {
+	ethernetManager = new EthernetManager();
+
+	ethernetManager->initialize();
+}
+
 void Application::setupSerial() {
 	serial = new Serial(config->serialTxPin, config->serialRxPin);
 	serial->baud(config->serialBaudRate);
@@ -55,7 +63,12 @@ void Application::handleSerialRx() {
 	char receivedChar = serial->getc();
 
 	if (receivedChar == '\n') {
-		commandManager->handleCommand(commandBuffer);
+		if (commandManager != NULL) {
+			commandManager->handleCommand(commandBuffer);
+		} else {
+			printf("> command manager is not yet available to handle '%s'", commandBuffer.c_str());
+		}
+
 		commandBuffer = "";
 
 		debug->handleCommandReceived();
