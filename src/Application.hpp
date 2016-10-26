@@ -12,8 +12,9 @@ class Config;
 class Debug;
 class CommandManager;
 class EthernetManager;
+class TCPSocketConnection;
 
-class Application : SocketServer::MessageListener {
+class Application : SocketServer::SocketServerListener {
 
 public:
 	Application(Config *config);
@@ -24,6 +25,7 @@ private:
 	void setup();
 	void loop();
 
+	void setupTimer();
 	void setupSerial();
 	void setupDebug();
 	void setupCommandManager();
@@ -32,6 +34,8 @@ private:
 
 	void handleSerialRx();
 
+	void onSocketClientConnected(TCPSocketConnection* client);
+	void onSocketClientDisconnected(TCPSocketConnection* client);
 	void onSocketMessageReceived(std::string message);
 
 	const int LED_BREATHE_INDEX = 0;
@@ -46,6 +50,7 @@ private:
 	SocketServer *socketServer = NULL;
 
 	std::string commandBuffer;
+	Timer timer;
 };
 
 #endif

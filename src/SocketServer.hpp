@@ -2,18 +2,22 @@
 #define SOCKETSERVER_HPP
 
 #include "mbed.h"
+#include "rtos.h"
 
 #include <vector>
 #include <string>
 
 class EthernetInterface;
+class TCPSocketServer;
 class TCPSocketConnection;
 
 class SocketServer {
 
 public:
-	class MessageListener {
+	class SocketServerListener {
 	public:
+		virtual void onSocketClientConnected(TCPSocketConnection* client) = 0;
+		virtual void onSocketClientDisconnected(TCPSocketConnection* client) = 0;
 		virtual void onSocketMessageReceived(std::string message) = 0;
 	};
 
@@ -22,15 +26,19 @@ public:
 	TCPSocketConnection *getConnectedClient();
 	bool sendMessage(std::string message);
 
-	void addMessageListener(MessageListener *messageListener);
+	void addListener(SocketServerListener *socketServerListener);
 
 private:
+	void runListenThread();
+
 	EthernetInterface *ethernetInterface = NULL;
+	TCPSocketServer *tpcSocketServer;
 	TCPSocketConnection *connectedClient = NULL;
 
+	Thread listenThread;
 	std::string messageBuffer;
 
-	std::vector<MessageListener*> messageListeners;
+	std::vector<SocketServerListener*> listeners;
 
 	const int SOCKET_RECEIVE_TIMEOUT_MS = 5000;
 };

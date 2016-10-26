@@ -21,6 +21,7 @@ void Application::run() {
 }
 
 void Application::setup() {
+	setupTimer();
 	setupSerial();
 	setupDebug();
 	setupCommandManager();
@@ -29,9 +30,13 @@ void Application::setup() {
 }
 
 void Application::loop() {
-	printf("> main loop\n");
+	printf("> main loop %f\n", timer.read());
 
 	Thread::wait(1000);
+}
+
+void Application::setupTimer() {
+	timer.start();
 }
 
 void Application::setupSerial() {
@@ -61,7 +66,7 @@ void Application::setupEthernetManager() {
 	bool isConnected = ethernetManager->initialize();
 
 	if (isConnected) {
-		debug->setLedMode(LED_ETHERNET_STATUS_INDEX, Debug::LedMode::ON);
+		debug->setLedMode(LED_ETHERNET_STATUS_INDEX, Debug::LedMode::BLINK_SLOW);
 	} else {
 		debug->setLedMode(LED_ETHERNET_STATUS_INDEX, Debug::LedMode::OFF);
 	}
@@ -70,9 +75,16 @@ void Application::setupEthernetManager() {
 void Application::setupSocketServer() {
 	socketServer = new SocketServer();
 
-	socketServer->addMessageListener(this);
+	socketServer->addListener(this);
+	socketServer->start(ethernetManager->getEthernetInterface(), config->socketServerPort);
+}
 
-	socketServer->start(ethernetManager->getEthernetInterface(), 8080);
+void Application::onSocketClientConnected(TCPSocketConnection* client) {
+	debug->setLedMode(LED_ETHERNET_STATUS_INDEX, Debug::LedMode::ON);
+}
+
+void Application::onSocketClientDisconnected(TCPSocketConnection* client) {
+	debug->setLedMode(LED_ETHERNET_STATUS_INDEX, Debug::LedMode::BLINK_SLOW);
 }
 
 void Application::onSocketMessageReceived(std::string message) {
@@ -88,7 +100,7 @@ void Application::handleSerialRx() {
 		if (commandManager != NULL) {
 			commandManager->handleCommand(commandBuffer);
 		} else {
-			printf("> command manager is not yet available to handle '%s'", commandBuffer.c_str());
+			printf("> command manager is not yet available to handle '%s'\n", commandBuffer.c_str());
 		}
 
 		commandBuffer = "";

@@ -11,6 +11,8 @@ public:
 	PinName serialRxPin = USBRX;
 	int serialBaudRate = 115200;
 
+	// socket server
+	int socketServerPort = 8080;
 };
 
 #endif
