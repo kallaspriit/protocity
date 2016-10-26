@@ -4,15 +4,16 @@
 #include "mbed.h"
 #include "rtos.h"
 
+#include "SocketServer.hpp"
+
 #include <string>
 
 class Config;
 class Debug;
 class CommandManager;
 class EthernetManager;
-class SocketServer;
 
-class Application {
+class Application : SocketServer::MessageListener {
 
 public:
 	Application(Config *config);
@@ -30,6 +31,8 @@ private:
 	void setupSocketServer();
 
 	void handleSerialRx();
+
+	void onSocketMessageReceived(std::string message);
 
 	const int LED_BREATHE_INDEX = 0;
 	const int LED_COMMAND_RECEIVED_INDEX = 1;

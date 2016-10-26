@@ -41,6 +41,8 @@ bool SocketServer::start(EthernetInterface *ethernetInterface, int port) {
 
         printf("> got socket connection from: %s\n", client.get_address());
 
+		connectedClient = &client;
+
         char buffer[256];
 
         while (true) {
@@ -49,6 +51,7 @@ bool SocketServer::start(EthernetInterface *ethernetInterface, int port) {
 				printf("> socket connection to %s has been closed\n", client.get_address());
 
 				client.close();
+				connectedClient = NULL;
 
 				break;
 			}
@@ -61,23 +64,63 @@ bool SocketServer::start(EthernetInterface *ethernetInterface, int port) {
 				continue;
 			}
 
-            // print received message to terminal
-            buffer[receivedBytes] = '\0';
-            printf("> received message:'%s'\n", buffer);
+			// search for newline delimiting commands
+			for (int i = 0; i < receivedBytes; i++) {
+				char receivedChar = buffer[i];
 
-            // echo received message back to client
-            int sentBytes = client.send_all(buffer, receivedBytes);
+				if (receivedChar == '\n') {
+					printf("> received command: '%s'\n", messageBuffer.c_str());
 
-			// close client if sending failed
-            if (sentBytes == -1) {
-				printf("  sending socket message '%s' to %s failed", buffer, client.get_address());
+					for (std::vector<MessageListener*>::iterator it = messageListeners.begin(); it != messageListeners.end(); ++it) {
+						(*it)->onSocketMessageReceived(messageBuffer);
+					}
 
-				client.close();
+					// send response
+					sendMessage("got command '" + messageBuffer + "'");
 
-				break;
+					messageBuffer = "";
+				} else {
+					messageBuffer += receivedChar;
+				}
 			}
         }
     }
 
 	return true;
+}
+
+bool SocketServer::isClientConnected() {
+	return connectedClient != NULL && connectedClient->is_connected();
+}
+
+TCPSocketConnection *SocketServer::getConnectedClient() {
+	return connectedClient;
+}
+
+bool SocketServer::sendMessage(std::string message) {
+	if (!isClientConnected()) {
+		return false;
+	}
+
+	char *messageBuffer = new char[message.length() + 1];
+	strcpy(messageBuffer, message.c_str());
+
+	// echo received message back to client
+	int sentBytes = connectedClient->send_all(messageBuffer, message.size());
+
+	// close client if sending failed
+	if (sentBytes == -1) {
+		printf("  sending socket message '%s' failed\n", message.c_str());
+
+		connectedClient->close();
+		connectedClient = NULL;
+
+		return false;
+	}
+
+	return true;
+}
+
+void SocketServer::addMessageListener(SocketServer::MessageListener *messageListener) {
+	messageListeners.push_back(messageListener);
 }

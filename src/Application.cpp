@@ -70,7 +70,15 @@ void Application::setupEthernetManager() {
 void Application::setupSocketServer() {
 	socketServer = new SocketServer();
 
+	socketServer->addMessageListener(this);
+
 	socketServer->start(ethernetManager->getEthernetInterface(), 8080);
+}
+
+void Application::onSocketMessageReceived(std::string message) {
+	commandManager->handleCommand(message);
+
+	debug->setLedMode(LED_COMMAND_RECEIVED_INDEX, Debug::LedMode::BLINK_ONCE);
 }
 
 void Application::handleSerialRx() {
