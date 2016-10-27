@@ -1,5 +1,5 @@
 # ProtoCity
-Lego IoT smart city demo
+Lego IoT smart city demo.
 
 ## Status LEDs
 - **LED1** - Breathes if the firmware is operating normally.

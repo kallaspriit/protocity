@@ -1,13 +1,11 @@
 #include "SocketServer.hpp"
 
-#include "EthernetInterface.h"
+
 
 bool SocketServer::start(EthernetInterface *ethernetInterface, int port) {
-	tpcSocketServer = new TCPSocketServer();
-
 	printf("> starting socket server on port %d\n", port);
 
-    int bindResult = tpcSocketServer->bind(port);
+    int bindResult = tpcSocketServer.bind(port);
 
 	if (bindResult == 0) {
 		printf("  binding to port %d was successful\n", port);
@@ -17,7 +15,7 @@ bool SocketServer::start(EthernetInterface *ethernetInterface, int port) {
 		return false;
 	}
 
-    int listenResult = tpcSocketServer->listen();
+    int listenResult = tpcSocketServer.listen();
 
 	if (listenResult == 0) {
 		printf("  listening on port %d was successful\n", port);
@@ -33,13 +31,13 @@ bool SocketServer::start(EthernetInterface *ethernetInterface, int port) {
 }
 
 void SocketServer::runListenThread() {
-	printf("> starting socket server listen thread");
+	printf("> starting socket server listen thread\n");
 
 	while (true) {
         printf("> waiting for new connection...\n");
 
         TCPSocketConnection client;
-        int acceptResult = tpcSocketServer->accept(client);
+        int acceptResult = tpcSocketServer.accept(client);
 
 		if (acceptResult != 0) {
 			printf("> accepting new client failed\n");
@@ -129,6 +127,8 @@ bool SocketServer::sendMessage(std::string message) {
 
 	// echo received message back to client
 	int sentBytes = connectedClient->send_all(messageBuffer, message.size());
+
+	delete messageBuffer;
 
 	// close client if sending failed
 	if (sentBytes == -1) {

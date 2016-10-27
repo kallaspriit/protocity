@@ -3,13 +3,10 @@
 
 #include "mbed.h"
 #include "rtos.h"
+#include "EthernetInterface.h"
 
 #include <vector>
 #include <string>
-
-class EthernetInterface;
-class TCPSocketServer;
-class TCPSocketConnection;
 
 class SocketServer {
 
@@ -31,8 +28,7 @@ public:
 private:
 	void runListenThread();
 
-	EthernetInterface *ethernetInterface = NULL;
-	TCPSocketServer *tpcSocketServer;
+	TCPSocketServer tpcSocketServer;
 	TCPSocketConnection *connectedClient = NULL;
 
 	Thread listenThread;

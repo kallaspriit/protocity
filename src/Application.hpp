@@ -4,13 +4,14 @@
 #include "mbed.h"
 #include "rtos.h"
 
+#include "Debug.hpp"
+#include "CommandManager.hpp"
+#include "EthernetManager.hpp"
 #include "SocketServer.hpp"
 
 #include <string>
 
 class Config;
-class Debug;
-class CommandManager;
 class EthernetManager;
 class TCPSocketConnection;
 
@@ -43,11 +44,11 @@ private:
 	const int LED_ETHERNET_STATUS_INDEX = 2;
 
 	Config *config = NULL;
-	Serial *serial = NULL;
-	Debug *debug = NULL;
-	CommandManager *commandManager = NULL;
-	EthernetManager *ethernetManager = NULL;
-	SocketServer *socketServer = NULL;
+	Serial serial;
+	Debug debug;
+	CommandManager commandManager;
+	EthernetManager ethernetManager;
+	SocketServer socketServer;
 
 	std::string commandBuffer;
 	Timer timer;

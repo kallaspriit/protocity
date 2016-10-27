@@ -2,8 +2,7 @@
 #define ETHERNETMANAGER_HPP
 
 #include "mbed.h"
-
-class EthernetInterface;
+#include "EthernetInterface.h"
 
 class EthernetManager {
 
@@ -13,7 +12,7 @@ public:
 	EthernetInterface *getEthernetInterface();
 
 private:
-	EthernetInterface *ethernetInterface = NULL;
+	EthernetInterface ethernetInterface;
 };
 
 #endif
