@@ -6,12 +6,12 @@
 class CommandManager {
 
 public:
-	void handleCommand(std::string command);
+	void handleCommand(const char *command, int length);
 
 private:
-	void handleJsonCommand(std::string command);
-	void handleStringCommand(std::string command);
-	bool isJsonCommand(std::string command);
+	void handleJsonCommand(const char *command, int length);
+	void handleStringCommand(const char *command, int length);
+	bool isJsonCommand(const char *command, int length);
 };
 
 #endif

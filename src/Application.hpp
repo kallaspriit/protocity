@@ -37,11 +37,12 @@ private:
 
 	void onSocketClientConnected(TCPSocketConnection* client);
 	void onSocketClientDisconnected(TCPSocketConnection* client);
-	void onSocketMessageReceived(std::string message);
+	void onSocketCommandReceived(const char *command, int length);
 
 	const int LED_BREATHE_INDEX = 0;
 	const int LED_COMMAND_RECEIVED_INDEX = 1;
 	const int LED_ETHERNET_STATUS_INDEX = 2;
+	static const int MAX_COMMAND_LENGTH = 64;
 
 	Config *config = NULL;
 	Serial serial;
@@ -50,7 +51,8 @@ private:
 	EthernetManager ethernetManager;
 	SocketServer socketServer;
 
-	std::string commandBuffer;
+	char commandBuffer[MAX_COMMAND_LENGTH + 1];
+	int commandLength = 0;
 	Timer timer;
 };
 

@@ -89,20 +89,26 @@ void SocketServer::runListenThread() {
 				if (receivedChar == '\n') {
 					// only display the message if no listeners have been registered
 					if (listeners.size() == 0) {
-						printf("> received command: '%s'\n", messageBuffer.c_str());
+						printf("> received command: '%s'\n", commandBuffer);
 					}
 
 					// notify all message listeners
 					for (std::vector<SocketServerListener*>::iterator it = listeners.begin(); it != listeners.end(); ++it) {
-						(*it)->onSocketMessageReceived(messageBuffer);
+						(*it)->onSocketCommandReceived(commandBuffer, commandLength);
 					}
 
 					// send response
 					// sendMessage("got command '" + messageBuffer + "'");
 
-					messageBuffer = "";
+					commandBuffer[0] = '\0';
+					commandLength = 0;
 				} else {
-					messageBuffer += receivedChar;
+					if (commandLength > MAX_COMMAND_LENGTH - 1) {
+						return;
+					}
+
+					commandBuffer[commandLength++] = receivedChar;
+					commandBuffer[commandLength] = '\0';
 				}
 			}
         }
@@ -117,22 +123,17 @@ TCPSocketConnection *SocketServer::getConnectedClient() {
 	return connectedClient;
 }
 
-bool SocketServer::sendMessage(std::string message) {
+bool SocketServer::sendMessage(char *message, int length) {
 	if (!isClientConnected()) {
 		return false;
 	}
 
-	char *messageBuffer = new char[message.length() + 1];
-	strcpy(messageBuffer, message.c_str());
-
 	// echo received message back to client
-	int sentBytes = connectedClient->send_all(messageBuffer, message.size());
-
-	delete messageBuffer;
+	int sentBytes = connectedClient->send_all(message, length);
 
 	// close client if sending failed
 	if (sentBytes == -1) {
-		printf("  sending socket message '%s' failed\n", message.c_str());
+		printf("  sending socket message '%s' failed\n", message);
 		return false;
 	}
 

@@ -107,8 +107,8 @@ void Application::onSocketClientDisconnected(TCPSocketConnection* client) {
 	debug.setLedMode(LED_ETHERNET_STATUS_INDEX, Debug::LedMode::BLINK_SLOW);
 }
 
-void Application::onSocketMessageReceived(std::string message) {
-	commandManager.handleCommand(message);
+void Application::onSocketCommandReceived(const char *command, int length) {
+	commandManager.handleCommand(command, length);
 
 	debug.setLedMode(LED_COMMAND_RECEIVED_INDEX, Debug::LedMode::BLINK_ONCE);
 }
@@ -117,12 +117,18 @@ void Application::handleSerialRx() {
 	char receivedChar = serial.getc();
 
 	if (receivedChar == '\n') {
-		commandManager.handleCommand(commandBuffer);
+		commandManager.handleCommand(commandBuffer, commandLength);
 
-		commandBuffer = "";
+		commandBuffer[0] = '\0';
+		commandLength = 0;
 
 		debug.setLedMode(LED_COMMAND_RECEIVED_INDEX, Debug::LedMode::BLINK_ONCE);
 	} else {
-		commandBuffer += receivedChar;
+		if (commandLength > MAX_COMMAND_LENGTH - 1) {
+			return;
+		}
+
+		commandBuffer[commandLength++] = receivedChar;
+		commandBuffer[commandLength] = '\0';
 	}
 }

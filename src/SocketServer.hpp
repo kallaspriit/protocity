@@ -15,13 +15,13 @@ public:
 	public:
 		virtual void onSocketClientConnected(TCPSocketConnection* client) = 0;
 		virtual void onSocketClientDisconnected(TCPSocketConnection* client) = 0;
-		virtual void onSocketMessageReceived(std::string message) = 0;
+		virtual void onSocketCommandReceived(const char *command, int length) = 0;
 	};
 
 	bool start(EthernetInterface *ethernetInterface, int port = 8080);
 	bool isClientConnected();
 	TCPSocketConnection *getConnectedClient();
-	bool sendMessage(std::string message);
+	bool sendMessage(char *message, int length);
 
 	void addListener(SocketServerListener *socketServerListener);
 
@@ -32,7 +32,10 @@ private:
 	TCPSocketConnection *connectedClient = NULL;
 
 	Thread listenThread;
-	std::string messageBuffer;
+
+	static const int MAX_COMMAND_LENGTH = 64;
+	char commandBuffer[MAX_COMMAND_LENGTH + 1];
+	int commandLength = 0;
 
 	std::vector<SocketServerListener*> listeners;
 
