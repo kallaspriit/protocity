@@ -9,8 +9,6 @@
 #include "EthernetManager.hpp"
 #include "SocketServer.hpp"
 
-#include <string>
-
 class Config;
 class EthernetManager;
 class TCPSocketConnection;

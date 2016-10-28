@@ -61,10 +61,23 @@ void Application::setup() {
 
 void Application::loop() {
 	int freeMemoryBytes = getFreeMemory();
+	int queuedCommandCount = commandManager.getQueuedCommandCount();
 
-	printf("> main loop %f, free memory: %d\n", timer.read(), freeMemoryBytes);
+	printf("> main loop %f, free memory: %d, queued commands: %d\n", timer.read(), freeMemoryBytes, queuedCommandCount);
 
-	Thread::wait(1000);
+	CommandManager::Command *command = commandManager.getNextCommand();
+
+	while (command != NULL) {
+		printf("  handle command '%s' with %d arguments\n", command->name.c_str(), command->argumentCount);
+
+		for (int i = 0; i < command->argumentCount; i++) {
+			printf("    argument %d: %s\n", i, command->arguments[i].c_str());
+		}
+
+		command = commandManager.getNextCommand();
+	}
+
+	Thread::wait(10000);
 }
 
 void Application::setupTimer() {
@@ -125,7 +138,7 @@ void Application::handleSerialRx() {
 		debug.setLedMode(LED_COMMAND_RECEIVED_INDEX, Debug::LedMode::BLINK_ONCE);
 	} else {
 		if (commandLength > MAX_COMMAND_LENGTH - 1) {
-			return;
+			error("maximum command length is %d characters, stopping at %s", MAX_COMMAND_LENGTH, commandBuffer);
 		}
 
 		commandBuffer[commandLength++] = receivedChar;

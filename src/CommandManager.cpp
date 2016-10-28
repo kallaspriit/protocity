@@ -1,38 +1,88 @@
 #include "mbed.h"
-#include <picojson.hpp>
 
 #include "CommandManager.hpp"
 
-bool CommandManager::isJsonCommand(const char *command, int length) {
-	return length >= 2 && command[0] == '{' && command[length - 1] == '}';
-}
+void CommandManager::Command::reset() {
+	name = "";
 
-void CommandManager::handleJsonCommand(const char *command, int length) {
-	printf("> got JSON command: '%s'\n", command);
-
-	picojson::value info;
-	std::string parseError = picojson::parse(info, command, command + strlen(command));
-	// std::string parseError = picojson::parse(info, command, command + length);
-
-	if (!parseError.empty()) {
-		printf("> parsing command '%s' as json failed (%s)\n", command, parseError.c_str());
-
-		return;
+	for (int i = 0; i < MAX_ARGUMENT_COUNT; i++) {
+		arguments[i] = "";
 	}
 
-	int id = (int)info.get("id").get<double>();
-
-	printf("> command id: %d\n", id);
+	argumentCount = 0;
 }
 
-void CommandManager::handleStringCommand(const char *command, int length) {
-	printf("> got string command: '%s'\n", command);
-}
+void CommandManager::handleCommand(const char *commandText, int length) {
+	printf("> got string command: '%s'\n", commandText);
 
-void CommandManager::handleCommand(const char *command, int length) {
-	if (isJsonCommand(command, length)) {
-		handleJsonCommand(command, length);
-	} else {
-		handleStringCommand(command, length);
+	if ((commandQueueTail - commandQueueHead) == COMMAND_QUEUE_SIZE) {
+		error("command queue fits a maximum of %d commands", COMMAND_QUEUE_SIZE);
 	}
+
+	Command *command = &commandQueue[commandQueueTail % COMMAND_QUEUE_SIZE];
+	command->reset();
+
+	commandQueueTail++;
+
+	bool isFirstDelimiter = true;
+
+	// handle commands like "led:1:ON"
+	for (int i = 0; i < length; i++) {
+		char character = commandText[i];
+
+		if (character == ':') {
+			// handle delimiter
+			if (isFirstDelimiter) {
+				command->name = commandNameBuffer;
+
+				isFirstDelimiter = false;
+				commandNameBuffer = "";
+			} else {
+				if (command->argumentCount == Command::MAX_ARGUMENT_COUNT) {
+					error("command can have a maximum of %d arguments", Command::MAX_ARGUMENT_COUNT);
+				}
+
+				command->arguments[command->argumentCount++] = argumentBuffer;
+
+				argumentBuffer = "";
+			}
+		} else {
+			// handle other characters
+			if (isFirstDelimiter) {
+				commandNameBuffer += character;
+			} else {
+				argumentBuffer += character;
+			}
+		}
+	}
+
+	// handle no delimiters
+	if (isFirstDelimiter && commandNameBuffer.size() > 0) {
+		command->name = commandNameBuffer;
+	}
+
+	// add last argument
+	if (argumentBuffer.size() > 0) {
+		command->arguments[command->argumentCount++] = argumentBuffer;
+	}
+
+	// reset
+	commandNameBuffer = "";
+	argumentBuffer = "";
+}
+
+int CommandManager::getQueuedCommandCount() {
+	return commandQueueTail - commandQueueHead;
+}
+
+CommandManager::Command *CommandManager::getNextCommand() {
+	if (commandQueueHead == commandQueueTail) {
+		return NULL;
+	}
+
+	Command *command = &commandQueue[commandQueueHead % COMMAND_QUEUE_SIZE];
+
+	commandQueueHead++;
+
+	return command;
 }
