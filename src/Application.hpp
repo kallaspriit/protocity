@@ -3,6 +3,7 @@
 
 #include "mbed.h"
 #include "rtos.h"
+#include "Callback.h"
 
 #include "Debug.hpp"
 #include "CommandManager.hpp"
@@ -26,12 +27,19 @@ private:
 
 	void setupTimer();
 	void setupSerial();
+	void setupCommandHandlers();
 	void setupDebug();
 	void setupCommandManager();
 	void setupEthernetManager();
 	void setupSocketServer();
 
+	template<typename T, typename M>
+	void registerCommandHandler(std::string name, int argumentCount, T *obj, M method);
+	void registerCommandHandler(std::string name, int argumentCount, Callback<void(int, std::string[])> func);
+
 	void handleSerialRx();
+
+	void handleLedCommand(int argumentCount, std::string arguments[]);
 
 	void onSocketClientConnected(TCPSocketConnection* client);
 	void onSocketClientDisconnected(TCPSocketConnection* client);
@@ -52,6 +60,8 @@ private:
 	char commandBuffer[MAX_COMMAND_LENGTH + 1];
 	int commandLength = 0;
 	Timer timer;
+
+	 Callback<void(int, std::string[])> _function;
 };
 
 #endif

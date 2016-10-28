@@ -1,7 +1,5 @@
 #include "SocketServer.hpp"
 
-
-
 bool SocketServer::start(EthernetInterface *ethernetInterface, int port) {
 	printf("> starting socket server on port %d\n", port);
 

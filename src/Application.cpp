@@ -1,6 +1,3 @@
-#include "mbed.h"
-#include "rtos.h"
-
 #include "Application.hpp"
 #include "Config.hpp"
 
@@ -54,6 +51,7 @@ void Application::run() {
 void Application::setup() {
 	setupTimer();
 	setupSerial();
+	setupCommandHandlers();
 	setupDebug();
 	setupEthernetManager();
 	setupSocketServer();
@@ -74,6 +72,12 @@ void Application::loop() {
 			printf("    argument %d: %s\n", i, command->arguments[i].c_str());
 		}
 
+		if (command->name == "led") {
+			printf("> calling led callback\n");
+
+			_function.call(command->argumentCount, command->arguments);
+		}
+
 		command = commandManager.getNextCommand();
 	}
 
@@ -89,6 +93,10 @@ void Application::setupSerial() {
 	serial.attach(this, &Application::handleSerialRx, Serial::RxIrq);
 
 	printf("\n\n-- initializing --\n");
+}
+
+void Application::setupCommandHandlers() {
+	registerCommandHandler("led", 2, this, &Application::handleLedCommand);
 }
 
 void Application::setupDebug() {
@@ -110,6 +118,17 @@ void Application::setupEthernetManager() {
 void Application::setupSocketServer() {
 	socketServer.addListener(this);
 	socketServer.start(ethernetManager.getEthernetInterface(), config->socketServerPort);
+}
+
+template<typename T, typename M>
+void Application::registerCommandHandler(std::string name, int argumentCount, T *obj, M method) {
+	registerCommandHandler(name, argumentCount, Callback<void(int, std::string[])>(obj, method));
+}
+
+void Application::registerCommandHandler(std::string name, int argumentCount, Callback<void(int, std::string[])> func) {
+	_function.attach(func);
+
+	printf("> registering command handler for '%s' with %d arguments\n", name.c_str(), argumentCount);
 }
 
 void Application::onSocketClientConnected(TCPSocketConnection* client) {
@@ -138,10 +157,18 @@ void Application::handleSerialRx() {
 		debug.setLedMode(LED_COMMAND_RECEIVED_INDEX, Debug::LedMode::BLINK_ONCE);
 	} else {
 		if (commandLength > MAX_COMMAND_LENGTH - 1) {
-			error("maximum command length is %d characters, stopping at %s", MAX_COMMAND_LENGTH, commandBuffer);
+			error("maximum command length is %d characters, stopping at %s\n", MAX_COMMAND_LENGTH, commandBuffer);
 		}
 
 		commandBuffer[commandLength++] = receivedChar;
 		commandBuffer[commandLength] = '\0';
+	}
+}
+
+void Application::handleLedCommand(int argumentCount, std::string arguments[]) {
+	printf("> handling led command with %d arguments\n", argumentCount);
+
+	for (int i = 0; i < argumentCount; i++) {
+		printf("    argument %d: %s\n", i, arguments[i].c_str());
 	}
 }
