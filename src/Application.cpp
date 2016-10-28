@@ -119,7 +119,7 @@ void Application::consumeCommand(CommandManager::Command *command) {
 
 bool Application::validateCommandArgumentCount(CommandManager::Command *command, int expectedArgumentCount) {
 	if (command->argumentCount != expectedArgumentCount) {
-		printf("%s:ERROR:INVALID_ARG_COUNT:expected %d arguments but %d provided\n", command->name.c_str(), expectedArgumentCount, command->argumentCount);
+		sendMessage("%s:ERROR:INVALID_ARG_COUNT:expected %d arguments but %d provided\n", command->name.c_str(), expectedArgumentCount, command->argumentCount);
 
 		return false;
 	}
@@ -196,7 +196,7 @@ void Application::handleLedCommand(CommandManager::Command *command) {
 	std::string ledModeRequest = command->getString(1);
 
 	if (ledIndex < 0 || ledIndex > 3) {
-		sendMessage("led:ERROR:expected led index between 0 and 3\n");
+		sendMessage("led:ERROR:INVALID_INDEX:expected led index between 0 and 3\n");
 
 		return;
 	}
@@ -216,7 +216,7 @@ void Application::handleLedCommand(CommandManager::Command *command) {
 	} else if (ledModeRequest == "BREATHE") {
 		ledMode = Debug::LedMode::BREATHE;
 	} else {
-		sendMessage("led:ERROR:unsupported led mode '%s' requested for led %d\n", ledModeRequest.c_str(), ledIndex);
+		sendMessage("led:ERROR:INVALID_LED_MODE:unsupported led mode '%s' requested for led %d\n", ledModeRequest.c_str(), ledIndex);
 
 		return;
 	}
