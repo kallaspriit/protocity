@@ -24,9 +24,9 @@ void Application::setup() {
 }
 
 void Application::loop() {
-	// nothing for now
+	consumeQueuedCommands();
 
-	Thread::wait(1000);
+	// Thread::wait(1000);
 }
 
 void Application::setupTimer() {
@@ -65,6 +65,15 @@ void Application::setupEthernetManager() {
 void Application::setupSocketServer() {
 	socketServer.addListener(this);
 	socketServer.start(ethernetManager.getEthernetInterface(), config->socketServerPort);
+}
+
+void Application::sendMessage(const char *fmt, ...) {
+	va_list args;
+    va_start(args, fmt);
+    vprintf(fmt, args);
+	vsprintf(sendBuffer, fmt, args);
+	socketServer.sendMessage(sendBuffer);
+    va_end(args);
 }
 
 template<typename T, typename M>
@@ -108,10 +117,14 @@ void Application::consumeCommand(CommandManager::Command *command) {
 	}
 }
 
-void Application::validateCommandArgumentCount(CommandManager::Command *command, int expectedArgumentCount) {
+bool Application::validateCommandArgumentCount(CommandManager::Command *command, int expectedArgumentCount) {
 	if (command->argumentCount != expectedArgumentCount) {
-		error("> command '%s' expects %d arguments but %d was provided\n", command->name.c_str(), expectedArgumentCount, command->argumentCount);
+		printf("%s:ERROR:INVALID_ARG_COUNT:expected %d arguments but %d provided\n", command->name.c_str(), expectedArgumentCount, command->argumentCount);
+
+		return false;
 	}
+
+	return true;
 }
 
 void Application::onSocketClientConnected(TCPSocketConnection* client) {
@@ -125,7 +138,7 @@ void Application::onSocketClientDisconnected(TCPSocketConnection* client) {
 void Application::onSocketCommandReceived(const char *command, int length) {
 	commandManager.handleCommand(command, length);
 
-	consumeQueuedCommands();
+	//consumeQueuedCommands();
 
 	debug.setLedMode(LED_COMMAND_RECEIVED_INDEX, Debug::LedMode::BLINK_ONCE);
 }
@@ -141,7 +154,7 @@ void Application::handleSerialRx() {
 
 		debug.setLedMode(LED_COMMAND_RECEIVED_INDEX, Debug::LedMode::BLINK_ONCE);
 
-		consumeQueuedCommands();
+		//consumeQueuedCommands();
 	} else {
 		if (commandLength > MAX_COMMAND_LENGTH - 1) {
 			error("maximum command length is %d characters, stopping at %s\n", MAX_COMMAND_LENGTH, commandBuffer);
@@ -153,31 +166,39 @@ void Application::handleSerialRx() {
 }
 
 void Application::handleMemoryCommand(CommandManager::Command *command) {
-	validateCommandArgumentCount(command, 0);
+	if (!validateCommandArgumentCount(command, 0)) {
+		return;
+	}
 
 	int freeMemoryBytes = Debug::getFreeMemoryBytes();
 
-	printf("> free memory: %d bytes\n", freeMemoryBytes);
+	sendMessage("memory:OK:%d\n", freeMemoryBytes);
 }
 
 void Application::handleSumCommand(CommandManager::Command *command) {
-	validateCommandArgumentCount(command, 2);
+	if (!validateCommandArgumentCount(command, 2)) {
+		return;
+	}
 
 	int a = command->getInt(0);
 	int b = command->getInt(1);
 	int sum = a + b;
 
-	printf("> sum of %d+%d=%d\n", a, b, sum);
+	sendMessage("sum:OK:%d:%d:%d\n", a, b, sum);
 }
 
 void Application::handleLedCommand(CommandManager::Command *command) {
-	validateCommandArgumentCount(command, 2);
+	if (!validateCommandArgumentCount(command, 2)) {
+		return;
+	}
 
 	int ledIndex = command->getInt(0);
 	std::string ledModeRequest = command->getString(1);
 
 	if (ledIndex < 0 || ledIndex > 3) {
-		error("> expected led index between 0 and 3");
+		sendMessage("led:ERROR:expected led index between 0 and 3\n");
+
+		return;
 	}
 
 	Debug::LedMode ledMode = Debug::LedMode::OFF;
@@ -195,10 +216,12 @@ void Application::handleLedCommand(CommandManager::Command *command) {
 	} else if (ledModeRequest == "BREATHE") {
 		ledMode = Debug::LedMode::BREATHE;
 	} else {
-		error("unsupported led mode '%s' requested for led %d", ledModeRequest.c_str(), ledIndex);
+		sendMessage("led:ERROR:unsupported led mode '%s' requested for led %d\n", ledModeRequest.c_str(), ledIndex);
+
+		return;
 	}
 
 	debug.setLedMode(ledIndex, ledMode);
 
-	printf("> setting led %d to %s\n", ledIndex, ledModeRequest.c_str());
+	sendMessage("led:OK:%d:%s\n", ledIndex, ledModeRequest.c_str());
 }

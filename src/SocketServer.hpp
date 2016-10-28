@@ -21,6 +21,7 @@ public:
 	bool start(EthernetInterface *ethernetInterface, int port = 8080);
 	bool isClientConnected();
 	TCPSocketConnection *getConnectedClient();
+	bool sendMessage(std::string message);
 	bool sendMessage(char *message, int length);
 
 	void addListener(SocketServerListener *socketServerListener);
@@ -34,7 +35,9 @@ private:
 	Thread listenThread;
 
 	static const int MAX_COMMAND_LENGTH = 64;
+	static const int SEND_BUFFER_SIZE = 64;
 	char commandBuffer[MAX_COMMAND_LENGTH + 1];
+	char sendBuffer[SEND_BUFFER_SIZE];
 	int commandLength = 0;
 
 	std::vector<SocketServerListener*> listeners;

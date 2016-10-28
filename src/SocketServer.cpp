@@ -121,6 +121,14 @@ TCPSocketConnection *SocketServer::getConnectedClient() {
 	return connectedClient;
 }
 
+bool SocketServer::sendMessage(std::string message) {
+	strcpy(sendBuffer, message.c_str());
+
+	bool result = sendMessage(sendBuffer, message.length());
+
+	return result;
+}
+
 bool SocketServer::sendMessage(char *message, int length) {
 	if (!isClientConnected()) {
 		return false;
@@ -128,6 +136,8 @@ bool SocketServer::sendMessage(char *message, int length) {
 
 	// echo received message back to client
 	int sentBytes = connectedClient->send_all(message, length);
+
+	// delete [] message;
 
 	// close client if sending failed
 	if (sentBytes == -1) {

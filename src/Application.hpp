@@ -35,12 +35,14 @@ private:
 	void setupEthernetManager();
 	void setupSocketServer();
 
+	void sendMessage(const char *fmt, ...);
+
 	template<typename T, typename M>
 	void registerCommandHandler(std::string name, T *obj, M method);
 	void registerCommandHandler(std::string name, Callback<void(CommandManager::Command*)> func);
 	void consumeQueuedCommands();
 	void consumeCommand(CommandManager::Command *command);
-	void validateCommandArgumentCount(CommandManager::Command *command, int expectedArgumentCount);
+	bool validateCommandArgumentCount(CommandManager::Command *command, int expectedArgumentCount);
 
 	void handleSerialRx();
 
@@ -56,6 +58,7 @@ private:
 	const int LED_COMMAND_RECEIVED_INDEX = 1;
 	const int LED_ETHERNET_STATUS_INDEX = 2;
 	static const int MAX_COMMAND_LENGTH = 64;
+	static const int SEND_BUFFER_SIZE = 64;
 
 	Config *config = NULL;
 	Serial serial;
@@ -63,10 +66,11 @@ private:
 	CommandManager commandManager;
 	EthernetManager ethernetManager;
 	SocketServer socketServer;
+	Timer timer;
 
 	char commandBuffer[MAX_COMMAND_LENGTH + 1];
+	char sendBuffer[SEND_BUFFER_SIZE];
 	int commandLength = 0;
-	Timer timer;
 
 	typedef std::map<std::string, Callback<void(CommandManager::Command*)>> CommandHandlerMap;
 	CommandHandlerMap commandHandlerMap;
