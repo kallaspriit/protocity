@@ -1,40 +1,6 @@
 #include "Application.hpp"
 #include "Config.hpp"
 
-#include <stdio.h>
-#include <stdlib.h>
-#define FREEMEM_CELL 10
-struct elem { /* Definition of a structure that is FREEMEM_CELL bytes  in size.) */
-    struct elem *next;
-    char dummy[FREEMEM_CELL-2];
-};
-int getFreeMemory(void) {
-    int counter;
-    struct elem *head, *current, *nextone;
-    current = head = (struct elem*) malloc(sizeof(struct elem));
-    if (head == NULL)
-        return 0;      /*No memory available.*/
-    counter = 0;
-   // __disable_irq();
-    do {
-        counter++;
-        current->next = (struct elem*) malloc(sizeof(struct elem));
-        current = current->next;
-    } while (current != NULL);
-    /* Now counter holds the number of type elem
-       structures we were able to allocate. We
-       must free them all before returning. */
-    current = head;
-    do {
-        nextone = current->next;
-        free(current);
-        current = nextone;
-    } while (nextone != NULL);
-   // __enable_irq();
-
-    return counter*FREEMEM_CELL;
-}
-
 Application::Application(Config *config) :
 	config(config),
 	serial(config->serialTxPin, config->serialRxPin)
@@ -58,30 +24,9 @@ void Application::setup() {
 }
 
 void Application::loop() {
-	int freeMemoryBytes = getFreeMemory();
-	int queuedCommandCount = commandManager.getQueuedCommandCount();
+	// nothing for now
 
-	printf("> main loop %f, free memory: %d, queued commands: %d\n", timer.read(), freeMemoryBytes, queuedCommandCount);
-
-	CommandManager::Command *command = commandManager.getNextCommand();
-
-	while (command != NULL) {
-		printf("  handle command '%s' with %d arguments\n", command->name.c_str(), command->argumentCount);
-
-		for (int i = 0; i < command->argumentCount; i++) {
-			printf("    argument %d: %s\n", i, command->arguments[i].c_str());
-		}
-
-		if (command->name == "led") {
-			printf("> calling led callback\n");
-
-			_function.call(command->argumentCount, command->arguments);
-		}
-
-		command = commandManager.getNextCommand();
-	}
-
-	Thread::wait(10000);
+	Thread::wait(1000);
 }
 
 void Application::setupTimer() {
@@ -96,7 +41,9 @@ void Application::setupSerial() {
 }
 
 void Application::setupCommandHandlers() {
-	registerCommandHandler("led", 2, this, &Application::handleLedCommand);
+	registerCommandHandler("memory", this, &Application::handleMemoryCommand);
+	registerCommandHandler("sum", this, &Application::handleSumCommand);
+	registerCommandHandler("led", this, &Application::handleLedCommand);
 }
 
 void Application::setupDebug() {
@@ -121,14 +68,50 @@ void Application::setupSocketServer() {
 }
 
 template<typename T, typename M>
-void Application::registerCommandHandler(std::string name, int argumentCount, T *obj, M method) {
-	registerCommandHandler(name, argumentCount, Callback<void(int, std::string[])>(obj, method));
+void Application::registerCommandHandler(std::string name, T *obj, M method) {
+	registerCommandHandler(name, Callback<void(CommandManager::Command*)>(obj, method));
 }
 
-void Application::registerCommandHandler(std::string name, int argumentCount, Callback<void(int, std::string[])> func) {
-	_function.attach(func);
+void Application::registerCommandHandler(std::string name, Callback<void(CommandManager::Command*)> func) {
+	commandHandlerMap[name].attach(func);
 
-	printf("> registering command handler for '%s' with %d arguments\n", name.c_str(), argumentCount);
+	printf("> registering command handler for '%s'\n", name.c_str());
+}
+
+void Application::consumeQueuedCommands() {
+	CommandManager::Command *command = commandManager.getNextCommand();
+
+	while (command != NULL) {
+		consumeCommand(command);
+
+		command = commandManager.getNextCommand();
+	}
+}
+
+void Application::consumeCommand(CommandManager::Command *command) {
+	CommandHandlerMap::iterator commandIt = commandHandlerMap.find(command->name);
+
+	if (commandIt != commandHandlerMap.end()) {
+		printf("> calling command handler for '%s'\n", command->name.c_str());
+
+		for (int i = 0; i < command->argumentCount; i++) {
+			printf("    argument %d: %s\n", i, command->arguments[i].c_str());
+		}
+
+		commandIt->second.call(command);
+	} else {
+		printf("> command handler for '%s' has not been registered\n", command->name.c_str());
+
+		for (int i = 0; i < command->argumentCount; i++) {
+			printf("  argument %d: %s\n", i, command->arguments[i].c_str());
+		}
+	}
+}
+
+void Application::validateCommandArgumentCount(CommandManager::Command *command, int expectedArgumentCount) {
+	if (command->argumentCount != expectedArgumentCount) {
+		error("> command '%s' expects %d arguments but %d was provided\n", command->name.c_str(), expectedArgumentCount, command->argumentCount);
+	}
 }
 
 void Application::onSocketClientConnected(TCPSocketConnection* client) {
@@ -141,6 +124,8 @@ void Application::onSocketClientDisconnected(TCPSocketConnection* client) {
 
 void Application::onSocketCommandReceived(const char *command, int length) {
 	commandManager.handleCommand(command, length);
+
+	consumeQueuedCommands();
 
 	debug.setLedMode(LED_COMMAND_RECEIVED_INDEX, Debug::LedMode::BLINK_ONCE);
 }
@@ -155,6 +140,8 @@ void Application::handleSerialRx() {
 		commandLength = 0;
 
 		debug.setLedMode(LED_COMMAND_RECEIVED_INDEX, Debug::LedMode::BLINK_ONCE);
+
+		consumeQueuedCommands();
 	} else {
 		if (commandLength > MAX_COMMAND_LENGTH - 1) {
 			error("maximum command length is %d characters, stopping at %s\n", MAX_COMMAND_LENGTH, commandBuffer);
@@ -165,10 +152,53 @@ void Application::handleSerialRx() {
 	}
 }
 
-void Application::handleLedCommand(int argumentCount, std::string arguments[]) {
-	printf("> handling led command with %d arguments\n", argumentCount);
+void Application::handleMemoryCommand(CommandManager::Command *command) {
+	validateCommandArgumentCount(command, 0);
 
-	for (int i = 0; i < argumentCount; i++) {
-		printf("    argument %d: %s\n", i, arguments[i].c_str());
+	int freeMemoryBytes = Debug::getFreeMemoryBytes();
+
+	printf("> free memory: %d bytes\n", freeMemoryBytes);
+}
+
+void Application::handleSumCommand(CommandManager::Command *command) {
+	validateCommandArgumentCount(command, 2);
+
+	int a = command->getInt(0);
+	int b = command->getInt(1);
+	int sum = a + b;
+
+	printf("> sum of %d+%d=%d\n", a, b, sum);
+}
+
+void Application::handleLedCommand(CommandManager::Command *command) {
+	validateCommandArgumentCount(command, 2);
+
+	int ledIndex = command->getInt(0);
+	std::string ledModeRequest = command->getString(1);
+
+	if (ledIndex < 0 || ledIndex > 3) {
+		error("> expected led index between 0 and 3");
 	}
+
+	Debug::LedMode ledMode = Debug::LedMode::OFF;
+
+	if (ledModeRequest == "OFF") {
+		ledMode = Debug::LedMode::OFF;
+	} else if (ledModeRequest == "ON") {
+		ledMode = Debug::LedMode::ON;
+	} else if (ledModeRequest == "BLINK_SLOW") {
+		ledMode = Debug::LedMode::BLINK_SLOW;
+	} else if (ledModeRequest == "BLINK_FAST") {
+		ledMode = Debug::LedMode::BLINK_FAST;
+	} else if (ledModeRequest == "BLINK_ONCE") {
+		ledMode = Debug::LedMode::BLINK_ONCE;
+	} else if (ledModeRequest == "BREATHE") {
+		ledMode = Debug::LedMode::BREATHE;
+	} else {
+		error("unsupported led mode '%s' requested for led %d", ledModeRequest.c_str(), ledIndex);
+	}
+
+	debug.setLedMode(ledIndex, ledMode);
+
+	printf("> setting led %d to %s\n", ledIndex, ledModeRequest.c_str());
 }

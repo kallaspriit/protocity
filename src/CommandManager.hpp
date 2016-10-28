@@ -15,6 +15,14 @@ public:
 		int argumentCount = 0;
 
 		void reset();
+
+		std::string getString(int argumentIndex);
+		int getInt(int argumentIndex);
+		float getFloat(int argumentIndex);
+		double getDouble(int argumentIndex);
+
+	private:
+		void validateArgumentIndex(int argumentIndex);
 	};
 
 	void handleCommand(const char *command, int length);

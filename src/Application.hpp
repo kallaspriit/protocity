@@ -10,6 +10,8 @@
 #include "EthernetManager.hpp"
 #include "SocketServer.hpp"
 
+#include <map>
+
 class Config;
 class EthernetManager;
 class TCPSocketConnection;
@@ -34,12 +36,17 @@ private:
 	void setupSocketServer();
 
 	template<typename T, typename M>
-	void registerCommandHandler(std::string name, int argumentCount, T *obj, M method);
-	void registerCommandHandler(std::string name, int argumentCount, Callback<void(int, std::string[])> func);
+	void registerCommandHandler(std::string name, T *obj, M method);
+	void registerCommandHandler(std::string name, Callback<void(CommandManager::Command*)> func);
+	void consumeQueuedCommands();
+	void consumeCommand(CommandManager::Command *command);
+	void validateCommandArgumentCount(CommandManager::Command *command, int expectedArgumentCount);
 
 	void handleSerialRx();
 
-	void handleLedCommand(int argumentCount, std::string arguments[]);
+	void handleMemoryCommand(CommandManager::Command *command);
+	void handleSumCommand(CommandManager::Command *command);
+	void handleLedCommand(CommandManager::Command *command);
 
 	void onSocketClientConnected(TCPSocketConnection* client);
 	void onSocketClientDisconnected(TCPSocketConnection* client);
@@ -61,7 +68,8 @@ private:
 	int commandLength = 0;
 	Timer timer;
 
-	 Callback<void(int, std::string[])> _function;
+	typedef std::map<std::string, Callback<void(CommandManager::Command*)>> CommandHandlerMap;
+	CommandHandlerMap commandHandlerMap;
 };
 
 #endif

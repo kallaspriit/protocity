@@ -5,6 +5,8 @@
 #include "Config.hpp"
 
 #include <algorithm>
+#include <stdio.h>
+#include <stdlib.h>
 
 Debug::Debug() {
 	ledUpdateThread.start(this, &Debug::runLedUpdateThread);
@@ -115,4 +117,37 @@ void Debug::runLedUpdateThread() {
 
 		Thread::wait(frameDuration);
 	}
+}
+
+int Debug::getFreeMemoryBytes() {
+    int counter;
+    struct FreeMemoryTestElement *head, *current, *nextone;
+
+    current = head = (struct FreeMemoryTestElement*) malloc(sizeof(struct FreeMemoryTestElement));
+
+    if (head == NULL) {
+        return 0;
+	}
+
+    counter = 0;
+
+    // __disable_irq();
+
+    do {
+        counter++;
+        current->next = (struct FreeMemoryTestElement*)malloc(sizeof(struct FreeMemoryTestElement));
+        current = current->next;
+    } while (current != NULL);
+
+    current = head;
+
+    do {
+        nextone = current->next;
+        free(current);
+        current = nextone;
+    } while (nextone != NULL);
+
+    // __enable_irq();
+
+    return counter * FREE_MEMORY_CELL_SIZE;
 }

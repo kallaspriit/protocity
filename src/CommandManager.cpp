@@ -2,6 +2,8 @@
 
 #include "CommandManager.hpp"
 
+#include <string>
+
 void CommandManager::Command::reset() {
 	name = "";
 
@@ -12,11 +14,39 @@ void CommandManager::Command::reset() {
 	argumentCount = 0;
 }
 
+std::string CommandManager::Command::getString(int argumentIndex){
+	validateArgumentIndex(argumentIndex);
+
+	return arguments[argumentIndex];
+}
+
+int CommandManager::Command::getInt(int argumentIndex){
+	validateArgumentIndex(argumentIndex);
+
+	return atoi(arguments[argumentIndex].c_str());
+}
+
+float CommandManager::Command::getFloat(int argumentIndex){
+	validateArgumentIndex(argumentIndex);
+
+	return atof(arguments[argumentIndex].c_str());
+}
+
+double CommandManager::Command::getDouble(int argumentIndex) {
+	return (double)getFloat(argumentIndex);
+}
+
+void CommandManager::Command::validateArgumentIndex(int argumentIndex) {
+	if (argumentIndex > argumentCount - 1) {
+		error("requested argument with index #%d but there are only %d arguments provided\n", argumentIndex, argumentCount);
+	}
+}
+
 void CommandManager::handleCommand(const char *commandText, int length) {
 	printf("> got string command: '%s'\n", commandText);
 
 	if ((commandQueueTail - commandQueueHead) == COMMAND_QUEUE_SIZE) {
-		error("command queue fits a maximum of %d commands", COMMAND_QUEUE_SIZE);
+		error("command queue fits a maximum of %d commands\n", COMMAND_QUEUE_SIZE);
 	}
 
 	Command *command = &commandQueue[commandQueueTail % COMMAND_QUEUE_SIZE];
