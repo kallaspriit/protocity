@@ -42,7 +42,7 @@ void CommandManager::Command::validateArgumentIndex(int argumentIndex) {
 	}
 }
 
-void CommandManager::handleCommand(const char *commandText, int length) {
+void CommandManager::handleCommand(int sourceId, const char *commandText, int length) {
 	printf("> got string command: '%s'\n", commandText);
 
 	if ((commandQueueTail - commandQueueHead) == COMMAND_QUEUE_SIZE) {
@@ -52,6 +52,7 @@ void CommandManager::handleCommand(const char *commandText, int length) {
 	// select command from the ring-buffer
 	Command *command = &commandQueue[commandQueueTail % COMMAND_QUEUE_SIZE];
 	command->reset();
+	command->sourceId = sourceId;
 
 	// keep count of how many ":" delimiters we have seen
 	int delimiterCount = 0;

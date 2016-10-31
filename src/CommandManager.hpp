@@ -10,6 +10,7 @@ public:
 	public:
 		static const int MAX_ARGUMENT_COUNT = 8;
 
+		int sourceId = 0;
 		int id = 0;
 		int argumentCount = 0;
 		std::string name = "";
@@ -26,7 +27,7 @@ public:
 		void validateArgumentIndex(int argumentIndex);
 	};
 
-	void handleCommand(const char *command, int length);
+	void handleCommand(int sourceId, const char *command, int length);
 	int getQueuedCommandCount();
 	CommandManager::Command *getNextCommand();
 

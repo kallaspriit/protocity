@@ -41,16 +41,22 @@ void Application::setupSerial() {
 }
 
 void Application::setupCommandHandlers() {
+	printf("> setting up command handlers\n");
+
 	registerCommandHandler("memory", this, &Application::handleMemoryCommand);
 	registerCommandHandler("sum", this, &Application::handleSumCommand);
 	registerCommandHandler("led", this, &Application::handleLedCommand);
 }
 
 void Application::setupDebug() {
+	printf("> setting up debugging\n");
+
 	debug.setLedMode(LED_BREATHE_INDEX, Debug::LedMode::BREATHE);
 }
 
 void Application::setupEthernetManager() {
+	printf("> setting up ethernet manager\n");
+
 	debug.setLedMode(LED_ETHERNET_STATUS_INDEX, Debug::LedMode::BLINK_FAST);
 
 	bool isConnected = ethernetManager.initialize();
@@ -63,10 +69,13 @@ void Application::setupEthernetManager() {
 }
 
 void Application::setupSocketServer() {
+	printf("> setting up socket server\n");
+
 	socketServer.addListener(this);
 	socketServer.start(ethernetManager.getEthernetInterface(), config->socketServerPort);
 }
 
+// TODO replace this with proper response model
 void Application::sendMessage(const char *fmt, ...) {
 	va_list args;
     va_start(args, fmt);
@@ -82,9 +91,9 @@ void Application::registerCommandHandler(std::string name, T *obj, M method) {
 }
 
 void Application::registerCommandHandler(std::string name, Callback<void(CommandManager::Command*)> func) {
-	commandHandlerMap[name].attach(func);
-
 	printf("> registering command handler for '%s'\n", name.c_str());
+
+	commandHandlerMap[name].attach(func);
 }
 
 void Application::consumeQueuedCommands() {
@@ -101,7 +110,7 @@ void Application::consumeCommand(CommandManager::Command *command) {
 	CommandHandlerMap::iterator commandIt = commandHandlerMap.find(command->name);
 
 	if (commandIt != commandHandlerMap.end()) {
-		printf("> calling command handler for #%d '%s'\n", command->id, command->name.c_str());
+		printf("> calling command handler for #%d '%s' (source: %d)\n", command->id, command->name.c_str(), command->sourceId);
 
 		for (int i = 0; i < command->argumentCount; i++) {
 			printf("    argument %d: %s\n", i, command->arguments[i].c_str());
@@ -109,7 +118,7 @@ void Application::consumeCommand(CommandManager::Command *command) {
 
 		commandIt->second.call(command);
 	} else {
-		printf("> command handler for #%d '%s' has not been registered\n", command->id, command->name.c_str());
+		printf("> command handler for #%d '%s' (source: %d) has not been registered\n", command->id, command->name.c_str(), command->sourceId);
 
 		for (int i = 0; i < command->argumentCount; i++) {
 			printf("  argument %d: %s\n", i, command->arguments[i].c_str());
@@ -136,7 +145,7 @@ void Application::onSocketClientDisconnected(TCPSocketConnection* client) {
 }
 
 void Application::onSocketCommandReceived(const char *command, int length) {
-	commandManager.handleCommand(command, length);
+	commandManager.handleCommand(CommandSource::SOCKET, command, length);
 
 	//consumeQueuedCommands();
 
@@ -147,7 +156,7 @@ void Application::handleSerialRx() {
 	char receivedChar = serial.getc();
 
 	if (receivedChar == '\n') {
-		commandManager.handleCommand(commandBuffer, commandLength);
+		commandManager.handleCommand(CommandSource::SERIAL, commandBuffer, commandLength);
 
 		commandBuffer[0] = '\0';
 		commandLength = 0;

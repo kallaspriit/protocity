@@ -24,6 +24,11 @@ public:
 	void run();
 
 private:
+	enum CommandSource {
+		SOCKET,
+		SERIAL
+	};
+
 	void setup();
 	void loop();
 

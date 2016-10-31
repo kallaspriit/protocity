@@ -9,6 +9,7 @@ Lego IoT smart city demo.
 
 ## Changelog
 **31.10.2016**
+- Implemented request source handling.
 - Implemented command request id parsing.
 - Added changelog and todo list.
 
