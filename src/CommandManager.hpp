@@ -10,9 +10,10 @@ public:
 	public:
 		static const int MAX_ARGUMENT_COUNT = 8;
 
+		int id = 0;
+		int argumentCount = 0;
 		std::string name = "";
 		std::string arguments[MAX_ARGUMENT_COUNT];
-		int argumentCount = 0;
 
 		void reset();
 
@@ -35,6 +36,7 @@ private:
 	Command commandQueue[COMMAND_QUEUE_SIZE];
 	int commandQueueTail = 0;
 	int commandQueueHead = 0;
+	std::string commandIdBuffer;
 	std::string commandNameBuffer;
 	std::string argumentBuffer;
 

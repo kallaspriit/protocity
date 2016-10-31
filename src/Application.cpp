@@ -101,7 +101,7 @@ void Application::consumeCommand(CommandManager::Command *command) {
 	CommandHandlerMap::iterator commandIt = commandHandlerMap.find(command->name);
 
 	if (commandIt != commandHandlerMap.end()) {
-		printf("> calling command handler for '%s'\n", command->name.c_str());
+		printf("> calling command handler for #%d '%s'\n", command->id, command->name.c_str());
 
 		for (int i = 0; i < command->argumentCount; i++) {
 			printf("    argument %d: %s\n", i, command->arguments[i].c_str());
@@ -109,7 +109,7 @@ void Application::consumeCommand(CommandManager::Command *command) {
 
 		commandIt->second.call(command);
 	} else {
-		printf("> command handler for '%s' has not been registered\n", command->name.c_str());
+		printf("> command handler for #%d '%s' has not been registered\n", command->id, command->name.c_str());
 
 		for (int i = 0; i < command->argumentCount; i++) {
 			printf("  argument %d: %s\n", i, command->arguments[i].c_str());

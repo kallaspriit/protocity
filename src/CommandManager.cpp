@@ -49,27 +49,33 @@ void CommandManager::handleCommand(const char *commandText, int length) {
 		error("command queue fits a maximum of %d commands\n", COMMAND_QUEUE_SIZE);
 	}
 
+	// select command from the ring-buffer
 	Command *command = &commandQueue[commandQueueTail % COMMAND_QUEUE_SIZE];
 	command->reset();
 
-	commandQueueTail++;
+	// keep count of how many ":" delimiters we have seen
+	int delimiterCount = 0;
 
-	bool isFirstDelimiter = true;
-
-	// handle commands like "led:1:ON"
+	// handle commands like ID:NAME:arg1:arg2:argN, for example 1:led:1:ON
 	for (int i = 0; i < length; i++) {
 		char character = commandText[i];
 
+		// handle delimiter
 		if (character == ':') {
-			// handle delimiter
-			if (isFirstDelimiter) {
-				command->name = commandNameBuffer;
+			delimiterCount++;
 
-				isFirstDelimiter = false;
+			// handle id, name and arguments
+			if (delimiterCount == 1) {
+				command->id = atoi(commandIdBuffer.c_str());
+				commandIdBuffer = "";
+			} else if (delimiterCount == 2) {
+				command->name = commandNameBuffer;
 				commandNameBuffer = "";
 			} else {
 				if (command->argumentCount == Command::MAX_ARGUMENT_COUNT) {
-					error("command can have a maximum of %d arguments", Command::MAX_ARGUMENT_COUNT);
+					printf("> command can have a maximum of %d arguments\n", Command::MAX_ARGUMENT_COUNT);
+
+					return;
 				}
 
 				command->arguments[command->argumentCount++] = argumentBuffer;
@@ -78,7 +84,9 @@ void CommandManager::handleCommand(const char *commandText, int length) {
 			}
 		} else {
 			// handle other characters
-			if (isFirstDelimiter) {
+			if (delimiterCount == 0) {
+				commandIdBuffer += character;
+			} else if (delimiterCount == 1) {
 				commandNameBuffer += character;
 			} else {
 				argumentBuffer += character;
@@ -86,19 +94,35 @@ void CommandManager::handleCommand(const char *commandText, int length) {
 		}
 	}
 
+	if (delimiterCount == 0) {
+		printf("> expected commands in the format of ID:NAME:arg1:arg2:argN\n");
+
+		return;
+	}
+
 	// handle no delimiters
-	if (isFirstDelimiter && commandNameBuffer.size() > 0) {
+	if (delimiterCount == 1 && commandNameBuffer.size() > 0) {
 		command->name = commandNameBuffer;
 	}
 
 	// add last argument
 	if (argumentBuffer.size() > 0) {
+		if (command->argumentCount == Command::MAX_ARGUMENT_COUNT) {
+			printf("> command can have a maximum of %d arguments\n", Command::MAX_ARGUMENT_COUNT);
+
+			return;
+		}
+
 		command->arguments[command->argumentCount++] = argumentBuffer;
 	}
 
 	// reset
+	commandIdBuffer = "";
 	commandNameBuffer = "";
 	argumentBuffer = "";
+
+	// increment command count
+	commandQueueTail++;
 }
 
 int CommandManager::getQueuedCommandCount() {
