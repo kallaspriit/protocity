@@ -42,8 +42,26 @@ void CommandManager::Command::validateArgumentIndex(int argumentIndex) {
 	}
 }
 
+CommandManager::Command::Response::Response(int requestId) {
+	this->requestId = requestId;
+}
+
+std::string CommandManager::Command::Response::getResponseText() {
+	snprintf(responseTextBuffer, MAX_RESPONSE_TEXT_LENGTH, "%d:OK", requestId);
+
+	return std::string(responseTextBuffer);
+}
+
+CommandManager::Command::Response CommandManager::Command::createSuccessResponse(/*const char* fmt...*/) {
+	return CommandManager::Command::Response(id);
+}
+
+CommandManager::Command::Response CommandManager::Command::createFailureResponse(/*const char* fmt...*/) {
+	return CommandManager::Command::Response(id);
+}
+
 void CommandManager::handleCommand(int sourceId, const char *commandText, int length) {
-	printf("> got string command: '%s'\n", commandText);
+	printf("< %s\n", commandText);
 
 	if ((commandQueueTail - commandQueueHead) == COMMAND_QUEUE_SIZE) {
 		error("command queue fits a maximum of %d commands\n", COMMAND_QUEUE_SIZE);
@@ -74,7 +92,7 @@ void CommandManager::handleCommand(int sourceId, const char *commandText, int le
 				commandNameBuffer = "";
 			} else {
 				if (command->argumentCount == Command::MAX_ARGUMENT_COUNT) {
-					printf("> command can have a maximum of %d arguments\n", Command::MAX_ARGUMENT_COUNT);
+					printf("# command can have a maximum of %d arguments\n", Command::MAX_ARGUMENT_COUNT);
 
 					return;
 				}
@@ -96,7 +114,7 @@ void CommandManager::handleCommand(int sourceId, const char *commandText, int le
 	}
 
 	if (delimiterCount == 0) {
-		printf("> expected commands in the format of ID:NAME:arg1:arg2:argN\n");
+		printf("# expected commands in the format of ID:NAME:arg1:arg2:argN\n");
 
 		return;
 	}
@@ -109,7 +127,7 @@ void CommandManager::handleCommand(int sourceId, const char *commandText, int le
 	// add last argument
 	if (argumentBuffer.size() > 0) {
 		if (command->argumentCount == Command::MAX_ARGUMENT_COUNT) {
-			printf("> command can have a maximum of %d arguments\n", Command::MAX_ARGUMENT_COUNT);
+			printf("# command can have a maximum of %d arguments\n", Command::MAX_ARGUMENT_COUNT);
 
 			return;
 		}

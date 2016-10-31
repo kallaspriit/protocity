@@ -8,6 +8,24 @@ class CommandManager {
 public:
 	class Command {
 	public:
+		class Response {
+
+		public:
+			Response(int requestId);
+
+			static const int MAX_ARGUMENT_COUNT = 8;
+			static const int MAX_RESPONSE_TEXT_LENGTH = 64;
+
+			int requestId;
+			int argumentCount = 0;
+			std::string arguments[MAX_ARGUMENT_COUNT];
+
+			std::string getResponseText();
+
+		private:
+			char responseTextBuffer[MAX_RESPONSE_TEXT_LENGTH];
+		};
+
 		static const int MAX_ARGUMENT_COUNT = 8;
 
 		int sourceId = 0;
@@ -22,6 +40,9 @@ public:
 		int getInt(int argumentIndex);
 		float getFloat(int argumentIndex);
 		double getDouble(int argumentIndex);
+
+		CommandManager::Command::Response createSuccessResponse();
+		CommandManager::Command::Response createFailureResponse();
 
 	private:
 		void validateArgumentIndex(int argumentIndex);
