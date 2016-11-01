@@ -47,17 +47,75 @@ CommandManager::Command::Response::Response(int requestId) {
 }
 
 std::string CommandManager::Command::Response::getResponseText() {
+	if (errorMessage.length() == 0) {
+		return getSuccessResponseText();
+	} else {
+		return getErrorResponseText();
+	}
+}
+
+std::string CommandManager::Command::Response::getSuccessResponseText() {
 	snprintf(responseTextBuffer, MAX_RESPONSE_TEXT_LENGTH, "%d:OK", requestId);
 
+	std::string responseText = std::string(responseTextBuffer);
+
+	for (int i = 0; i < argumentCount; i++) {
+		responseText += ":" + arguments[i];
+	}
+
+	return responseText;
+}
+
+std::string CommandManager::Command::Response::getErrorResponseText() {
+	snprintf(responseTextBuffer, MAX_RESPONSE_TEXT_LENGTH, "%d:ERROR:%s", requestId, errorMessage.c_str());
+
 	return std::string(responseTextBuffer);
+}
+
+void CommandManager::Command::Response::addArgument(std::string argument) {
+	if (argumentCount == MAX_ARGUMENT_COUNT) {
+		error("response can have a maximum of %d arguments", MAX_ARGUMENT_COUNT);
+	}
+
+	arguments[argumentCount++] = argument;
 }
 
 CommandManager::Command::Response CommandManager::Command::createSuccessResponse(/*const char* fmt...*/) {
 	return CommandManager::Command::Response(id);
 }
 
-CommandManager::Command::Response CommandManager::Command::createFailureResponse(/*const char* fmt...*/) {
-	return CommandManager::Command::Response(id);
+CommandManager::Command::Response CommandManager::Command::createSuccessResponse(int value) {
+	CommandManager::Command::Response response(id);
+
+	char buf[10];
+	sprintf(buf, "%d", value);
+
+	response.addArgument(buf);
+
+	return response;
+}
+
+CommandManager::Command::Response CommandManager::Command::createSuccessResponse(float value) {
+	CommandManager::Command::Response response(id);
+
+	char buf[10];
+	sprintf(buf, "%f", value);
+
+	response.addArgument(buf);
+
+	return response;
+}
+
+CommandManager::Command::Response CommandManager::Command::createFailureResponse() {
+	return createFailureResponse("error occured");
+}
+
+CommandManager::Command::Response CommandManager::Command::createFailureResponse(std::string errorMessage) {
+	CommandManager::Command::Response response(id);
+
+	response.errorMessage = errorMessage;
+
+	return response;
 }
 
 void CommandManager::handleCommand(int sourceId, const char *commandText, int length) {

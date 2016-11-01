@@ -8,6 +8,9 @@ Lego IoT smart city demo.
 - Flash like police sirens if a hard fault condition is detected in the code or by the platform (such as out-of-memory).
 
 ## Changelog
+**01.11.2016**
+- Implemented command response data logic.
+
 **31.10.2016**
 - Improved command response logic.
 - Implemented request source handling.

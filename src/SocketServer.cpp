@@ -1,14 +1,14 @@
 #include "SocketServer.hpp"
 
 bool SocketServer::start(EthernetInterface *ethernetInterface, int port) {
-	printf("> starting socket server on port %d\n", port);
+	printf("# starting socket server on port %d\n", port);
 
     int bindResult = tpcSocketServer.bind(port);
 
 	if (bindResult == 0) {
-		printf("  binding to port %d was successful\n", port);
+		printf("#  binding to port %d was successful\n", port);
 	} else {
-		printf("  binding to port %d failed\n", port);
+		printf("#  binding to port %d failed\n", port);
 
 		return false;
 	}
@@ -16,9 +16,9 @@ bool SocketServer::start(EthernetInterface *ethernetInterface, int port) {
     int listenResult = tpcSocketServer.listen();
 
 	if (listenResult == 0) {
-		printf("  listening on port %d was successful\n", port);
+		printf("#  listening on port %d was successful\n", port);
 	} else {
-		printf("  listening on port %d failed\n", port);
+		printf("#  listening on port %d failed\n", port);
 
 		return false;
 	}
@@ -29,23 +29,23 @@ bool SocketServer::start(EthernetInterface *ethernetInterface, int port) {
 }
 
 void SocketServer::runListenThread() {
-	printf("> starting socket server listen thread\n");
+	printf("# starting socket server listen thread\n");
 
 	while (true) {
-        printf("> waiting for new connection...\n");
+        printf("# waiting for new connection...\n");
 
         TCPSocketConnection client;
         int acceptResult = tpcSocketServer.accept(client);
 
 		if (acceptResult != 0) {
-			printf("> accepting new client failed\n");
+			printf("# accepting new client failed\n");
 
 			break;
 		}
 
         client.set_blocking(false, SOCKET_RECEIVE_TIMEOUT_MS);
 
-        printf("> got socket connection from: %s\n", client.get_address());
+        printf("# got socket connection from: %s\n", client.get_address());
 
 		connectedClient = &client;
 
@@ -59,7 +59,7 @@ void SocketServer::runListenThread() {
         while (true) {
 			// check whether the connection is still valid
 			if (!client.is_connected()) {
-				printf("> socket connection to %s has been closed\n", client.get_address());
+				printf("# socket connection to %s has been closed\n", client.get_address());
 
 				// notify listeners
 				for (std::vector<SocketServerListener*>::iterator it = listeners.begin(); it != listeners.end(); ++it) {
@@ -87,7 +87,7 @@ void SocketServer::runListenThread() {
 				if (receivedChar == '\n') {
 					// only display the message if no listeners have been registered
 					if (listeners.size() == 0) {
-						printf("> received command: '%s'\n", commandBuffer);
+						printf("# received command: '%s'\n", commandBuffer);
 					}
 
 					// notify all message listeners
@@ -141,7 +141,8 @@ bool SocketServer::sendMessage(char *message, int length) {
 
 	// close client if sending failed
 	if (sentBytes == -1) {
-		printf("  sending socket message '%s' failed\n", message);
+		printf("# sending socket message '%s' failed\n", message);
+		
 		return false;
 	}
 

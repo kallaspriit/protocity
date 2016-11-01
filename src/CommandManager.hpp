@@ -19,10 +19,15 @@ public:
 			int requestId;
 			int argumentCount = 0;
 			std::string arguments[MAX_ARGUMENT_COUNT];
+			std::string errorMessage = "";
 
+			void addArgument(std::string argument);
 			std::string getResponseText();
 
 		private:
+			std::string getSuccessResponseText();
+			std::string getErrorResponseText();
+
 			char responseTextBuffer[MAX_RESPONSE_TEXT_LENGTH];
 		};
 
@@ -42,7 +47,10 @@ public:
 		double getDouble(int argumentIndex);
 
 		CommandManager::Command::Response createSuccessResponse();
+		CommandManager::Command::Response createSuccessResponse(int value);
+		CommandManager::Command::Response createSuccessResponse(float value);
 		CommandManager::Command::Response createFailureResponse();
+		CommandManager::Command::Response createFailureResponse(std::string errorMessage);
 
 	private:
 		void validateArgumentIndex(int argumentIndex);

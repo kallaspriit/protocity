@@ -193,36 +193,36 @@ void Application::handleSerialRx() {
 
 CommandManager::Command::Response Application::handleMemoryCommand(CommandManager::Command *command) {
 	if (!validateCommandArgumentCount(command, 0)) {
-		return command->createFailureResponse();
+		return command->createFailureResponse("expecing no parameters");
 	}
 
 	int freeMemoryBytes = Debug::getFreeMemoryBytes();
 
-	return command->createSuccessResponse(/*freeMemoryBytes*/);
+	return command->createSuccessResponse(freeMemoryBytes);
 }
 
 CommandManager::Command::Response Application::handleSumCommand(CommandManager::Command *command) {
 	if (!validateCommandArgumentCount(command, 2)) {
-		return command->createFailureResponse();
+		return command->createFailureResponse("expected two parameters");
 	}
 
-	int a = command->getInt(0);
-	int b = command->getInt(1);
-	int sum = a + b;
+	float a = command->getFloat(0);
+	float b = command->getFloat(1);
+	float sum = a + b;
 
-	return command->createSuccessResponse(/*sum*/);
+	return command->createSuccessResponse(sum);
 }
 
 CommandManager::Command::Response Application::handleLedCommand(CommandManager::Command *command) {
 	if (!validateCommandArgumentCount(command, 2)) {
-		return command->createFailureResponse();
+		return command->createFailureResponse("expected two parameters");
 	}
 
 	int ledIndex = command->getInt(0);
 	std::string ledModeRequest = command->getString(1);
 
 	if (ledIndex < 0 || ledIndex > 3) {
-		return command->createFailureResponse(/*"expected led index between 0 and 3"*/);
+		return command->createFailureResponse("expected led index between 0 and 3");
 	}
 
 	Debug::LedMode ledMode = Debug::LedMode::OFF;
@@ -240,7 +240,7 @@ CommandManager::Command::Response Application::handleLedCommand(CommandManager::
 	} else if (ledModeRequest == "BREATHE") {
 		ledMode = Debug::LedMode::BREATHE;
 	} else {
-		return command->createFailureResponse(/*"unsupported led mode requested"*/);
+		return command->createFailureResponse("unsupported led mode requested");
 	}
 
 	debug.setLedMode(ledIndex, ledMode);

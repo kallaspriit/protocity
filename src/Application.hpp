@@ -13,7 +13,6 @@
 #include <map>
 
 class Config;
-class EthernetManager;
 class TCPSocketConnection;
 
 class Application : SocketServer::SocketServerListener {
@@ -40,20 +39,20 @@ private:
 	void setupEthernetManager();
 	void setupSocketServer();
 
-	void sendMessage(const char *fmt, ...);
+	// void sendMessage(const char *fmt, ...);
 
 	template<typename T, typename M>
 	void registerCommandHandler(std::string name, T *obj, M method);
-	void registerCommandHandler(std::string name, Callback<void(CommandManager::Command*)> func);
+	void registerCommandHandler(std::string name, Callback<CommandManager::Command::Response(CommandManager::Command*)> func);
 	void consumeQueuedCommands();
 	void consumeCommand(CommandManager::Command *command);
 	bool validateCommandArgumentCount(CommandManager::Command *command, int expectedArgumentCount);
 
 	void handleSerialRx();
 
-	void handleMemoryCommand(CommandManager::Command *command);
-	void handleSumCommand(CommandManager::Command *command);
-	void handleLedCommand(CommandManager::Command *command);
+	CommandManager::Command::Response handleMemoryCommand(CommandManager::Command *command);
+	CommandManager::Command::Response handleSumCommand(CommandManager::Command *command);
+	CommandManager::Command::Response handleLedCommand(CommandManager::Command *command);
 
 	void onSocketClientConnected(TCPSocketConnection* client);
 	void onSocketClientDisconnected(TCPSocketConnection* client);
@@ -77,7 +76,7 @@ private:
 	char sendBuffer[SEND_BUFFER_SIZE];
 	int commandLength = 0;
 
-	typedef std::map<std::string, Callback<void(CommandManager::Command*)>> CommandHandlerMap;
+	typedef std::map<std::string, Callback<CommandManager::Command::Response(CommandManager::Command*)>> CommandHandlerMap;
 	CommandHandlerMap commandHandlerMap;
 };
 
