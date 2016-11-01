@@ -7,8 +7,40 @@ Lego IoT smart city demo.
 - **LED3** - Blinks fast while connecting to ethernet, blinks slow while waiting for socket connection, on when socket connection is established, off if ethernet connection failed.
 - Flash like police sirens if a hard fault condition is detected in the code or by the platform (such as out-of-memory).
 
+## Communication
+The device can be interfaced over serial and over ethernet, the protocol is the same.
+
+The basic communication protocol has the following properties:
+- Commands end with a newline '\n' character
+- Commands have the format of REQUEST_ID:NAME:arg1:argN
+- Request tokens are separated with a colon ':' character
+- For example consider command 1:led:3:ON
+  - Request id is "1"
+  - Command name is "led"
+  - First parameter, the led index, is "3"
+  - Second parameter, the led state, is "ON"
+- First token REQUEST_ID is a positive integer
+- Second token NAME is a string
+- There can be up to 8 additional parameters
+- The application responds with REQUEST_ID:STATUS:arg1:argN
+- The REQUEST_ID matches initial request id
+- The STATUS is either "OK" or "ERROR"
+- There may be up to 8 additional parameters
+- For example the response might be
+  - "1:OK"
+  - "2:OK:3452" (where 3452 is the number of ram memory remaining etc)
+  - "3:ERROR:Invalid parameters provided" (request failed, reason is provided)
+
+## Protocol
+The following commands are supported (using "1" as example request id)
+- `1:memory` - responds with available memory left in bytes (for example `1:OK:2625`)
+- `1:led:INDEX:MODE` - sets debug LED mode (for example `1:led:3:BLINK_FAST`), responds with OK if successful (for example `1:OK`)
+  - **INDEX** should be an integer between 0 and 3
+  - **MODE** should be a string value in the set *ON*, *OFF*, *BLINK_SLOW*, *BLINK_FAST*, *BLINK_ONCE*, *BREATHE*
+
 ## Changelog
 **01.11.2016**
+- Documented communication logic and protocol.
 - Implemented command response data logic.
 
 **31.10.2016**
