@@ -46,13 +46,17 @@ The following commands are supported (using "1" as example request id)
     - **MODE** should be a string value in the set *ON*, *OFF*, *BLINK_SLOW*, *BLINK_FAST*, *BLINK_ONCE*, *BREATHE*
 
 ### Digital port
-- `1:digitalport:INDEX:mode:MODE` - sets port mode
+- `1:digitalport:PORT_NUMBER:mode:MODE` - sets port mode
   - for example call with `1:digitalport:1:mode:OUTPUT`
   - responds with OK if successful (for example `1:OK`)
   - responds with ERROR if invalid port or mode is requested
+  - parameters
+    - **PORT_NUMBER** port number 1..6
+    - **MODE** should be a string value in the set *INPUT*, *OUTPUT*, *PWM*
 
 ## Changelog
 **02.11.2016**
+- Implemented digital port mode action.
 - Improved digital port controller logic.
 - Implemented test setup and loop.
 

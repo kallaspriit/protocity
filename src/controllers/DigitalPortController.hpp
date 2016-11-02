@@ -24,8 +24,9 @@ public:
 		virtual void onDigitalPortValueChange() = 0;
 	};
 
-	DigitalPortController(int id, PinName pinName);
+	DigitalPortController(int id, PinName pinName, DigitalPortController::PortMode portMode = DigitalPortController::PortMode::OUTPUT);
 
+	int getId();
 	void setMode(PortMode mode);
 	void setValue(DigitalValue value);
 	void setPwmDutyCycle(float dutyCycle);
@@ -37,7 +38,10 @@ public:
 private:
 	int id;
 	PinName pinName;
+	PortMode portMode;
 	DigitalOut digitalOut;
+	DigitalIn digitalIn;
+	PwmOut pwmOut;
 };
 
 #endif

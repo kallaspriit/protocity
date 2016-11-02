@@ -60,6 +60,10 @@ private:
 	CommandManager::Command::Response handleSumCommand(CommandManager::Command *command);
 	CommandManager::Command::Response handleLedCommand(CommandManager::Command *command);
 
+	// digital port command handlers
+	CommandManager::Command::Response handleDigitalPortCommand(CommandManager::Command *command);
+	CommandManager::Command::Response handleDigitalPortModeCommand(CommandManager::Command *command);
+
 	// socket server listeners
 	void onSocketClientConnected(TCPSocketConnection* client);
 	void onSocketClientDisconnected(TCPSocketConnection* client);
@@ -67,6 +71,7 @@ private:
 
 	// custom type definitions
 	typedef std::map<std::string, Callback<CommandManager::Command::Response(CommandManager::Command*)>> CommandHandlerMap;
+	typedef std::map<int, DigitalPortController*> DigitalPortNumberToControllerMap;
 	typedef std::vector<AbstractController*> ControllerList;
 
 	// configuration
@@ -92,6 +97,7 @@ private:
 
 	// controllers
 	ControllerList controllerList;
+	DigitalPortNumberToControllerMap digitalPortNumberToControllerMap;
 	DigitalPortController digitalPort1;
 
 	// test lifecycle methods

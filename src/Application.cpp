@@ -32,6 +32,7 @@ void Application::loop() {
 }
 
 void Application::setupSerial() {
+	// configure serial
 	serial.baud(config->serialBaudRate);
 	serial.attach(this, &Application::handleSerialRx, Serial::RxIrq);
 
@@ -41,15 +42,21 @@ void Application::setupSerial() {
 void Application::setupCommandHandlers() {
 	printf("# setting up command handlers\n");
 
+	// register command handlers
 	registerCommandHandler("memory", this, &Application::handleMemoryCommand);
 	registerCommandHandler("sum", this, &Application::handleSumCommand);
 	registerCommandHandler("led", this, &Application::handleLedCommand);
+	registerCommandHandler("digitalport", this, &Application::handleDigitalPortCommand);
 }
 
 void Application::setupPorts() {
 	printf("# setting up ports\n");
 
-	controllerList.push_back(&digitalPort1);
+	// register controller in the list
+	controllerList.push_back(&digitalPort1); // TODO is this used?
+
+	// register the ports in the mapping
+	digitalPortNumberToControllerMap[digitalPort1.getId()] = &digitalPort1;
 }
 
 void Application::setupDebug() {
@@ -247,8 +254,56 @@ CommandManager::Command::Response Application::handleLedCommand(CommandManager::
 	return command->createSuccessResponse();
 }
 
+CommandManager::Command::Response Application::handleDigitalPortCommand(CommandManager::Command *command) {
+	if (command->argumentCount < 2) {
+		return command->createFailureResponse("expected at least two parameters");
+	}
 
+	std::string action = command->getString(1);
 
+	if (action == "mode") {
+		return handleDigitalPortModeCommand(command);
+	} else {
+		return command->createFailureResponse("invalid action requested");
+	}
+
+	return command->createSuccessResponse();
+}
+
+CommandManager::Command::Response Application::handleDigitalPortModeCommand(CommandManager::Command *command) {
+	if (!validateCommandArgumentCount(command, 3)) {
+		return command->createFailureResponse("expected three parameters");
+	}
+
+	int portNumber = command->getInt(0);
+	std::string mode = command->getString(2);
+
+	DigitalPortNumberToControllerMap::iterator findIterator = digitalPortNumberToControllerMap.find(portNumber);
+
+	if (findIterator == digitalPortNumberToControllerMap.end()) {
+		return command->createFailureResponse("invalid port number requested");
+	}
+
+	DigitalPortController *digitalPortController = findIterator->second;
+
+	DigitalPortController::PortMode portMode;
+
+	if (mode == "OUTPUT") {
+		portMode = DigitalPortController::PortMode::OUTPUT;
+	} else if (mode == "INPUT") {
+		portMode = DigitalPortController::PortMode::INPUT;
+	} else if (mode == "PWM") {
+		portMode = DigitalPortController::PortMode::PWM;
+	} else {
+		return command->createFailureResponse("invalid port mode requested");
+	}
+
+	digitalPortController->setMode(portMode);
+
+	printf("# digitalport set mode for %d: %s\n", portNumber, mode.c_str());
+
+	return command->createSuccessResponse();
+}
 
 void Application::testSetup() {
 	printf("# setting up tests\n");
