@@ -1,17 +1,21 @@
 #include "DigitalPortController.hpp"
 
-DigitalPortController::DigitalPortController(int id, PinName pinName, DigitalPortController::PortMode portMode) :
+DigitalPortController::DigitalPortController(int id, PinName pinName) :
 	id(id),
  	pinName(pinName),
+	portMode(DigitalPortController::PortMode::UNUSED),
 	digitalOut(pinName),
 	digitalIn(pinName),
 	pwmOut(pinName)
 {
-	setMode(portMode);
 }
 
 int DigitalPortController::getId() {
 	return id;
+}
+
+DigitalPortController::PortMode DigitalPortController::getMode() {
+	return portMode;
 }
 
 void DigitalPortController::setMode(PortMode portMode) {

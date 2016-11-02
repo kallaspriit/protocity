@@ -263,6 +263,8 @@ CommandManager::Command::Response Application::handleDigitalPortCommand(CommandM
 
 	if (action == "mode") {
 		return handleDigitalPortModeCommand(command);
+	} else if (action == "value") {
+		return handleDigitalPortValueCommand(command);
 	} else {
 		return command->createFailureResponse("invalid action requested");
 	}
@@ -278,13 +280,11 @@ CommandManager::Command::Response Application::handleDigitalPortModeCommand(Comm
 	int portNumber = command->getInt(0);
 	std::string mode = command->getString(2);
 
-	DigitalPortNumberToControllerMap::iterator findIterator = digitalPortNumberToControllerMap.find(portNumber);
+	DigitalPortController *digitalPortController = getDigitalPortControllerByPortNumber(portNumber);
 
-	if (findIterator == digitalPortNumberToControllerMap.end()) {
+	if (digitalPortController == NULL) {
 		return command->createFailureResponse("invalid port number requested");
 	}
-
-	DigitalPortController *digitalPortController = findIterator->second;
 
 	DigitalPortController::PortMode portMode;
 
@@ -305,6 +305,81 @@ CommandManager::Command::Response Application::handleDigitalPortModeCommand(Comm
 	return command->createSuccessResponse();
 }
 
+CommandManager::Command::Response Application::handleDigitalPortValueCommand(CommandManager::Command *command) {
+	if (!validateCommandArgumentCount(command, 3)) {
+		return command->createFailureResponse("expected three parameters");
+	}
+
+	int portNumber = command->getInt(0);
+	float value = command->getFloat(2);
+
+	DigitalPortController *digitalPortController = getDigitalPortControllerByPortNumber(portNumber);
+
+	if (digitalPortController == NULL) {
+		return command->createFailureResponse("invalid port number requested");
+	}
+
+	DigitalPortController::PortMode portMode = digitalPortController->getMode();
+
+	switch (portMode) {
+		case DigitalPortController::PortMode::OUTPUT: {
+			DigitalPortController::DigitalValue digitalValue = DigitalPortController::DigitalValue::LOW;
+			std::string stringValue = command->getString(2);
+
+			if (stringValue == "HIGH") {
+				digitalValue = DigitalPortController::DigitalValue::HIGH;
+			} else if (stringValue == "LOW") {
+				digitalValue = DigitalPortController::DigitalValue::LOW;
+			} else {
+				if (value != 0.0f && value != 1.0f) {
+					return command->createFailureResponse("expected either HIGH/LOW or 1/0 as value");
+				}
+
+				digitalValue = value == 1.0f
+					? DigitalPortController::DigitalValue::HIGH
+					: DigitalPortController::DigitalValue::LOW;
+			}
+
+			digitalPortController->setValue(digitalValue);
+
+			printf("# digitalport set digital value for %d: %d\n", portNumber, digitalValue);
+		}
+		break;
+
+		case DigitalPortController::PortMode::PWM: {
+			if (value < 0.0f || value > 1.0f) {
+				return command->createFailureResponse("expected value between 0.0 and 1.0");
+			}
+			
+			float pwmDutyCycle = min(max(value, 0.0f), 1.0f);
+
+			digitalPortController->setPwmDutyCycle(pwmDutyCycle);
+
+			printf("# digitalport set pwm duty cycle value for %d: %f\n", portNumber, pwmDutyCycle);
+		}
+		break;
+
+		default:
+			return command->createFailureResponse("setting port value is only valid for OUTPUT or PWM modes");
+	}
+
+
+	return command->createSuccessResponse();
+}
+
+DigitalPortController *Application::getDigitalPortControllerByPortNumber(int portNumber) {
+	DigitalPortNumberToControllerMap::iterator findIterator = digitalPortNumberToControllerMap.find(portNumber);
+
+	if (findIterator == digitalPortNumberToControllerMap.end()) {
+		return NULL;
+	}
+
+	return findIterator->second;
+}
+
+
+
+
 void Application::testSetup() {
 	printf("# setting up tests\n");
 
@@ -316,7 +391,7 @@ void Application::testLoop() {
 		// printf("# test loop %d!\n", testFlipFlop);
 
 		// test digital port
-		digitalPort1.setValue(testFlipFlop == 1 ? DigitalPortController::DigitalValue::HIGH : DigitalPortController::DigitalValue::LOW);
+		// digitalPort1.setValue(testFlipFlop == 1 ? DigitalPortController::DigitalValue::HIGH : DigitalPortController::DigitalValue::LOW);
 
 		// update loop
 		testFlipFlop = testFlipFlop == 1 ? 0 : 1;

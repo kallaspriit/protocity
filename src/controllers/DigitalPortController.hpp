@@ -9,6 +9,7 @@ class DigitalPortController : public AbstractController {
 
 public:
 	enum PortMode {
+		UNUSED,
 		OUTPUT,
 		INPUT,
 		PWM
@@ -24,9 +25,10 @@ public:
 		virtual void onDigitalPortValueChange() = 0;
 	};
 
-	DigitalPortController(int id, PinName pinName, DigitalPortController::PortMode portMode = DigitalPortController::PortMode::OUTPUT);
+	DigitalPortController(int id, PinName pinName);
 
 	int getId();
+	PortMode getMode();
 	void setMode(PortMode mode);
 	void setValue(DigitalValue value);
 	void setPwmDutyCycle(float dutyCycle);

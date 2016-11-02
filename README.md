@@ -53,9 +53,17 @@ The following commands are supported (using "1" as example request id)
   - parameters
     - **PORT_NUMBER** port number 1..6
     - **MODE** should be a string value in the set *INPUT*, *OUTPUT*, *PWM*
+- `1:digitalport:PORT_NUMBER:value:VALUE` - sets port value for *OUTPUT* and *PWM* modes
+  - for example call with `1:digitalport:1:value:HIGH` or `1:digitalport:1:value:0.5`
+  - responds with OK if successful (for example `1:OK`)
+  - responds with ERROR if invalid port or value is requested
+  - parameters
+    - **PORT_NUMBER** port number 1..6
+    - **VALUE** should be either *HIGH* or *LOW* for *OUTPUT* mode or a float value between 0..1 for *PWM* mode
 
 ## Changelog
 **02.11.2016**
+- Implemented digital port value command for OUTPUT and PWM modes.
 - Implemented digital port mode action.
 - Improved digital port controller logic.
 - Implemented test setup and loop.

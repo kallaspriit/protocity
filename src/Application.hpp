@@ -63,6 +63,10 @@ private:
 	// digital port command handlers
 	CommandManager::Command::Response handleDigitalPortCommand(CommandManager::Command *command);
 	CommandManager::Command::Response handleDigitalPortModeCommand(CommandManager::Command *command);
+	CommandManager::Command::Response handleDigitalPortValueCommand(CommandManager::Command *command);
+
+	// port helpers
+	DigitalPortController *getDigitalPortControllerByPortNumber(int portNumber);
 
 	// socket server listeners
 	void onSocketClientConnected(TCPSocketConnection* client);
