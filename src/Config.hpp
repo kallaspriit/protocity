@@ -13,6 +13,9 @@ public:
 
 	// socket server
 	int socketServerPort = 8080;
+
+	// ports
+	PinName digitalPort1Pin = p21;
 };
 
 #endif

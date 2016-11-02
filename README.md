@@ -12,9 +12,9 @@ The device can be interfaced over serial and over ethernet, the protocol is the 
 
 The basic communication protocol has the following properties:
 - Commands end with a newline '\n' character
-- Commands have the format of REQUEST_ID:NAME:arg1:argN
+- Commands have the format of `REQUEST_ID:NAME:arg1:argN`
 - Request tokens are separated with a colon ':' character
-- For example consider command 1:led:3:ON
+- For example consider command `1:led:3:ON`
   - Request id is "1"
   - Command name is "led"
   - First parameter, the led index, is "3"
@@ -22,23 +22,40 @@ The basic communication protocol has the following properties:
 - First token REQUEST_ID is a positive integer
 - Second token NAME is a string
 - There can be up to 8 additional parameters
-- The application responds with REQUEST_ID:STATUS:arg1:argN
+- The application responds with `REQUEST_ID:STATUS:arg1:argN`
 - The REQUEST_ID matches initial request id
 - The STATUS is either "OK" or "ERROR"
 - There may be up to 8 additional parameters
 - For example the response might be
-  - "1:OK"
-  - "2:OK:3452" (where 3452 is the number of ram memory remaining etc)
-  - "3:ERROR:Invalid parameters provided" (request failed, reason is provided)
+  - `1:OK`
+  - `2:OK:3452` (where 3452 is the number of ram memory remaining etc)
+  - `3:ERROR:Invalid parameters provided` (request failed, reason is provided)
+- Application send back additional logging information over serial, these always start with a "#" and can be ignored on the receiving side
 
 ## Protocol
 The following commands are supported (using "1" as example request id)
-- `1:memory` - responds with available memory left in bytes (for example `1:OK:2625`)
-- `1:led:INDEX:MODE` - sets debug LED mode (for example `1:led:3:BLINK_FAST`), responds with OK if successful (for example `1:OK`)
-  - **INDEX** should be an integer between 0 and 3
-  - **MODE** should be a string value in the set *ON*, *OFF*, *BLINK_SLOW*, *BLINK_FAST*, *BLINK_ONCE*, *BREATHE*
+
+### Debugging
+- `1:memory` - get available ram in bytes
+  - responds with available memory left in bytes (for example `1:OK:2625`)
+- `1:led:INDEX:MODE` - sets debug LED mode
+  - for example call with `1:led:3:BLINK_FAST`
+  - responds with OK if successful (for example `1:OK`)
+  - parameters
+    - **INDEX** should be an integer between 0 and 3
+    - **MODE** should be a string value in the set *ON*, *OFF*, *BLINK_SLOW*, *BLINK_FAST*, *BLINK_ONCE*, *BREATHE*
+
+### Digital port
+- `1:digitalport:INDEX:mode:MODE` - sets port mode
+  - for example call with `1:digitalport:1:mode:OUTPUT`
+  - responds with OK if successful (for example `1:OK`)
+  - responds with ERROR if invalid port or mode is requested
 
 ## Changelog
+**02.11.2016**
+- Improved digital port controller logic.
+- Implemented test setup and loop.
+
 **01.11.2016**
 - Documented communication logic and protocol.
 - Implemented command response data logic.

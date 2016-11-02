@@ -74,7 +74,7 @@ std::string CommandManager::Command::Response::getErrorResponseText() {
 
 void CommandManager::Command::Response::addArgument(std::string argument) {
 	if (argumentCount == MAX_ARGUMENT_COUNT) {
-		error("response can have a maximum of %d arguments", MAX_ARGUMENT_COUNT);
+		error("response can have a maximum of %d arguments\n", MAX_ARGUMENT_COUNT);
 	}
 
 	arguments[argumentCount++] = argument;

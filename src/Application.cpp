@@ -3,11 +3,13 @@
 
 Application::Application(Config *config) :
 	config(config),
-	serial(config->serialTxPin, config->serialRxPin)
+	serial(config->serialTxPin, config->serialRxPin),
+	digitalPort1(1, config->digitalPort1Pin)
 {}
 
 void Application::run() {
 	setup();
+	testSetup();
 
 	while (true) {
 		loop();
@@ -15,9 +17,9 @@ void Application::run() {
 }
 
 void Application::setup() {
-	setupTimer();
 	setupSerial();
 	setupCommandHandlers();
+	setupPorts();
 	setupDebug();
 	setupEthernetManager();
 	setupSocketServer();
@@ -27,10 +29,6 @@ void Application::loop() {
 	consumeQueuedCommands();
 
 	// Thread::wait(1000);
-}
-
-void Application::setupTimer() {
-	timer.start();
 }
 
 void Application::setupSerial() {
@@ -46,6 +44,12 @@ void Application::setupCommandHandlers() {
 	registerCommandHandler("memory", this, &Application::handleMemoryCommand);
 	registerCommandHandler("sum", this, &Application::handleSumCommand);
 	registerCommandHandler("led", this, &Application::handleLedCommand);
+}
+
+void Application::setupPorts() {
+	printf("# setting up ports\n");
+
+	controllerList.push_back(&digitalPort1);
 }
 
 void Application::setupDebug() {
@@ -75,18 +79,6 @@ void Application::setupSocketServer() {
 	socketServer.start(ethernetManager.getEthernetInterface(), config->socketServerPort);
 }
 
-// TODO replace this with proper response model
-/*
-void Application::sendMessage(const char *fmt, ...) {
-	va_list args;
-    va_start(args, fmt);
-    vprintf(fmt, args);
-	vsprintf(sendBuffer, fmt, args);
-	socketServer.sendMessage(sendBuffer);
-    va_end(args);
-}
-*/
-
 template<typename T, typename M>
 void Application::registerCommandHandler(std::string name, T *obj, M method) {
 	registerCommandHandler(name, Callback<CommandManager::Command::Response(CommandManager::Command*)>(obj, method));
@@ -111,6 +103,8 @@ void Application::consumeQueuedCommands() {
 void Application::consumeCommand(CommandManager::Command *command) {
 	CommandHandlerMap::iterator commandIt = commandHandlerMap.find(command->name);
 
+	std::string responseText;
+
 	if (commandIt != commandHandlerMap.end()) {
 		printf("# calling command handler for #%d '%s' (source: %d)\n", command->id, command->name.c_str(), command->sourceId);
 
@@ -119,29 +113,34 @@ void Application::consumeCommand(CommandManager::Command *command) {
 		}
 
 		CommandManager::Command::Response response = commandIt->second.call(command);
-		std::string responseText = response.getResponseText();
+		responseText = response.getResponseText();
 
 		printf("# command response for %d: %s\n", response.requestId, responseText.c_str());
-
-		switch (command->sourceId) {
-			case CommandSource::SOCKET:
-				socketServer.sendMessage(response.getResponseText() + "\n");
-				printf("> %s\n", responseText.c_str());
-				break;
-
-			case CommandSource::SERIAL:
-				printf("> %s\n", responseText.c_str());
-				break;
-
-			default:
-				error("unexpected command source %d\n", command->sourceId);
-		}
 	} else {
 		printf("# command handler for #%d '%s' (source: %d) has not been registered\n", command->id, command->name.c_str(), command->sourceId);
 
 		for (int i = 0; i < command->argumentCount; i++) {
 			printf("#  argument %d: %s\n", i, command->arguments[i].c_str());
 		}
+
+		// build response text
+		char responseBuffer[100];
+		snprintf(responseBuffer, sizeof(responseBuffer), "%d:ERROR:unsupported command requested", command->id);
+		responseText = responseBuffer;
+	}
+
+	switch (command->sourceId) {
+		case CommandSource::SOCKET:
+			socketServer.sendMessage(responseText + "\n");
+			printf("> %s\n", responseText.c_str());
+			break;
+
+		case CommandSource::SERIAL:
+			printf("> %s\n", responseText.c_str());
+			break;
+
+		default:
+			error("unexpected command source %d\n", command->sourceId);
 	}
 }
 
@@ -246,4 +245,26 @@ CommandManager::Command::Response Application::handleLedCommand(CommandManager::
 	debug.setLedMode(ledIndex, ledMode);
 
 	return command->createSuccessResponse();
+}
+
+
+
+
+void Application::testSetup() {
+	printf("# setting up tests\n");
+
+	testLoopThread.start(this, &Application::testLoop);
+}
+
+void Application::testLoop() {
+	while (true) {
+		// printf("# test loop %d!\n", testFlipFlop);
+
+		// test digital port
+		digitalPort1.setValue(testFlipFlop == 1 ? DigitalPortController::DigitalValue::HIGH : DigitalPortController::DigitalValue::LOW);
+
+		// update loop
+		testFlipFlop = testFlipFlop == 1 ? 0 : 1;
+		Thread::wait(1000);
+	}
 }
