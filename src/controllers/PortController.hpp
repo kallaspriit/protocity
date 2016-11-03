@@ -16,9 +16,7 @@ public:
 		INVALID,
 		OUTPUT,
 		INPUT,
-		INPUT_PULLUP,
-		INPUT_PULLDOWN,
-		INPUT_INTERRUPT,
+		INTERRUPT,
 		PWM
 	};
 
@@ -38,7 +36,8 @@ public:
 
 	int getId();
 	PortMode getMode();
-	void setMode(PortMode mode);
+	void setPortMode(PortMode mode);
+	void setPinMode(PinMode mode);
 	void setValue(DigitalValue value);
 	void setValue(int value);
 	void setPwmDutyCycle(float dutyCycle);

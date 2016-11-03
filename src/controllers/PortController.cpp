@@ -15,7 +15,7 @@ PortController::PortMode PortController::getMode() {
 	return portMode;
 }
 
-void PortController::setMode(PortMode portMode) {
+void PortController::setPortMode(PortMode portMode) {
 	if (portMode == this->portMode) {
 		return;
 	}
@@ -38,17 +38,7 @@ void PortController::setMode(PortMode portMode) {
 			digitalIn = new DigitalIn(pinName);
 			break;
 
-		case PortMode::INPUT_PULLUP:
-			digitalIn = new DigitalIn(pinName);
-			digitalIn->mode(PinMode::PullUp);
-			break;
-
-		case PortMode::INPUT_PULLDOWN:
-			digitalIn = new DigitalIn(pinName);
-			digitalIn->mode(PinMode::PullDown);
-			break;
-
-		case PortMode::INPUT_INTERRUPT:
+		case PortMode::INTERRUPT:
 			interruptIn = new InterruptIn(pinName);
 			interruptIn->rise(this, &PortController::handleInterruptRise);
 			interruptIn->fall(this, &PortController::handleInterruptFall);
@@ -61,6 +51,21 @@ void PortController::setMode(PortMode portMode) {
 
 		default:
 			error("invalid digital port mode %d requested", portMode);
+	}
+}
+
+void PortController::setPinMode(PinMode pinMode) {
+	switch (portMode) {
+		case PortMode::INPUT:
+			digitalIn->mode(pinMode);
+			break;
+
+		case PortMode::INTERRUPT:
+			interruptIn->mode(pinMode);
+			break;
+
+		default:
+			error("setting pin mode is only valid for INPUT and INTERRUPT ports");
 	}
 }
 
@@ -102,12 +107,8 @@ PortController::PortMode PortController::getPortModeByName(std::string mode) {
 		return PortController::PortMode::OUTPUT;
 	} else if (mode == "INPUT") {
 		return PortController::PortMode::INPUT;
-	} else if (mode == "INPUT_PULLUP") {
-		return PortController::PortMode::INPUT_PULLUP;
-	} else if (mode == "INPUT_PULLDOWN") {
-		return PortController::PortMode::INPUT_PULLDOWN;
-	} else if (mode == "INPUT_INTERRUPT") {
-		return PortController::PortMode::INPUT_INTERRUPT;
+	} else if (mode == "INTERRUPT") {
+		return PortController::PortMode::INTERRUPT;
 	} else if (mode == "PWM") {
 		return PortController::PortMode::PWM;
 	} else {
@@ -129,14 +130,8 @@ std::string PortController::getPortModeName(PortController::PortMode mode) {
 		case PortMode::INPUT:
 			return "INPUT";
 
-		case PortMode::INPUT_PULLUP:
-			return "INPUT_PULLUP";
-
-		case PortMode::INPUT_PULLDOWN:
-			return "INPUT_PULLDOWN";
-
-		case PortMode::INPUT_INTERRUPT:
-			return "INPUT_INTERRUPT";
+		case PortMode::INTERRUPT:
+			return "INTERRUPT";
 
 		case PortMode::PWM:
 			return "PWM";
@@ -149,13 +144,9 @@ std::string PortController::getPortModeName(PortController::PortMode mode) {
 PortController::DigitalValue PortController::getDigitalValue() {
 	int value = 0;
 
-	if (portMode == PortMode::INPUT_INTERRUPT) {
+	if (portMode == PortMode::INTERRUPT) {
 		value = interruptIn->read();
-	} else if (
-		portMode == PortMode::INPUT
-		|| portMode == PortMode::INPUT_PULLUP
-		|| portMode == PortMode::INPUT_PULLDOWN
-	) {
+	} else if (portMode == PortMode::INPUT) {
 		value = digitalIn->read();
 	} else {
 		printf("# getting digital reading is valid only for port configured as input\n");

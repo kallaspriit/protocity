@@ -45,24 +45,38 @@ The following commands are supported (using "1" as example request id)
     - **INDEX** should be an integer between 0 and 3
     - **MODE** should be a string value in the set *ON*, *OFF*, *BLINK_SLOW*, *BLINK_FAST*, *BLINK_ONCE*, *BREATHE*
 
-### Digital port
-- `1:digitalport:PORT_NUMBER:mode:MODE` - sets port mode
-  - for example call with `1:digitalport:1:mode:OUTPUT`
+### Ports
+- `1:port:PORT_NUMBER:mode:MODE` - sets port mode
+  - for example call with `1:port:1:mode:OUTPUT`
   - responds with OK if successful (for example `1:OK`)
   - responds with ERROR if invalid port or mode is requested
   - parameters
-    - **PORT_NUMBER** port number 1..6
-    - **MODE** should be a string value in the set *INPUT*, *OUTPUT*, *PWM*
-- `1:digitalport:PORT_NUMBER:value:VALUE` - sets port value for *OUTPUT* and *PWM* modes
-  - for example call with `1:digitalport:1:value:HIGH` or `1:digitalport:1:value:0.5`
+    - **PORT_NUMBER** port number
+    - **MODE** should be a string value in the set *INPUT*, *OUTPUT*, *PWM*, *INTERRUPT*
+- `1:port:PORT_NUMBER:pull:MODE` - sets pull mode
+  - for example call with `1:port:1:pull:UP`
+  - responds with OK if successful (for example `1:OK`)
+  - responds with ERROR if invalid port or mode is requested
+  - parameters
+    - **PORT_NUMBER** port number
+    - **MODE** should be a string value in the set *UP*, *DOWN*, *NONE*
+- `1:port:PORT_NUMBER:value:VALUE` - sets port value for *OUTPUT* and *PWM* modes
+  - for example call with `1:port:1:value:HIGH` or `1:port:1:value:0.5`
   - responds with OK if successful (for example `1:OK`)
   - responds with ERROR if invalid port or value is requested
   - parameters
-    - **PORT_NUMBER** port number 1..6
+    - **PORT_NUMBER** port number
     - **VALUE** should be either *HIGH* or *LOW* for *OUTPUT* mode or a float value between 0..1 for *PWM* mode
+- `1:port:PORT_NUMBER:read` - reads current *INPUT* or *INTERRUPT* port value
+  - for example call with `1:port:1:read`
+  - responds with OK and value if successful (for example `1:OK:HIGH`)
+  - responds with ERROR if invalid port is requested
+  - parameters
+    - **PORT_NUMBER** port number
 
 ## Changelog
 **03.11.2016**
+- Implemented input port pullup/pulldown functionality.
 - Refactored port controller naming.
 - Implemented digital port interrupt events.
 - Implemented digital port value reading.

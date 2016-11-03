@@ -15,12 +15,12 @@ public:
 	int socketServerPort = 8080;
 
 	// ports
-	PinName digitalPort1Pin = p21;
-	PinName digitalPort2Pin = p22;
-	PinName digitalPort3Pin = p23;
-	PinName digitalPort4Pin = p24;
-	PinName digitalPort5Pin = p25;
-	PinName digitalPort6Pin = p26;
+	PinName port1Pin = p21;
+	PinName port2Pin = p22;
+	PinName port3Pin = p23;
+	PinName port4Pin = p24;
+	PinName port5Pin = p25;
+	PinName port6Pin = p26;
 };
 
 #endif

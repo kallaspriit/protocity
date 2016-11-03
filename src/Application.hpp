@@ -60,10 +60,11 @@ private:
 	CommandManager::Command::Response handleLedCommand(CommandManager::Command *command);
 
 	// digital port command handlers
-	CommandManager::Command::Response handleDigitalPortCommand(CommandManager::Command *command);
-	CommandManager::Command::Response handleDigitalPortModeCommand(CommandManager::Command *command);
-	CommandManager::Command::Response handleDigitalPortValueCommand(CommandManager::Command *command);
-	CommandManager::Command::Response handleDigitalPortReadCommand(CommandManager::Command *command);
+	CommandManager::Command::Response handlePortCommand(CommandManager::Command *command);
+	CommandManager::Command::Response handlePortModeCommand(CommandManager::Command *command);
+	CommandManager::Command::Response handlePortPullCommand(CommandManager::Command *command);
+	CommandManager::Command::Response handlePortValueCommand(CommandManager::Command *command);
+	CommandManager::Command::Response handlePortReadCommand(CommandManager::Command *command);
 
 	// port helpers
 	PortController *getPortControllerByPortNumber(int portNumber);
@@ -104,15 +105,15 @@ private:
 	CommandHandlerMap commandHandlerMap;
 
 	// digital port controllers
-	PortController digitalPort1;
-	PortController digitalPort2;
-	PortController digitalPort3;
-	PortController digitalPort4;
-	PortController digitalPort5;
-	PortController digitalPort6;
+	PortController port1;
+	PortController port2;
+	PortController port3;
+	PortController port4;
+	PortController port5;
+	PortController port6;
 
 	// controller mapping
-	DigitalPortNumberToControllerMap digitalPortNumberToControllerMap;
+	DigitalPortNumberToControllerMap portNumberToControllerMap;
 
 	// test lifecycle methods
 	void testSetup();				// sets up the tests
