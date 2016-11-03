@@ -63,6 +63,7 @@ The following commands are supported (using "1" as example request id)
 
 ## Changelog
 **03.11.2016**
+- Refactored port controller naming.
 - Implemented digital port interrupt events.
 - Implemented digital port value reading.
 

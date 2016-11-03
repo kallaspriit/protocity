@@ -1,21 +1,21 @@
-#include "DigitalPortController.hpp"
+#include "PortController.hpp"
 
-DigitalPortController::DigitalPortController(int id, PinName pinName) :
+PortController::PortController(int id, PinName pinName) :
 	id(id),
  	pinName(pinName),
-	portMode(DigitalPortController::PortMode::UNUSED)
+	portMode(PortController::PortMode::UNUSED)
 {
 }
 
-int DigitalPortController::getId() {
+int PortController::getId() {
 	return id;
 }
 
-DigitalPortController::PortMode DigitalPortController::getMode() {
+PortController::PortMode PortController::getMode() {
 	return portMode;
 }
 
-void DigitalPortController::setMode(PortMode portMode) {
+void PortController::setMode(PortMode portMode) {
 	if (portMode == this->portMode) {
 		return;
 	}
@@ -50,8 +50,8 @@ void DigitalPortController::setMode(PortMode portMode) {
 
 		case PortMode::INPUT_INTERRUPT:
 			interruptIn = new InterruptIn(pinName);
-			interruptIn->rise(this, &DigitalPortController::handleInterruptRise);
-			interruptIn->fall(this, &DigitalPortController::handleInterruptFall);
+			interruptIn->rise(this, &PortController::handleInterruptRise);
+			interruptIn->fall(this, &PortController::handleInterruptFall);
 
 			break;
 
@@ -64,7 +64,7 @@ void DigitalPortController::setMode(PortMode portMode) {
 	}
 }
 
-void DigitalPortController::setValue(DigitalValue value) {
+void PortController::setValue(DigitalValue value) {
 	switch (value) {
 		case DigitalValue::LOW:
 			printf("# setting port %d to digital LOW\n", id);
@@ -83,11 +83,11 @@ void DigitalPortController::setValue(DigitalValue value) {
 	}
 }
 
-void DigitalPortController::setValue(int value) {
+void PortController::setValue(int value) {
 	setValue(value == 0 ? DigitalValue::LOW : DigitalValue::HIGH);
 }
 
-void DigitalPortController::setPwmDutyCycle(float dutyCycle) {
+void PortController::setPwmDutyCycle(float dutyCycle) {
 	if (dutyCycle < 0.0f || dutyCycle > 1.0f) {
 		error("expected duty cycle value between 0.0 and 1.0");
 	}
@@ -97,25 +97,25 @@ void DigitalPortController::setPwmDutyCycle(float dutyCycle) {
 	*pwmOut = dutyCycle;
 }
 
-DigitalPortController::PortMode DigitalPortController::getPortModeByName(std::string mode) {
+PortController::PortMode PortController::getPortModeByName(std::string mode) {
 	if (mode == "OUTPUT") {
-		return DigitalPortController::PortMode::OUTPUT;
+		return PortController::PortMode::OUTPUT;
 	} else if (mode == "INPUT") {
-		return DigitalPortController::PortMode::INPUT;
+		return PortController::PortMode::INPUT;
 	} else if (mode == "INPUT_PULLUP") {
-		return DigitalPortController::PortMode::INPUT_PULLUP;
+		return PortController::PortMode::INPUT_PULLUP;
 	} else if (mode == "INPUT_PULLDOWN") {
-		return DigitalPortController::PortMode::INPUT_PULLDOWN;
+		return PortController::PortMode::INPUT_PULLDOWN;
 	} else if (mode == "INPUT_INTERRUPT") {
-		return DigitalPortController::PortMode::INPUT_INTERRUPT;
+		return PortController::PortMode::INPUT_INTERRUPT;
 	} else if (mode == "PWM") {
-		return DigitalPortController::PortMode::PWM;
+		return PortController::PortMode::PWM;
 	} else {
-		return DigitalPortController::PortMode::INVALID;
+		return PortController::PortMode::INVALID;
 	}
 }
 
-std::string DigitalPortController::getPortModeName(DigitalPortController::PortMode mode) {
+std::string PortController::getPortModeName(PortController::PortMode mode) {
 	switch (mode) {
 		case PortMode::UNUSED:
 			return "UNUSED";
@@ -146,7 +146,7 @@ std::string DigitalPortController::getPortModeName(DigitalPortController::PortMo
 	}
 }
 
-DigitalPortController::DigitalValue DigitalPortController::getDigitalValue() {
+PortController::DigitalValue PortController::getDigitalValue() {
 	int value = 0;
 
 	if (portMode == PortMode::INPUT_INTERRUPT) {
@@ -168,26 +168,26 @@ DigitalPortController::DigitalValue DigitalPortController::getDigitalValue() {
 	return value == 1 ? DigitalValue::HIGH : DigitalValue::LOW;
 }
 
-void DigitalPortController::addInterruptListener(DigitalPortController::DigitalPortInterruptListener *listener) {
+void PortController::addInterruptListener(PortController::PortEventListener *listener) {
 	printf("# registering interrup listener for port %d\n", id);
 
 	listeners.push_back(listener);
 }
 
-void DigitalPortController::handleInterruptRise() {
+void PortController::handleInterruptRise() {
 	interruptRiseCount++;
 
 	for (ListenerList::iterator it = listeners.begin(); it != listeners.end(); ++it) {
-		(*it)->onDigitalPortRise(id);
-		(*it)->onDigitalPortChange(id, DigitalValue::HIGH);
+		(*it)->onPortValueRise(id);
+		(*it)->onPortValueChange(id, DigitalValue::HIGH);
 	}
 }
 
-void DigitalPortController::handleInterruptFall() {
+void PortController::handleInterruptFall() {
 	interruptFallCount++;
 
 	for (ListenerList::iterator it = listeners.begin(); it != listeners.end(); ++it) {
-		(*it)->onDigitalPortFall(id);
-		(*it)->onDigitalPortChange(id, DigitalValue::LOW);
+		(*it)->onPortValueFall(id);
+		(*it)->onPortValueChange(id, DigitalValue::LOW);
 	}
 }

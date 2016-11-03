@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-class DigitalPortController : public AbstractController {
+class PortController : public AbstractController {
 
 public:
 	enum PortMode {
@@ -27,14 +27,14 @@ public:
 		HIGH
 	};
 
-	class DigitalPortInterruptListener {
+	class PortEventListener {
 	public:
-		virtual void onDigitalPortChange(int id, DigitalValue value) {};
-		virtual void onDigitalPortRise(int id) {};
-		virtual void onDigitalPortFall(int id) {};
+		virtual void onPortValueChange(int id, DigitalValue value) {};
+		virtual void onPortValueRise(int id) {};
+		virtual void onPortValueFall(int id) {};
 	};
 
-	DigitalPortController(int id, PinName pinName);
+	PortController(int id, PinName pinName);
 
 	int getId();
 	PortMode getMode();
@@ -47,13 +47,13 @@ public:
 	static std::string getPortModeName(PortMode mode);
 
 	DigitalValue getDigitalValue();
-	void addInterruptListener(DigitalPortInterruptListener *listener);
+	void addInterruptListener(PortEventListener *listener);
 
 private:
 	void handleInterruptRise();
 	void handleInterruptFall();
 
-	typedef std::vector<DigitalPortInterruptListener*> ListenerList;
+	typedef std::vector<PortEventListener*> ListenerList;
 	ListenerList listeners;
 
 	int id;

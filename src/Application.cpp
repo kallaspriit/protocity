@@ -190,19 +190,19 @@ void Application::onSocketCommandReceived(const char *command, int length) {
 	debug.setLedMode(LED_COMMAND_RECEIVED_INDEX, Debug::LedMode::BLINK_ONCE);
 }
 
-void Application::onDigitalPortChange(int id, DigitalPortController::DigitalValue value) {
-	printf("# digital port change %d: %d\n", id, value);
+void Application::onPortValueChange(int id, PortController::DigitalValue value) {
+	printf("# digital port %d value changed to %s\n", id, value == PortController::DigitalValue::HIGH ? "HIGH" : "LOW");
 
 	// TODO temporary
-	digitalPort1.setMode(DigitalPortController::PortMode::OUTPUT);
+	digitalPort1.setMode(PortController::PortMode::OUTPUT);
 	digitalPort1.setValue(value);
 }
 
-void Application::onDigitalPortRise(int id) {
+void Application::onPortValueRise(int id) {
 
 }
 
-void Application::onDigitalPortFall(int id) {
+void Application::onPortValueFall(int id) {
 
 }
 
@@ -313,15 +313,15 @@ CommandManager::Command::Response Application::handleDigitalPortModeCommand(Comm
 	int portNumber = command->getInt(0);
 	std::string mode = command->getString(2);
 
-	DigitalPortController *digitalPortController = getDigitalPortControllerByPortNumber(portNumber);
+	PortController *digitalPortController = getPortControllerByPortNumber(portNumber);
 
 	if (digitalPortController == NULL) {
 		return command->createFailureResponse("invalid port number requested");
 	}
 
-	DigitalPortController::PortMode portMode = DigitalPortController::getPortModeByName(mode);
+	PortController::PortMode portMode = PortController::getPortModeByName(mode);
 
-	if (portMode == DigitalPortController::PortMode::INVALID) {
+	if (portMode == PortController::PortMode::INVALID) {
 		return command->createFailureResponse("invalid port mode requested");
 	}
 
@@ -340,31 +340,31 @@ CommandManager::Command::Response Application::handleDigitalPortValueCommand(Com
 	int portNumber = command->getInt(0);
 	float value = command->getFloat(2);
 
-	DigitalPortController *digitalPortController = getDigitalPortControllerByPortNumber(portNumber);
+	PortController *digitalPortController = getPortControllerByPortNumber(portNumber);
 
 	if (digitalPortController == NULL) {
 		return command->createFailureResponse("invalid port number requested");
 	}
 
-	DigitalPortController::PortMode portMode = digitalPortController->getMode();
+	PortController::PortMode portMode = digitalPortController->getMode();
 
 	switch (portMode) {
-		case DigitalPortController::PortMode::OUTPUT: {
-			DigitalPortController::DigitalValue digitalValue = DigitalPortController::DigitalValue::LOW;
+		case PortController::PortMode::OUTPUT: {
+			PortController::DigitalValue digitalValue = PortController::DigitalValue::LOW;
 			std::string stringValue = command->getString(2);
 
 			if (stringValue == "HIGH") {
-				digitalValue = DigitalPortController::DigitalValue::HIGH;
+				digitalValue = PortController::DigitalValue::HIGH;
 			} else if (stringValue == "LOW") {
-				digitalValue = DigitalPortController::DigitalValue::LOW;
+				digitalValue = PortController::DigitalValue::LOW;
 			} else {
 				if (value != 0.0f && value != 1.0f) {
 					return command->createFailureResponse("expected either HIGH/LOW or 1/0 as value");
 				}
 
 				digitalValue = value == 1.0f
-					? DigitalPortController::DigitalValue::HIGH
-					: DigitalPortController::DigitalValue::LOW;
+					? PortController::DigitalValue::HIGH
+					: PortController::DigitalValue::LOW;
 			}
 
 			digitalPortController->setValue(digitalValue);
@@ -373,7 +373,7 @@ CommandManager::Command::Response Application::handleDigitalPortValueCommand(Com
 		}
 		break;
 
-		case DigitalPortController::PortMode::PWM: {
+		case PortController::PortMode::PWM: {
 			if (value < 0.0f || value > 1.0f) {
 				return command->createFailureResponse("expected value between 0.0 and 1.0");
 			}
@@ -401,18 +401,18 @@ CommandManager::Command::Response Application::handleDigitalPortReadCommand(Comm
 
 	int portNumber = command->getInt(0);
 
-	DigitalPortController *digitalPortController = getDigitalPortControllerByPortNumber(portNumber);
+	PortController *digitalPortController = getPortControllerByPortNumber(portNumber);
 
 	if (digitalPortController == NULL) {
 		return command->createFailureResponse("invalid port number requested");
 	}
 
-	DigitalPortController::DigitalValue value = digitalPortController->getDigitalValue();
+	PortController::DigitalValue value = digitalPortController->getDigitalValue();
 
-	return command->createSuccessResponse(value == DigitalPortController::DigitalValue::HIGH ? "HIGH" : "LOW");
+	return command->createSuccessResponse(value == PortController::DigitalValue::HIGH ? "HIGH" : "LOW");
 }
 
-DigitalPortController *Application::getDigitalPortControllerByPortNumber(int portNumber) {
+PortController *Application::getPortControllerByPortNumber(int portNumber) {
 	DigitalPortNumberToControllerMap::iterator findIterator = digitalPortNumberToControllerMap.find(portNumber);
 
 	if (findIterator == digitalPortNumberToControllerMap.end()) {
@@ -436,7 +436,7 @@ void Application::testLoop() {
 		// printf("# test loop %d!\n", testFlipFlop);
 
 		// test digital port
-		// digitalPort1.setValue(testFlipFlop == 1 ? DigitalPortController::DigitalValue::HIGH : DigitalPortController::DigitalValue::LOW);
+		// digitalPort1.setValue(testFlipFlop == 1 ? PortController::DigitalValue::HIGH : PortController::DigitalValue::LOW);
 
 		// update loop
 		testFlipFlop = testFlipFlop == 1 ? 0 : 1;

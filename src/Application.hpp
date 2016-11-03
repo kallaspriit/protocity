@@ -10,14 +10,14 @@
 #include "EthernetManager.hpp"
 #include "SocketServer.hpp"
 #include "AbstractController.hpp"
-#include "controllers/DigitalPortController.hpp"
+#include "controllers/PortController.hpp"
 
 #include <map>
 
 class Config;
 class TCPSocketConnection;
 
-class Application : SocketServer::SocketServerListener, DigitalPortController::DigitalPortInterruptListener {
+class Application : SocketServer::SocketServerListener, PortController::PortEventListener {
 
 public:
 	Application(Config *config);
@@ -66,7 +66,7 @@ private:
 	CommandManager::Command::Response handleDigitalPortReadCommand(CommandManager::Command *command);
 
 	// port helpers
-	DigitalPortController *getDigitalPortControllerByPortNumber(int portNumber);
+	PortController *getPortControllerByPortNumber(int portNumber);
 
 	// socket server listeners
 	void onSocketClientConnected(TCPSocketConnection* client);
@@ -74,13 +74,13 @@ private:
 	void onSocketCommandReceived(const char *command, int length);
 
 	// digital port interrupt listeners
-	void onDigitalPortChange(int id, DigitalPortController::DigitalValue value);
-	void onDigitalPortRise(int id);
-	void onDigitalPortFall(int id);
+	void onPortValueChange(int id, PortController::DigitalValue value);
+	void onPortValueRise(int id);
+	void onPortValueFall(int id);
 
 	// custom type definitions
 	typedef std::map<std::string, Callback<CommandManager::Command::Response(CommandManager::Command*)>> CommandHandlerMap;
-	typedef std::map<int, DigitalPortController*> DigitalPortNumberToControllerMap;
+	typedef std::map<int, PortController*> DigitalPortNumberToControllerMap;
 
 	// configuration
 	const int LED_BREATHE_INDEX = 0;
@@ -104,12 +104,12 @@ private:
 	CommandHandlerMap commandHandlerMap;
 
 	// digital port controllers
-	DigitalPortController digitalPort1;
-	DigitalPortController digitalPort2;
-	DigitalPortController digitalPort3;
-	DigitalPortController digitalPort4;
-	DigitalPortController digitalPort5;
-	DigitalPortController digitalPort6;
+	PortController digitalPort1;
+	PortController digitalPort2;
+	PortController digitalPort3;
+	PortController digitalPort4;
+	PortController digitalPort5;
+	PortController digitalPort6;
 
 	// controller mapping
 	DigitalPortNumberToControllerMap digitalPortNumberToControllerMap;
