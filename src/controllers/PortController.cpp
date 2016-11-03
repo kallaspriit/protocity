@@ -28,8 +28,13 @@ void PortController::setPortMode(PortMode portMode) {
 	if (pwmOut != NULL) delete pwmOut;
 	if (interruptIn != NULL) delete interruptIn;
 	if (digitalIn != NULL) delete digitalIn;
+	if (analogIn != NULL) delete analogIn;
 
 	switch (portMode) {
+		case PortMode::UNUSED:
+			// dont do anything
+			break;
+
 		case PortMode::OUTPUT:
 			digitalOut = new DigitalOut(pinName);
 			break;
@@ -49,8 +54,12 @@ void PortController::setPortMode(PortMode portMode) {
 			pwmOut = new PwmOut(pinName);
 			break;
 
+		case PortMode::ANALOG:
+			analogIn = new AnalogIn(pinName);
+			break;
+
 		default:
-			error("invalid digital port mode %d requested", portMode);
+			error("invalid port mode %d requested", portMode);
 	}
 }
 
@@ -103,7 +112,9 @@ void PortController::setPwmDutyCycle(float dutyCycle) {
 }
 
 PortController::PortMode PortController::getPortModeByName(std::string mode) {
-	if (mode == "OUTPUT") {
+	if (mode == "UNUSED") {
+		return PortController::PortMode::UNUSED;
+	}if (mode == "OUTPUT") {
 		return PortController::PortMode::OUTPUT;
 	} else if (mode == "INPUT") {
 		return PortController::PortMode::INPUT;
@@ -111,6 +122,8 @@ PortController::PortMode PortController::getPortModeByName(std::string mode) {
 		return PortController::PortMode::INTERRUPT;
 	} else if (mode == "PWM") {
 		return PortController::PortMode::PWM;
+	} else if (mode == "ANALOG") {
+		return PortController::PortMode::ANALOG;
 	} else {
 		return PortController::PortMode::INVALID;
 	}
@@ -120,9 +133,6 @@ std::string PortController::getPortModeName(PortController::PortMode mode) {
 	switch (mode) {
 		case PortMode::UNUSED:
 			return "UNUSED";
-
-		case PortMode::INVALID:
-			return "INVALID";
 
 		case PortMode::OUTPUT:
 			return "OUTPUT";
@@ -135,6 +145,12 @@ std::string PortController::getPortModeName(PortController::PortMode mode) {
 
 		case PortMode::PWM:
 			return "PWM";
+
+		case PortMode::ANALOG:
+			return "ANALOG";
+
+		case PortMode::INVALID:
+			return "INVALID";
 
 		default:
 			return "INVALID";
@@ -149,7 +165,7 @@ PortController::DigitalValue PortController::getDigitalValue() {
 	} else if (portMode == PortMode::INPUT) {
 		value = digitalIn->read();
 	} else {
-		printf("# getting digital reading is valid only for port configured as input\n");
+		printf("# getting digital reading is valid only for port configured as digital input\n");
 
 		return DigitalValue::LOW;
 	}
@@ -157,6 +173,16 @@ PortController::DigitalValue PortController::getDigitalValue() {
 	printf("# digital value of port %d: %d, rise count: %d, fall count: %d\n", id, value, interruptRiseCount, interruptFallCount);
 
 	return value == 1 ? DigitalValue::HIGH : DigitalValue::LOW;
+}
+
+float PortController::getAnalogValue() {
+	if (portMode != PortMode::ANALOG) {
+		printf("# getting analog reading is valid only for port configured as analog input\n");
+
+		return 0.0f;
+	}
+
+	return analogIn->read();
 }
 
 void PortController::addInterruptListener(PortController::PortEventListener *listener) {

@@ -13,6 +13,7 @@
 #include "controllers/PortController.hpp"
 
 #include <map>
+#include <queue>
 
 class Config;
 class TCPSocketConnection;
@@ -45,7 +46,7 @@ private:
 	void setupEthernetManager();
 	void setupSocketServer();
 
-	// command handling
+	// command and message handling
 	template<typename T, typename M>
 	void registerCommandHandler(std::string name, T *obj, M method);
 	void registerCommandHandler(std::string name, Callback<CommandManager::Command::Response(CommandManager::Command*)> func);
@@ -53,6 +54,7 @@ private:
 	void consumeCommand(CommandManager::Command *command);
 	bool validateCommandArgumentCount(CommandManager::Command *command, int expectedArgumentCount);
 	void handleSerialRx();
+	void sendQueuedMessages();
 
 	// built in command handlers
 	CommandManager::Command::Response handleMemoryCommand(CommandManager::Command *command);
@@ -82,6 +84,7 @@ private:
 	// custom type definitions
 	typedef std::map<std::string, Callback<CommandManager::Command::Response(CommandManager::Command*)>> CommandHandlerMap;
 	typedef std::map<int, PortController*> DigitalPortNumberToControllerMap;
+	typedef std::queue<std::string> StringQueue;
 
 	// configuration
 	const int LED_BREATHE_INDEX = 0;
@@ -104,7 +107,7 @@ private:
 	int commandLength = 0;
 	CommandHandlerMap commandHandlerMap;
 
-	// digital port controllers
+	// port controllers
 	PortController port1;
 	PortController port2;
 	PortController port3;
@@ -114,6 +117,9 @@ private:
 
 	// controller mapping
 	DigitalPortNumberToControllerMap portNumberToControllerMap;
+
+	// queued messages
+	StringQueue messageQueue;
 
 	// test lifecycle methods
 	void testSetup();				// sets up the tests

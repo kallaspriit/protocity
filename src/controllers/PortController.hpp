@@ -17,7 +17,8 @@ public:
 		OUTPUT,
 		INPUT,
 		INTERRUPT,
-		PWM
+		PWM,
+		ANALOG
 	};
 
 	enum DigitalValue {
@@ -46,6 +47,7 @@ public:
 	static std::string getPortModeName(PortMode mode);
 
 	DigitalValue getDigitalValue();
+	float getAnalogValue();
 	void addInterruptListener(PortEventListener *listener);
 
 private:
@@ -62,6 +64,7 @@ private:
 	PwmOut *pwmOut = NULL;
 	InterruptIn *interruptIn = NULL;
 	DigitalIn *digitalIn = NULL;
+	AnalogIn *analogIn = NULL;
 	volatile int interruptRiseCount = 0;
 	volatile int interruptFallCount = 0;
 };

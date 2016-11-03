@@ -14,13 +14,15 @@ public:
 	// socket server
 	int socketServerPort = 8080;
 
-	// ports
+	// digital pwm-capable ports
 	PinName port1Pin = p21;
 	PinName port2Pin = p22;
 	PinName port3Pin = p23;
 	PinName port4Pin = p24;
 	PinName port5Pin = p25;
-	PinName port6Pin = p26;
+
+	// analog-in capable ports
+	PinName port6Pin = p20;
 };
 
 #endif

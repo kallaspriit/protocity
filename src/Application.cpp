@@ -32,6 +32,7 @@ void Application::setup() {
 
 void Application::loop() {
 	consumeQueuedCommands();
+	sendQueuedMessages();
 
 	// Thread::wait(1000);
 }
@@ -191,7 +192,9 @@ void Application::onSocketCommandReceived(const char *command, int length) {
 }
 
 void Application::onPortValueChange(int id, PortController::DigitalValue value) {
-	printf("0:INTERRUPT:%d:%s\n", id, value == PortController::DigitalValue::HIGH ? "HIGH" : "LOW");
+	snprintf(sendBuffer, SEND_BUFFER_SIZE, "0:INTERRUPT:%d:%s\n", id, value == PortController::DigitalValue::HIGH ? "HIGH" : "LOW");
+
+	messageQueue.push(std::string(sendBuffer));
 
 	// TODO temporary
 	port1.setPortMode(PortController::PortMode::OUTPUT);
@@ -225,6 +228,16 @@ void Application::handleSerialRx() {
 
 		commandBuffer[commandLength++] = receivedChar;
 		commandBuffer[commandLength] = '\0';
+	}
+}
+
+void Application::sendQueuedMessages() {
+	while (messageQueue.size() > 0) {
+		std::string message = messageQueue.front();
+		messageQueue.pop();
+
+		printf(message.c_str());
+		socketServer.sendMessage(message);
 	}
 }
 
@@ -447,9 +460,19 @@ CommandManager::Command::Response Application::handlePortReadCommand(CommandMana
 		return command->createFailureResponse("invalid port number requested");
 	}
 
-	PortController::DigitalValue value = portController->getDigitalValue();
+	PortController::PortMode portMode = portController->getMode();
 
-	return command->createSuccessResponse(value == PortController::DigitalValue::HIGH ? "HIGH" : "LOW");
+	if (portMode == PortController::PortMode::INPUT) {
+		PortController::DigitalValue value = portController->getDigitalValue();
+
+		return command->createSuccessResponse(value == PortController::DigitalValue::HIGH ? "HIGH" : "LOW");
+	} else if (portMode == PortController::PortMode::ANALOG) {
+		float value = portController->getAnalogValue();
+
+		return command->createSuccessResponse(value);
+	} else {
+		return command->createFailureResponse("reading value is only valid for digital or analog inputs");
+	}
 }
 
 PortController *Application::getPortControllerByPortNumber(int portNumber) {

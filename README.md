@@ -52,7 +52,7 @@ The following commands are supported (using "1" as example request id)
   - responds with ERROR if invalid port or mode is requested
   - parameters
     - **PORT_NUMBER** port number
-    - **MODE** should be a string value in the set *INPUT*, *OUTPUT*, *PWM*, *INTERRUPT*
+    - **MODE** should be a string value in the set *INPUT*, *OUTPUT*, *PWM*, *INTERRUPT*, *ANALOG*
 - `1:port:PORT_NUMBER:pull:MODE` - sets pull mode
   - for example call with `1:port:1:pull:UP`
   - responds with OK if successful (for example `1:OK`)
@@ -67,15 +67,16 @@ The following commands are supported (using "1" as example request id)
   - parameters
     - **PORT_NUMBER** port number
     - **VALUE** should be either *HIGH* or *LOW* for *OUTPUT* mode or a float value between 0..1 for *PWM* mode
-- `1:port:PORT_NUMBER:read` - reads current *INPUT* or *INTERRUPT* port value
+- `1:port:PORT_NUMBER:read` - reads current *INPUT*, *INTERRUPT* or *ANALOG* port value
   - for example call with `1:port:1:read`
-  - responds with OK and value if successful (for example `1:OK:HIGH`)
+  - responds with OK and value if successful (for example `1:OK:HIGH` or `1:OK:0.5`)
   - responds with ERROR if invalid port is requested
   - parameters
     - **PORT_NUMBER** port number
 
 ## Changelog
 **03.11.2016**
+- Implemented analog input port.
 - Implemented input port pullup/pulldown functionality.
 - Refactored port controller naming.
 - Implemented digital port interrupt events.
