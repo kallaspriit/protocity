@@ -13,12 +13,11 @@
 #include "controllers/DigitalPortController.hpp"
 
 #include <map>
-#include <vector>
 
 class Config;
 class TCPSocketConnection;
 
-class Application : SocketServer::SocketServerListener {
+class Application : SocketServer::SocketServerListener, DigitalPortController::DigitalPortInterruptListener {
 
 public:
 	Application(Config *config);
@@ -64,6 +63,7 @@ private:
 	CommandManager::Command::Response handleDigitalPortCommand(CommandManager::Command *command);
 	CommandManager::Command::Response handleDigitalPortModeCommand(CommandManager::Command *command);
 	CommandManager::Command::Response handleDigitalPortValueCommand(CommandManager::Command *command);
+	CommandManager::Command::Response handleDigitalPortReadCommand(CommandManager::Command *command);
 
 	// port helpers
 	DigitalPortController *getDigitalPortControllerByPortNumber(int portNumber);
@@ -73,10 +73,14 @@ private:
 	void onSocketClientDisconnected(TCPSocketConnection* client);
 	void onSocketCommandReceived(const char *command, int length);
 
+	// digital port interrupt listeners
+	void onDigitalPortChange(int id, DigitalPortController::DigitalValue value);
+	void onDigitalPortRise(int id);
+	void onDigitalPortFall(int id);
+
 	// custom type definitions
 	typedef std::map<std::string, Callback<CommandManager::Command::Response(CommandManager::Command*)>> CommandHandlerMap;
 	typedef std::map<int, DigitalPortController*> DigitalPortNumberToControllerMap;
-	typedef std::vector<AbstractController*> ControllerList;
 
 	// configuration
 	const int LED_BREATHE_INDEX = 0;
@@ -99,10 +103,16 @@ private:
 	int commandLength = 0;
 	CommandHandlerMap commandHandlerMap;
 
-	// controllers
-	ControllerList controllerList;
-	DigitalPortNumberToControllerMap digitalPortNumberToControllerMap;
+	// digital port controllers
 	DigitalPortController digitalPort1;
+	DigitalPortController digitalPort2;
+	DigitalPortController digitalPort3;
+	DigitalPortController digitalPort4;
+	DigitalPortController digitalPort5;
+	DigitalPortController digitalPort6;
+
+	// controller mapping
+	DigitalPortNumberToControllerMap digitalPortNumberToControllerMap;
 
 	// test lifecycle methods
 	void testSetup();				// sets up the tests

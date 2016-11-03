@@ -24,7 +24,7 @@ public:
 	bool sendMessage(std::string message);
 	bool sendMessage(char *message, int length);
 
-	void addListener(SocketServerListener *socketServerListener);
+	void addListener(SocketServerListener *listener);
 
 private:
 	void runListenThread();
@@ -40,7 +40,8 @@ private:
 	char sendBuffer[SEND_BUFFER_SIZE];
 	int commandLength = 0;
 
-	std::vector<SocketServerListener*> listeners;
+	typedef std::vector<SocketServerListener*> ListenerList;
+	ListenerList listeners;
 
 	const int SOCKET_RECEIVE_TIMEOUT_MS = 5000;
 };

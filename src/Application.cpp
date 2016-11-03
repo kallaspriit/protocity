@@ -4,7 +4,12 @@
 Application::Application(Config *config) :
 	config(config),
 	serial(config->serialTxPin, config->serialRxPin),
-	digitalPort1(1, config->digitalPort1Pin)
+	digitalPort1(1, config->digitalPort1Pin),
+	digitalPort2(2, config->digitalPort2Pin),
+	digitalPort3(3, config->digitalPort3Pin),
+	digitalPort4(4, config->digitalPort4Pin),
+	digitalPort5(5, config->digitalPort5Pin),
+	digitalPort6(6, config->digitalPort6Pin)
 {}
 
 void Application::run() {
@@ -52,11 +57,21 @@ void Application::setupCommandHandlers() {
 void Application::setupPorts() {
 	printf("# setting up ports\n");
 
-	// register controller in the list
-	controllerList.push_back(&digitalPort1); // TODO is this used?
-
 	// register the ports in the mapping
 	digitalPortNumberToControllerMap[digitalPort1.getId()] = &digitalPort1;
+	digitalPortNumberToControllerMap[digitalPort2.getId()] = &digitalPort2;
+	digitalPortNumberToControllerMap[digitalPort3.getId()] = &digitalPort3;
+	digitalPortNumberToControllerMap[digitalPort4.getId()] = &digitalPort4;
+	digitalPortNumberToControllerMap[digitalPort5.getId()] = &digitalPort5;
+	digitalPortNumberToControllerMap[digitalPort6.getId()] = &digitalPort6;
+
+	// register interrupt listeners
+	digitalPort1.addInterruptListener(this);
+	digitalPort2.addInterruptListener(this);
+	digitalPort3.addInterruptListener(this);
+	digitalPort4.addInterruptListener(this);
+	digitalPort5.addInterruptListener(this);
+	digitalPort6.addInterruptListener(this);
 }
 
 void Application::setupDebug() {
@@ -113,16 +128,16 @@ void Application::consumeCommand(CommandManager::Command *command) {
 	std::string responseText;
 
 	if (commandIt != commandHandlerMap.end()) {
+		/*
 		printf("# calling command handler for #%d '%s' (source: %d)\n", command->id, command->name.c_str(), command->sourceId);
 
 		for (int i = 0; i < command->argumentCount; i++) {
 			printf("#  argument %d: %s\n", i, command->arguments[i].c_str());
 		}
+		*/
 
 		CommandManager::Command::Response response = commandIt->second.call(command);
 		responseText = response.getResponseText();
-
-		printf("# command response for %d: %s\n", response.requestId, responseText.c_str());
 	} else {
 		printf("# command handler for #%d '%s' (source: %d) has not been registered\n", command->id, command->name.c_str(), command->sourceId);
 
@@ -173,6 +188,22 @@ void Application::onSocketCommandReceived(const char *command, int length) {
 	//consumeQueuedCommands();
 
 	debug.setLedMode(LED_COMMAND_RECEIVED_INDEX, Debug::LedMode::BLINK_ONCE);
+}
+
+void Application::onDigitalPortChange(int id, DigitalPortController::DigitalValue value) {
+	printf("# digital port change %d: %d\n", id, value);
+
+	// TODO temporary
+	digitalPort1.setMode(DigitalPortController::PortMode::OUTPUT);
+	digitalPort1.setValue(value);
+}
+
+void Application::onDigitalPortRise(int id) {
+
+}
+
+void Application::onDigitalPortFall(int id) {
+
 }
 
 void Application::handleSerialRx() {
@@ -265,6 +296,8 @@ CommandManager::Command::Response Application::handleDigitalPortCommand(CommandM
 		return handleDigitalPortModeCommand(command);
 	} else if (action == "value") {
 		return handleDigitalPortValueCommand(command);
+	} else if (action == "read") {
+		return handleDigitalPortReadCommand(command);
 	} else {
 		return command->createFailureResponse("invalid action requested");
 	}
@@ -286,15 +319,9 @@ CommandManager::Command::Response Application::handleDigitalPortModeCommand(Comm
 		return command->createFailureResponse("invalid port number requested");
 	}
 
-	DigitalPortController::PortMode portMode;
+	DigitalPortController::PortMode portMode = DigitalPortController::getPortModeByName(mode);
 
-	if (mode == "OUTPUT") {
-		portMode = DigitalPortController::PortMode::OUTPUT;
-	} else if (mode == "INPUT") {
-		portMode = DigitalPortController::PortMode::INPUT;
-	} else if (mode == "PWM") {
-		portMode = DigitalPortController::PortMode::PWM;
-	} else {
+	if (portMode == DigitalPortController::PortMode::INVALID) {
 		return command->createFailureResponse("invalid port mode requested");
 	}
 
@@ -350,7 +377,7 @@ CommandManager::Command::Response Application::handleDigitalPortValueCommand(Com
 			if (value < 0.0f || value > 1.0f) {
 				return command->createFailureResponse("expected value between 0.0 and 1.0");
 			}
-			
+
 			float pwmDutyCycle = min(max(value, 0.0f), 1.0f);
 
 			digitalPortController->setPwmDutyCycle(pwmDutyCycle);
@@ -365,6 +392,24 @@ CommandManager::Command::Response Application::handleDigitalPortValueCommand(Com
 
 
 	return command->createSuccessResponse();
+}
+
+CommandManager::Command::Response Application::handleDigitalPortReadCommand(CommandManager::Command *command) {
+	if (!validateCommandArgumentCount(command, 2)) {
+		return command->createFailureResponse("expected two parameters");
+	}
+
+	int portNumber = command->getInt(0);
+
+	DigitalPortController *digitalPortController = getDigitalPortControllerByPortNumber(portNumber);
+
+	if (digitalPortController == NULL) {
+		return command->createFailureResponse("invalid port number requested");
+	}
+
+	DigitalPortController::DigitalValue value = digitalPortController->getDigitalValue();
+
+	return command->createSuccessResponse(value == DigitalPortController::DigitalValue::HIGH ? "HIGH" : "LOW");
 }
 
 DigitalPortController *Application::getDigitalPortControllerByPortNumber(int portNumber) {

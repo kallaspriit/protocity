@@ -50,7 +50,7 @@ void SocketServer::runListenThread() {
 		connectedClient = &client;
 
 		// notify listeners
-		for (std::vector<SocketServerListener*>::iterator it = listeners.begin(); it != listeners.end(); ++it) {
+		for (ListenerList::iterator it = listeners.begin(); it != listeners.end(); ++it) {
 			(*it)->onSocketClientConnected(connectedClient);
 		}
 
@@ -62,7 +62,7 @@ void SocketServer::runListenThread() {
 				printf("# socket connection to %s has been closed\n", client.get_address());
 
 				// notify listeners
-				for (std::vector<SocketServerListener*>::iterator it = listeners.begin(); it != listeners.end(); ++it) {
+				for (ListenerList::iterator it = listeners.begin(); it != listeners.end(); ++it) {
 					(*it)->onSocketClientDisconnected(connectedClient);
 				}
 
@@ -91,7 +91,7 @@ void SocketServer::runListenThread() {
 					}
 
 					// notify all message listeners
-					for (std::vector<SocketServerListener*>::iterator it = listeners.begin(); it != listeners.end(); ++it) {
+					for (ListenerList::iterator it = listeners.begin(); it != listeners.end(); ++it) {
 						(*it)->onSocketCommandReceived(commandBuffer, commandLength);
 					}
 
@@ -142,13 +142,13 @@ bool SocketServer::sendMessage(char *message, int length) {
 	// close client if sending failed
 	if (sentBytes == -1) {
 		printf("# sending socket message '%s' failed\n", message);
-		
+
 		return false;
 	}
 
 	return true;
 }
 
-void SocketServer::addListener(SocketServer::SocketServerListener *socketServerListener) {
-	listeners.push_back(socketServerListener);
+void SocketServer::addListener(SocketServer::SocketServerListener *listener) {
+	listeners.push_back(listener);
 }

@@ -106,6 +106,14 @@ CommandManager::Command::Response CommandManager::Command::createSuccessResponse
 	return response;
 }
 
+CommandManager::Command::Response CommandManager::Command::createSuccessResponse(std::string message) {
+	CommandManager::Command::Response response(id);
+
+	response.addArgument(message);
+
+	return response;
+}
+
 CommandManager::Command::Response CommandManager::Command::createFailureResponse() {
 	return createFailureResponse("error occured");
 }

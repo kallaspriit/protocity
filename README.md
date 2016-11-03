@@ -62,6 +62,10 @@ The following commands are supported (using "1" as example request id)
     - **VALUE** should be either *HIGH* or *LOW* for *OUTPUT* mode or a float value between 0..1 for *PWM* mode
 
 ## Changelog
+**03.11.2016**
+- Implemented digital port interrupt events.
+- Implemented digital port value reading.
+
 **02.11.2016**
 - Implemented digital port value command for OUTPUT and PWM modes.
 - Implemented digital port mode action.

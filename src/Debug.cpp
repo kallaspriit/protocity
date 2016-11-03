@@ -85,6 +85,7 @@ void Debug::runLedUpdateThread() {
 		// apply states
 		for (int i = 0; i < LED_COUNT; i++) {
 			switch (ledMode[i]) {
+				/*
 				case LedMode::OFF:
 					ledState[i] = 0.0f;
 					break;
@@ -92,6 +93,7 @@ void Debug::runLedUpdateThread() {
 				case LedMode::ON:
 					ledState[i] = 1.0f;
 					break;
+				*/
 
 				case LedMode::BLINK_FAST:
 					ledState[i] = blinkFastState ? 1.0f : 0.0f;
