@@ -33,6 +33,7 @@ void Application::setup() {
 void Application::loop() {
 	consumeQueuedCommands();
 	sendQueuedMessages();
+	updateControllers();
 
 	// Thread::wait(1000);
 }
@@ -67,12 +68,12 @@ void Application::setupPorts() {
 	portNumberToControllerMap[port6.getId()] = &port6;
 
 	// register interrupt listeners
-	port1.addInterruptListener(this);
-	port2.addInterruptListener(this);
-	port3.addInterruptListener(this);
-	port4.addInterruptListener(this);
-	port5.addInterruptListener(this);
-	port6.addInterruptListener(this);
+	port1.addEventListener(this);
+	port2.addEventListener(this);
+	port3.addEventListener(this);
+	port4.addEventListener(this);
+	port5.addEventListener(this);
+	port6.addEventListener(this);
 }
 
 void Application::setupDebug() {
@@ -191,14 +192,24 @@ void Application::onSocketCommandReceived(const char *command, int length) {
 	debug.setLedMode(LED_COMMAND_RECEIVED_INDEX, Debug::LedMode::BLINK_ONCE);
 }
 
-void Application::onPortValueChange(int id, PortController::DigitalValue value) {
+void Application::onPortDigitalValueChange(int id, PortController::DigitalValue value) {
 	snprintf(sendBuffer, SEND_BUFFER_SIZE, "0:INTERRUPT:%d:%s\n", id, value == PortController::DigitalValue::HIGH ? "HIGH" : "LOW");
 
 	messageQueue.push(std::string(sendBuffer));
 
-	// TODO temporary
+	// TODO remove temporary test
 	port1.setPortMode(PortController::PortMode::OUTPUT);
 	port1.setValue(value);
+}
+
+void Application::onPortAnalogValueChange(int id, float value) {
+	snprintf(sendBuffer, SEND_BUFFER_SIZE, "0:ANALOG:%d:%f\n", id, value);
+
+	messageQueue.push(std::string(sendBuffer));
+
+	// TODO remove temporary test
+	port2.setPortMode(PortController::PortMode::PWM);
+	port2.setPwmDutyCycle(value);
 }
 
 void Application::onPortValueRise(int id) {
@@ -238,6 +249,12 @@ void Application::sendQueuedMessages() {
 
 		printf(message.c_str());
 		socketServer.sendMessage(message);
+	}
+}
+
+void Application::updateControllers() {
+	for (DigitalPortNumberToControllerMap::iterator it = portNumberToControllerMap.begin(); it != portNumberToControllerMap.end(); it++) {
+		it->second->update();
 	}
 }
 

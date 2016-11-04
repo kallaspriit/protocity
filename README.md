@@ -75,6 +75,9 @@ The following commands are supported (using "1" as example request id)
     - **PORT_NUMBER** port number
 
 ## Changelog
+**04.11.2016**
+- Implemented analog port change listener and reporting.
+
 **03.11.2016**
 - Implemented analog input port.
 - Implemented input port pullup/pulldown functionality.

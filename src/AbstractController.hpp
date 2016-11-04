@@ -5,6 +5,9 @@
 
 class AbstractController {
 
+public:
+	virtual void update() {};
+
 };
 
 #endif

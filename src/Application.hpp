@@ -50,11 +50,14 @@ private:
 	template<typename T, typename M>
 	void registerCommandHandler(std::string name, T *obj, M method);
 	void registerCommandHandler(std::string name, Callback<CommandManager::Command::Response(CommandManager::Command*)> func);
-	void consumeQueuedCommands();
 	void consumeCommand(CommandManager::Command *command);
 	bool validateCommandArgumentCount(CommandManager::Command *command, int expectedArgumentCount);
 	void handleSerialRx();
+
+	// loop updates
+	void consumeQueuedCommands();
 	void sendQueuedMessages();
+	void updateControllers();
 
 	// built in command handlers
 	CommandManager::Command::Response handleMemoryCommand(CommandManager::Command *command);
@@ -77,7 +80,8 @@ private:
 	void onSocketCommandReceived(const char *command, int length);
 
 	// digital port interrupt listeners
-	void onPortValueChange(int id, PortController::DigitalValue value);
+	void onPortDigitalValueChange(int id, PortController::DigitalValue value);
+	void onPortAnalogValueChange(int id, float value);
 	void onPortValueRise(int id);
 	void onPortValueFall(int id);
 

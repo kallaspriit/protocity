@@ -28,9 +28,13 @@ public:
 
 	class PortEventListener {
 	public:
-		virtual void onPortValueChange(int id, DigitalValue value) {};
+		virtual void onPortDigitalValueChange(int id, DigitalValue value) {};
+		virtual void onPortAnalogValueChange(int id, float value) {};
 		virtual void onPortValueRise(int id) {};
 		virtual void onPortValueFall(int id) {};
+
+		float portEventListenerChangeThreshold = 0.01f;
+		float portEventListenerLastValue = 0.0f;
 	};
 
 	PortController(int id, PinName pinName);
@@ -48,7 +52,11 @@ public:
 
 	DigitalValue getDigitalValue();
 	float getAnalogValue();
-	void addInterruptListener(PortEventListener *listener);
+	void addEventListener(PortEventListener *listener);
+	void addEventListener(PortEventListener *listener, float changeThreshold);
+
+	void update();
+	void updateValueChange(PortEventListener* listener);
 
 private:
 	void handleInterruptRise();
