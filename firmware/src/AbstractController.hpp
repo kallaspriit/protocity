@@ -6,7 +6,7 @@
 class AbstractController {
 
 public:
-	virtual void update() {};
+	virtual void update(int deltaUs) {};
 
 };
 

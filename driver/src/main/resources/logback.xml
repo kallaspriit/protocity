@@ -1,0 +1,38 @@
+<configuration>
+
+    <!-- console appender -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>
+                %date{ISO8601,UTC} UTC [%thread] %marker %-5level %logger{36} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <!-- file log -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/app.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>app.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <maxHistory>10</maxHistory>
+            <totalSizeCap>10MB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>
+                %date{ISO8601,UTC} UTC [%thread] %marker %level %class{36} [%mdc] %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <!-- make the application log at lower level -->
+    <logger name="com.stagnationlab" level="TRACE"/>
+    <logger name="c8y" level="TRACE"/>
+    <logger name="org" level="TRACE"/>
+    <logger name="com" level="TRACE"/>
+
+    <!-- external components log above WARN level -->
+    <root level="TRACE">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
+    </root>
+</configuration>

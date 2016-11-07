@@ -73,8 +73,22 @@ The following commands are supported (using "1" as example request id)
   - responds with ERROR if invalid port is requested
   - parameters
     - **PORT_NUMBER** port number
+- `1:port:PORT_NUMBER:listen:THRESHOLD:INTERVAL` - sets up *ANALOG* port change listener
+  - for example call with `1:port:1:listen:0.1:100` - change events are sent for every 0.1 value change no more often than every 100 milliseconds
+  - responds with OK if successful (for example `1:OK`)
+  - responds with ERROR if invalid port is requested
+  - parameters
+    - **THRESHOLD** value threshold 0..1
+    - **INTERVAL** minimum change reporting interval in milliseconds
+- `1:port:PORT_NUMBER:listen:off` - stops *ANALOG* port change listener
+  - for example call with `1:port:1:listen:off`
+  - responds with OK if successful (for example `1:OK`)
+  - responds with ERROR if invalid port is requested
 
 ## Changelog
+**07.11.2016**
+- Implemented registering and stopping analog port change listeners.
+
 **04.11.2016**
 - Implemented analog port change listener and reporting.
 

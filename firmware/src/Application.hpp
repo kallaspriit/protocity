@@ -45,6 +45,7 @@ private:
 	void setupCommandManager();
 	void setupEthernetManager();
 	void setupSocketServer();
+	void setupTimer();
 
 	// command and message handling
 	template<typename T, typename M>
@@ -57,7 +58,7 @@ private:
 	// loop updates
 	void consumeQueuedCommands();
 	void sendQueuedMessages();
-	void updateControllers();
+	void updateControllers(int deltaUs);
 
 	// built in command handlers
 	CommandManager::Command::Response handleMemoryCommand(CommandManager::Command *command);
@@ -70,6 +71,7 @@ private:
 	CommandManager::Command::Response handlePortPullCommand(CommandManager::Command *command);
 	CommandManager::Command::Response handlePortValueCommand(CommandManager::Command *command);
 	CommandManager::Command::Response handlePortReadCommand(CommandManager::Command *command);
+	CommandManager::Command::Response handlePortListenCommand(CommandManager::Command *command);
 
 	// port helpers
 	PortController *getPortControllerByPortNumber(int portNumber);
@@ -118,6 +120,9 @@ private:
 	PortController port4;
 	PortController port5;
 	PortController port6;
+
+	// update timer
+	Timer timer;
 
 	// controller mapping
 	DigitalPortNumberToControllerMap portNumberToControllerMap;

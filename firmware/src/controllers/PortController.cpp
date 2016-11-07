@@ -191,12 +191,22 @@ void PortController::addEventListener(PortController::PortEventListener *listene
 	listeners.push_back(listener);
 }
 
-void PortController::addEventListener(PortController::PortEventListener *listener, float changeThreshold = 0.01f) {
+void PortController::addEventListener(PortController::PortEventListener *listener, float changeThreshold, int intervalMs) {
 	printf("# registering interrup listener for port %d with change threshold of %f\n", id, changeThreshold);
 
-	listener->portEventListenerChangeThreshold = changeThreshold;
+	listenAnalogValueChange(changeThreshold, intervalMs);
 
 	listeners.push_back(listener);
+}
+
+void PortController::listenAnalogValueChange(float changeThreshold, int intervalMs) {
+	analogChangeEventThreshold = changeThreshold;
+	analogChangeEventIntervalUs = intervalMs * 1000;
+	isAnalogChangeEventEnabled = true;
+}
+
+void PortController::stopAnalogValueListener() {
+	isAnalogChangeEventEnabled = false;
 }
 
 void PortController::handleInterruptRise() {
@@ -217,7 +227,7 @@ void PortController::handleInterruptFall() {
 	}
 }
 
-void PortController::update() {
+void PortController::update(int deltaUs) {
 	// the value change events is valid only for analog ports
 	if (portMode != PortMode::ANALOG) {
 		return;
@@ -230,21 +240,35 @@ void PortController::update() {
 		return;
 	}
 
+	if (isAnalogChangeEventEnabled) {
+		analogChangeEventUsSinceLastUpdate += deltaUs;
+	}
+
 	for (ListenerList::iterator it = listeners.begin(); it != listeners.end(); ++it) {
 		updateValueChange(*it);
 	}
 }
 
 void PortController::updateValueChange(PortEventListener* listener) {
-	float currentValue = getAnalogValue();
-	float lastValue = listener->portEventListenerLastValue;
-	float delta = currentValue - lastValue;
-	bool isDeltaLargeEnough = fabs(delta) >= listener->portEventListenerChangeThreshold;
-	bool isMinMaxReached = (lastValue != 0.0f && currentValue == 0.0f) || (lastValue != 1.0f && currentValue == 1.0f);
-
-	if (isDeltaLargeEnough || isMinMaxReached) {
-		listener->onPortAnalogValueChange(id, currentValue);
-
-		listener->portEventListenerLastValue = currentValue;
+	if (!isAnalogChangeEventEnabled) {
+		return;
 	}
+
+	float currentValue = getAnalogValue();
+	float lastValue = analogChangeEventLastValue;
+	float delta = currentValue - lastValue;
+	bool isDeltaLargeEnough = fabs(delta) >= analogChangeEventThreshold;
+	bool isMinMaxReached = (lastValue != 0.0f && currentValue == 0.0f) || (lastValue != 1.0f && currentValue == 1.0f);
+	bool hasEnoughtTimePassed = analogChangeEventUsSinceLastUpdate >= analogChangeEventIntervalUs;
+
+	if (hasEnoughtTimePassed && (isDeltaLargeEnough || isMinMaxReached)) {
+		emitAnalogValueChangeEvent(listener, currentValue);
+	}
+}
+
+void PortController::emitAnalogValueChangeEvent(PortEventListener* listener, float value) {
+	listener->onPortAnalogValueChange(id, value);
+
+	analogChangeEventLastValue = value;
+	analogChangeEventUsSinceLastUpdate = 0;
 }
