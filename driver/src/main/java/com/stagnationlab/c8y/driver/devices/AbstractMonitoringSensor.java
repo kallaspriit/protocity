@@ -1,15 +1,15 @@
-package com.stagnationlab.c8y.driver.sensors;
+package com.stagnationlab.c8y.driver.devices;
 
 
 import c8y.Hardware;
 import c8y.lx.driver.MeasurementPollingDriver;
 import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
-import com.stagnationlab.c8y.driver.DeviceManager;
+import com.stagnationlab.c8y.driver.services.DeviceManager;
 import com.stagnationlab.c8y.driver.measurements.DeviceMonitoringMeasurement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-abstract class AbstractMonitoringSensor extends MeasurementPollingDriver {
+public abstract class AbstractMonitoringSensor extends MeasurementPollingDriver {
 
     class MonitoringSensor {}
 
@@ -44,7 +44,7 @@ abstract class AbstractMonitoringSensor extends MeasurementPollingDriver {
 
     private final String id;
 
-    AbstractMonitoringSensor(String id) {
+    protected AbstractMonitoringSensor(String id) {
         super(TYPE + "Sensor", TYPE.toLowerCase(), 5000);
 
         this.id = id;
@@ -95,7 +95,7 @@ abstract class AbstractMonitoringSensor extends MeasurementPollingDriver {
         sendMeasurement(deviceMonitoringMeasurement);
     }
 
-    abstract Hardware getHardware();
+    protected abstract Hardware getHardware();
 
-    abstract MonitoringStatus getMonitoringStatus();
+    protected abstract MonitoringStatus getMonitoringStatus();
 }

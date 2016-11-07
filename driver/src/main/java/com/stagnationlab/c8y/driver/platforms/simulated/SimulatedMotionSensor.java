@@ -1,6 +1,7 @@
-package com.stagnationlab.c8y.driver.sensors;
+package com.stagnationlab.c8y.driver.platforms.simulated;
 
 import c8y.Hardware;
+import com.stagnationlab.c8y.driver.devices.AbstractMotionSensor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +37,7 @@ public class SimulatedMotionSensor extends AbstractMotionSensor implements Runna
     }
 
     @Override
-    Hardware getHardware() {
+    protected Hardware getHardware() {
         return new Hardware(
                 "Simulated Motion Sensor",
                 "006226662342449",

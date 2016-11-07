@@ -7,10 +7,9 @@ import com.cumulocity.model.operation.OperationStatus;
 import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
 import com.cumulocity.rest.representation.operation.OperationRepresentation;
 import com.cumulocity.sdk.client.Platform;
-import com.pi4j.io.gpio.RaspiPin;
-import com.pi4j.io.i2c.I2CBus;
-import com.stagnationlab.c8y.driver.actuators.SimulatedRelayActuator;
-import com.stagnationlab.c8y.driver.sensors.*;
+import com.stagnationlab.c8y.driver.platforms.simulated.SimulatedLightSensor;
+import com.stagnationlab.c8y.driver.platforms.simulated.SimulatedMotionSensor;
+import com.stagnationlab.c8y.driver.platforms.simulated.SimulatedRelayActuator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

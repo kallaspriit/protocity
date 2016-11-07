@@ -1,4 +1,4 @@
-package com.stagnationlab.c8y.driver.actuators;
+package com.stagnationlab.c8y.driver.devices;
 
 import c8y.Hardware;
 import c8y.Relay;
@@ -10,14 +10,14 @@ import com.cumulocity.rest.representation.measurement.MeasurementRepresentation;
 import com.cumulocity.rest.representation.operation.OperationRepresentation;
 import com.cumulocity.sdk.client.Platform;
 import com.cumulocity.sdk.client.measurement.MeasurementApi;
-import com.stagnationlab.c8y.driver.DeviceManager;
+import com.stagnationlab.c8y.driver.services.DeviceManager;
 import com.stagnationlab.c8y.driver.measurements.RelayStateMeasurement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 
-abstract class AbstractRelayActuator implements Driver, OperationExecutor {
+public abstract class AbstractRelayActuator implements Driver, OperationExecutor {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractRelayActuator.class);
 
@@ -29,9 +29,8 @@ abstract class AbstractRelayActuator implements Driver, OperationExecutor {
     private ManagedObjectRepresentation childDevice;
     private final String id;
 
-    AbstractRelayActuator(String id) {
+    protected AbstractRelayActuator(String id) {
         this.id = id;
-
     }
 
     @Override
@@ -109,9 +108,9 @@ abstract class AbstractRelayActuator implements Driver, OperationExecutor {
         setRelayOn(shouldRelayBeOn);
     }
 
-    abstract Hardware getHardware();
+    protected abstract Hardware getHardware();
 
-    abstract void applyRelayState(boolean isRelayOn);
+    protected abstract void applyRelayState(boolean isRelayOn);
 
     private void setRelayOn(boolean isRelayOn, boolean isForced) {
         boolean isRelayCurrentlyOn = relay.getRelayState() == Relay.RelayState.CLOSED;

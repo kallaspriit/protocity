@@ -1,6 +1,7 @@
-package com.stagnationlab.c8y.driver.sensors;
+package com.stagnationlab.c8y.driver.platforms.simulated;
 
 import c8y.Hardware;
+import com.stagnationlab.c8y.driver.devices.AbstractLightSensor;
 
 public class SimulatedLightSensor extends AbstractLightSensor {
 
@@ -11,7 +12,7 @@ public class SimulatedLightSensor extends AbstractLightSensor {
     }
 
     @Override
-    Hardware getHardware() {
+    protected Hardware getHardware() {
         return new Hardware(
                 "Simulated Light Sensor",
                 "098245687332343",
@@ -19,6 +20,7 @@ public class SimulatedLightSensor extends AbstractLightSensor {
         );
     }
 
+    @Override
     protected double getIlluminance() {
         // simulate gradual illuminance change
         double maxStep = 10.0;

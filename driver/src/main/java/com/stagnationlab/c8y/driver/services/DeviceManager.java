@@ -1,4 +1,4 @@
-package com.stagnationlab.c8y.driver;
+package com.stagnationlab.c8y.driver.services;
 
 import c8y.Hardware;
 import c8y.lx.driver.DeviceManagedObject;

@@ -1,6 +1,7 @@
-package com.stagnationlab.c8y.driver.sensors;
+package com.stagnationlab.c8y.driver.devices;
 
 import c8y.Hardware;
+import c8y.MotionSensor;
 import c8y.lx.driver.Driver;
 import c8y.lx.driver.OperationExecutor;
 import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
@@ -8,27 +9,25 @@ import com.cumulocity.rest.representation.measurement.MeasurementRepresentation;
 import com.cumulocity.sdk.client.Platform;
 import com.cumulocity.sdk.client.event.EventApi;
 import com.cumulocity.sdk.client.measurement.MeasurementApi;
-import com.stagnationlab.c8y.driver.DeviceManager;
-import com.stagnationlab.c8y.driver.events.ButtonPressedEvent;
-import com.stagnationlab.c8y.driver.events.ButtonReleasedEvent;
-import com.stagnationlab.c8y.driver.measurements.ButtonStateMeasurement;
+import com.stagnationlab.c8y.driver.services.DeviceManager;
+import com.stagnationlab.c8y.driver.events.MotionDetectedEvent;
+import com.stagnationlab.c8y.driver.events.MotionEndedEvent;
+import com.stagnationlab.c8y.driver.measurements.MotionStateMeasurement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 
-public abstract class AbstractButtonSensor implements Driver {
-
-    class ButtonSensor {}
+public abstract class AbstractMotionSensor implements Driver {
 
     public enum State {
-        BUTTON_RELEASED,
-        BUTTON_PRESSED
+        MOTION_ENDED,
+        MOTION_DETECTED
     }
 
-    private static final Logger log = LoggerFactory.getLogger(AbstractButtonSensor.class);
+    private static final Logger log = LoggerFactory.getLogger(AbstractMotionSensor.class);
 
-    private static final String TYPE = "Button";
+    private static final String TYPE = "Motion";
 
     private Platform platform;
     private EventApi eventApi;
@@ -36,7 +35,7 @@ public abstract class AbstractButtonSensor implements Driver {
     private ManagedObjectRepresentation childDevice;
     private final String id;
 
-    AbstractButtonSensor(String id) {
+    protected AbstractMotionSensor(String id) {
         this.id = id;
     }
 
@@ -66,7 +65,7 @@ public abstract class AbstractButtonSensor implements Driver {
                 parent,
                 getHardware(),
                 getSupportedOperations(),
-                new ButtonSensor()
+                new MotionSensor()
         );
     }
 
@@ -85,47 +84,46 @@ public abstract class AbstractButtonSensor implements Driver {
         log.info("starting driver");
     }
 
-    abstract Hardware getHardware();
+    protected abstract Hardware getHardware();
 
-    void triggerButtonPressed() {
-        ButtonPressedEvent event = new ButtonPressedEvent();
+    protected void triggerMotionDetected() {
+        MotionDetectedEvent event = new MotionDetectedEvent();
         event.setSource(childDevice);
 
         eventApi.create(event);
 
-        sendButtonMeasurement(true);
+        sendMotionMeasurement(true);
     }
 
-    void triggerButtonReleased() {
-        ButtonReleasedEvent event = new ButtonReleasedEvent();
+    protected void triggerMotionEnded() {
+        MotionEndedEvent event = new MotionEndedEvent();
         event.setSource(childDevice);
 
         eventApi.create(event);
 
-        sendButtonMeasurement(false);
+        sendMotionMeasurement(false);
     }
 
-    private void sendButtonMeasurement(boolean isButtonPressed) {
+    private void sendMotionMeasurement(boolean isMotionDetected) {
         MeasurementRepresentation measurementRepresentation = new MeasurementRepresentation();
 
         measurementRepresentation.setSource(childDevice);
-        measurementRepresentation.setType("MotionDetected");
+        measurementRepresentation.setType("c8y");
 
         // send inverse measurement first to get a square graph
-        ButtonStateMeasurement measurement = new ButtonStateMeasurement();
-        measurement.setState(isButtonPressed ? State.BUTTON_RELEASED : State.BUTTON_PRESSED);
+        MotionStateMeasurement measurement = new MotionStateMeasurement();
+        measurement.setState(isMotionDetected ? State.MOTION_ENDED : State.MOTION_DETECTED);
         measurementRepresentation.set(measurement);
         measurementRepresentation.setTime(new Date());
 
         measurementApi.create(measurementRepresentation);
 
         // send the current state
-        measurement = new ButtonStateMeasurement();
-        measurement.setState(isButtonPressed ? State.BUTTON_PRESSED : State.BUTTON_RELEASED);
+        measurement = new MotionStateMeasurement();
+        measurement.setState(isMotionDetected ? State.MOTION_DETECTED : State.MOTION_ENDED);
         measurementRepresentation.set(measurement);
         measurementRepresentation.setTime(new Date());
 
         measurementApi.create(measurementRepresentation);
     }
-
 }
