@@ -1,6 +1,8 @@
 package com.stagnationlab.etherio;
 
 
+import com.sun.javaws.exceptions.InvalidArgumentException;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +20,26 @@ public class Command {
         for (Object argument : arguments) {
             this.arguments.add(argument.toString());
         }
+    }
+
+    public String getString(int argumentIndex) {
+        if (argumentIndex + 1 > arguments.size()) {
+            throw new IllegalArgumentException("Invalid argument index provided");
+        }
+
+        return arguments.get(argumentIndex);
+    }
+
+    public int getInt(int argumentIndex) {
+        return Integer.parseInt(getString(argumentIndex));
+    }
+
+    public float getFloat(int argumentIndex) {
+        return Float.parseFloat(getString(argumentIndex));
+    }
+
+    public double getDouble(int argumentIndex) {
+        return Double.parseDouble(getString(argumentIndex));
     }
 
     @Override
