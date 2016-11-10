@@ -14,4 +14,6 @@ public interface MessageTransport {
 
     String getMessage();
 
+    int getNextMessageId();
+
 }

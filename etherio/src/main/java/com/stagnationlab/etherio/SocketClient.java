@@ -60,6 +60,7 @@ public class SocketClient implements MessageTransport {
     private boolean isConnected = false;
     private Queue<String> inputQueue;
     private List<MessageListener> messageListeners;
+    private int messageCounter = 0;
 
     public SocketClient() {
         inputQueue = new LinkedList<>();
@@ -111,6 +112,10 @@ public class SocketClient implements MessageTransport {
         inputQueue.remove();
 
         return message;
+    }
+
+    public int getNextMessageId() {
+        return messageCounter++;
     }
 
     public void close() throws IOException {
