@@ -498,8 +498,8 @@ CommandManager::Command::Response Application::handlePortReadCommand(CommandMana
 }
 
 CommandManager::Command::Response Application::handlePortListenCommand(CommandManager::Command *command) {
-	if (command->argumentCount < 3 || command->argumentCount > 4) {
-		return command->createFailureResponse("expected three or four parameters");
+	if (command->argumentCount < 2 || command->argumentCount > 4) {
+		return command->createFailureResponse("expected at least two and no more than four parameters");
 	}
 
 	int portNumber = command->getInt(0);
@@ -516,16 +516,24 @@ CommandManager::Command::Response Application::handlePortListenCommand(CommandMa
 		return command->createFailureResponse("listening for port events is only valid for analog inputs");
 	}
 
-	if (command->getString(2) == "off") {
-		printf("# stopping listening for analog port %d value changes\n", portNumber);
+	float changeThreshold = 0.01f;
+	int intervalMs = 0;
 
-		portController->stopAnalogValueListener();
+	if (command->argumentCount >= 3) {
+		if (command->getString(2) == "off") {
+			printf("# stopping listening for analog port %d value changes\n", portNumber);
 
-		return command->createSuccessResponse();
+			portController->stopAnalogValueListener();
+
+			return command->createSuccessResponse();
+		}
+
+		changeThreshold = command->getFloat(2);
 	}
 
-	float changeThreshold = command->getFloat(2);
-	int intervalMs = command->getInt(3);
+	if (command->argumentCount >= 4) {
+		intervalMs = command->getInt(3);
+	}
 
 	printf("# listening for analog port %d value changes (threshold: %f, interval: %dms)\n", portNumber, changeThreshold, intervalMs);
 

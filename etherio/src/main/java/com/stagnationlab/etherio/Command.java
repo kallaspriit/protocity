@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class Command {
 
     public final int id;

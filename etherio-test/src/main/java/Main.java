@@ -1,4 +1,4 @@
-package com.stagnationlab.etherio;
+import com.stagnationlab.etherio.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -6,13 +6,15 @@ import java.io.InputStreamReader;
 
 public class Main implements PortController.PortEventListener {
 
+    private PortController portController;
+
     public static void main(String[] args) throws Exception {
         (new Main()).run();
     }
 
     private void run() throws Exception {
         // String hostName = "127.0.0.1";
-        String hostName = "10.220.20.11";
+        String hostName = "10.220.20.17";
         int portNumber = 8080;
 
         BufferedReader consoleIn = new BufferedReader(new InputStreamReader(System.in));
@@ -27,35 +29,41 @@ public class Main implements PortController.PortEventListener {
 
         System.out.printf("success!%n");
 
-        PortController portController = new PortController(socketClient);
+        portController = new PortController(socketClient);
 
         portController.addEventListener(this);
 
-        // test communication
-        portController.test();
+        test();
 
-        /*
-        socketClient.addMessageListener(message -> {
-            System.out.printf("> %s%n> ", message);
-        });
+        socketClient.close();
+    }
 
-        while (true) {
-            String userInput = consoleIn.readLine();
+    private void test() throws Exception {
+        // available memory
+        portController.sendCommand("memory").thenAccept(
+                commandResponse -> System.out.printf("# got memory request response: %d bytes%n", commandResponse.response.getInt(0))
+        );
 
-            if (userInput.equals("quit")) {
-                System.out.printf("# quitting%n");
+        // digital out
+        portController.sendCommand("port", 1, "mode", "OUTPUT");
+        portController.sendCommand("port", 1, "value", "HIGH");
 
-                break;
-            }
+        // pwm out
+        portController.sendCommand("port", 2, "mode", "PWM");
+        portController.sendCommand("port", 2, "value", 0.25);
 
-            socketClient.sendMessage("%s\n", userInput);
-        }
-        */
+        // interrupt
+        portController.sendCommand("port", 4, "mode", "INTERRUPT");
+
+        // analog in
+        portController.sendCommand("port", 6, "mode", "ANALOG");
+        portController.sendCommand("port", 6, "read").thenAccept(
+                commandResponse -> System.out.printf("# port %d analog value: %f%n", commandResponse.command.getInt(0), commandResponse.response.getFloat(0))
+        );
+        portController.sendCommand("port", 6, "listen", 0.05, 500);
 
         // give some time to respond
         Thread.sleep(10000);
-
-        socketClient.close();
     }
 
     private static String askFor(String question, String defaultValue, BufferedReader consoleIn) throws IOException {

@@ -7,9 +7,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-class PortController implements MessageTransport.MessageListener {
+@SuppressWarnings({"WeakerAccess", "unused"})
+public class PortController implements MessageTransport.MessageListener {
 
-    enum PortMode {
+    public enum PortMode {
         UNUSED,
         INVALID,
         OUTPUT,
@@ -19,21 +20,21 @@ class PortController implements MessageTransport.MessageListener {
         ANALOG
     }
 
-    enum DigitalValue {
+    public enum DigitalValue {
         LOW,
         HIGH
     }
 
-    interface PortEventListener {
+    public interface PortEventListener {
         void onPortDigitalValueChange(int id, DigitalValue value);
         void onPortAnalogValueChange(int id, float value);
         void onPortValueRise(int id);
         void onPortValueFall(int id);
     }
 
-    private class CommandResponse {
-        final Command command;
-        Command response;
+    public class CommandResponse {
+        public final Command command;
+        public Command response;
 
         CommandResponse(Command command, Command response) {
             this.command = command;
@@ -59,7 +60,7 @@ class PortController implements MessageTransport.MessageListener {
     private final List<PortEventListener> portEventListeners;
     private final Map<Integer, CommandPromise> commandPromises;
 
-    PortController(MessageTransport messageTransport) {
+    public PortController(MessageTransport messageTransport) {
         this.messageTransport = messageTransport;
         this.portEventListeners = new ArrayList<>();
         this.commandPromises = new HashMap<>();
@@ -67,41 +68,17 @@ class PortController implements MessageTransport.MessageListener {
         messageTransport.addMessageListener(this);
     }
 
-    void addEventListener(PortEventListener listener) {
+    public void addEventListener(PortEventListener listener) {
         portEventListeners.add(listener);
     }
 
-    void test() {
-        // available memory
-        sendCommand("memory").thenAccept(commandResponse -> {
-            System.out.printf("# got memory request response: %d bytes%n", commandResponse.response.getInt(0));
-        });
-
-        // digital out
-        sendCommand("port", 1, "mode", "OUTPUT");
-        sendCommand("port", 1, "value", "HIGH");
-
-        // pwm out
-        sendCommand("port", 2, "mode", "PWM");
-        sendCommand("port", 2, "value", 0.25);
-
-        // interrupt
-        sendCommand("port", 4, "mode", "INTERRUPT");
-
-        // analog in
-        sendCommand("port", 6, "mode", "ANALOG");
-        sendCommand("port", 6, "read").thenAccept(commandResponse -> {
-            System.out.printf("# port %d analog value: %f%n", commandResponse.command.getInt(0), commandResponse.response.getFloat(0));
-        });
-    }
-
-    private CompletableFuture<CommandResponse> sendCommand(String name, Object... arguments) {
+    public CompletableFuture<CommandResponse> sendCommand(String name, Object... arguments) {
         Command command = new Command(messageTransport.getNextMessageId(), name, arguments);
 
         return sendCommand(command);
     }
 
-    private CompletableFuture<CommandResponse> sendCommand(Command command) {
+    public CompletableFuture<CommandResponse> sendCommand(Command command) {
         CompletableFuture<CommandResponse> promise = new CompletableFuture<>();
         CommandResponse commandResponse = new CommandResponse(command);
         CommandPromise commandPromise = new CommandPromise(commandResponse, promise);

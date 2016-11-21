@@ -4,3 +4,6 @@
 /etherio/.gradle
 /etherio/.idea
 /etherio/build
+/etherio-test/.gradle
+/etherio-test/.idea
+/etherio-test/build

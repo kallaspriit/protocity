@@ -1,0 +1,4 @@
+rootProject.name = 'EtherioTest'
+include 'etherio-test'
+findProject(':etherio-test')?.name = 'EtherioTest'
+

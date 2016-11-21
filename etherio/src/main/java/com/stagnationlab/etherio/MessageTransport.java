@@ -1,6 +1,7 @@
 package com.stagnationlab.etherio;
 
-interface MessageTransport {
+@SuppressWarnings({"WeakerAccess", "unused"})
+public interface MessageTransport {
 
     interface MessageListener {
         void onSocketMessageReceived(String message);

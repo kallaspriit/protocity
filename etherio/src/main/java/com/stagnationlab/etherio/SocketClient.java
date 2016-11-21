@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.*;
 
+@SuppressWarnings("WeakerAccess")
 public class SocketClient implements MessageTransport {
 
     private class InputReader implements Runnable {

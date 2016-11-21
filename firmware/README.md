@@ -78,8 +78,8 @@ The following commands are supported (using "1" as example request id)
   - responds with OK if successful (for example `1:OK`)
   - responds with ERROR if invalid port is requested
   - parameters
-    - **THRESHOLD** value threshold 0..1
-    - **INTERVAL** minimum change reporting interval in milliseconds
+    - **THRESHOLD** value threshold 0..1 (optional, defaults to 0.01)
+    - **INTERVAL** minimum change reporting interval in milliseconds (optional, defaults to 0)
 - `1:port:PORT_NUMBER:listen:off` - stops *ANALOG* port change listener
   - for example call with `1:port:1:listen:off`
   - responds with OK if successful (for example `1:OK`)
