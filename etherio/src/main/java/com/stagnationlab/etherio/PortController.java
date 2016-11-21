@@ -1,6 +1,5 @@
 package com.stagnationlab.etherio;
 
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -56,16 +55,65 @@ public class PortController implements MessageTransport.MessageListener {
         }
     }
 
+    private enum Action {
+        MODE {
+            @Override
+            public String getValue() {
+                return "mode";
+            }
+        },
+        VALUE {
+            @Override
+            public String getValue() {
+                return "value";
+            }
+        };
+
+        public abstract String getValue();
+    }
+
+    private static final String COMMAND_PORT = "port";
+
+    private final int id;
+    private PortMode portMode = PortMode.UNUSED;
+
     private final MessageTransport messageTransport;
     private final List<PortEventListener> portEventListeners;
     private final Map<Integer, CommandPromise> commandPromises;
 
-    public PortController(MessageTransport messageTransport) {
+    public PortController(int id, MessageTransport messageTransport) {
+        this.id = id;
         this.messageTransport = messageTransport;
         this.portEventListeners = new ArrayList<>();
         this.commandPromises = new HashMap<>();
 
         messageTransport.addMessageListener(this);
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public PortMode getMode() {
+        return portMode;
+    }
+
+    public void setPortMode(PortMode portMode) {
+        sendCommand(
+                COMMAND_PORT,
+                id,
+                Action.MODE.getValue(),
+                portMode.name()
+        );
+    }
+
+    public void setValue(DigitalValue value) {
+        sendCommand(
+                COMMAND_PORT,
+                id,
+                Action.VALUE.getValue(),
+                value.name()
+        );
     }
 
     public void addEventListener(PortEventListener listener) {

@@ -29,7 +29,7 @@ public class Main implements PortController.PortEventListener {
 
         System.out.printf("success!%n");
 
-        portController = new PortController(socketClient);
+        portController = new PortController(1, socketClient);
 
         portController.addEventListener(this);
 
@@ -39,14 +39,19 @@ public class Main implements PortController.PortEventListener {
     }
 
     private void test() throws Exception {
+        // listen for events
+        portController.addEventListener(this);
+
         // available memory
         portController.sendCommand("memory").thenAccept(
                 commandResponse -> System.out.printf("# got memory request response: %d bytes%n", commandResponse.response.getInt(0))
         );
 
         // digital out
-        portController.sendCommand("port", 1, "mode", "OUTPUT");
-        portController.sendCommand("port", 1, "value", "HIGH");
+        // portController.sendCommand("port", 1, "mode", "OUTPUT");
+        // portController.sendCommand("port", 1, "value", "HIGH");
+        portController.setPortMode(PortController.PortMode.OUTPUT);
+        portController.setValue(PortController.DigitalValue.HIGH);
 
         // pwm out
         portController.sendCommand("port", 2, "mode", "PWM");
