@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-public class PortController implements MessageTransport.MessageListener {
+class PortController implements MessageTransport.MessageListener {
 
     enum PortMode {
         UNUSED,
@@ -17,35 +17,49 @@ public class PortController implements MessageTransport.MessageListener {
         INTERRUPT,
         PWM,
         ANALOG
-    };
+    }
 
     enum DigitalValue {
         LOW,
         HIGH
-    };
+    }
 
     interface PortEventListener {
         void onPortDigitalValueChange(int id, DigitalValue value);
         void onPortAnalogValueChange(int id, float value);
         void onPortValueRise(int id);
         void onPortValueFall(int id);
-    };
+    }
 
-    class CommandPromise {
-        public Command command;
-        CompletableFuture<Command> promise;
+    private class CommandResponse {
+        final Command command;
+        Command response;
 
-        public CommandPromise(Command command, CompletableFuture<Command> promise) {
+        CommandResponse(Command command, Command response) {
             this.command = command;
+            this.response = response;
+        }
+
+        CommandResponse(Command command) {
+            this(command, null);
+        }
+    }
+
+    private class CommandPromise {
+        final CommandResponse commandResponse;
+        final CompletableFuture<CommandResponse> promise;
+
+        CommandPromise(CommandResponse commandResponse, CompletableFuture<CommandResponse> promise) {
+            this.commandResponse = commandResponse;
             this.promise = promise;
         }
     }
 
-    private MessageTransport messageTransport;
-    private List<PortEventListener> portEventListeners;
-    private Map<Integer, CommandPromise> commandPromises;
+    private final MessageTransport messageTransport;
+    private final List<PortEventListener> portEventListeners;
+    private final Map<Integer, CommandPromise> commandPromises;
 
-    public PortController(MessageTransport messageTransport) {
+    PortController(MessageTransport messageTransport) {
         this.messageTransport = messageTransport;
         this.portEventListeners = new ArrayList<>();
         this.commandPromises = new HashMap<>();
@@ -53,14 +67,14 @@ public class PortController implements MessageTransport.MessageListener {
         messageTransport.addMessageListener(this);
     }
 
-    public void addEventListener(PortEventListener listener) {
+    void addEventListener(PortEventListener listener) {
         portEventListeners.add(listener);
     }
 
-    public void test() {
+    void test() {
         // available memory
-        sendCommand("memory").thenAccept(command -> {
-            System.out.printf("# got memory request response: %d bytes%n", command.getInt(0));
+        sendCommand("memory").thenAccept(commandResponse -> {
+            System.out.printf("# got memory request response: %d bytes%n", commandResponse.response.getInt(0));
         });
 
         // digital out
@@ -76,20 +90,21 @@ public class PortController implements MessageTransport.MessageListener {
 
         // analog in
         sendCommand("port", 6, "mode", "ANALOG");
-        sendCommand("port", 6, "read").thenAccept(command -> {
-            System.out.printf("# port 6 analog value: %f%n", command.getFloat(0));
+        sendCommand("port", 6, "read").thenAccept(commandResponse -> {
+            System.out.printf("# port %d analog value: %f%n", commandResponse.command.getInt(0), commandResponse.response.getFloat(0));
         });
     }
 
-    CompletableFuture<Command> sendCommand(String name, Object... arguments) {
+    private CompletableFuture<CommandResponse> sendCommand(String name, Object... arguments) {
         Command command = new Command(messageTransport.getNextMessageId(), name, arguments);
 
         return sendCommand(command);
     }
 
-    CompletableFuture<Command> sendCommand(Command command) {
-        CompletableFuture<Command> promise = new CompletableFuture<>();
-        CommandPromise commandPromise = new CommandPromise(command, promise);
+    private CompletableFuture<CommandResponse> sendCommand(Command command) {
+        CompletableFuture<CommandResponse> promise = new CompletableFuture<>();
+        CommandResponse commandResponse = new CommandResponse(command);
+        CommandPromise commandPromise = new CommandPromise(commandResponse, promise);
 
         commandPromises.put(command.id, commandPromise);
 
@@ -126,7 +141,9 @@ public class PortController implements MessageTransport.MessageListener {
 
         // System.out.printf("# got response %s for original command %s%n", responseCommand.toString(), commandPromise.command.toString());
 
-        commandPromise.promise.complete(responseCommand);
+        commandPromise.commandResponse.response = responseCommand;
+        commandPromise.promise.complete(commandPromise.commandResponse);
+        commandPromises.remove(responseCommand.id);
     }
 
     private CommandPromise getCommandPromiseById(int id) {

@@ -1,6 +1,6 @@
 package com.stagnationlab.etherio;
 
-public interface MessageTransport {
+interface MessageTransport {
 
     interface MessageListener {
         void onSocketMessageReceived(String message);

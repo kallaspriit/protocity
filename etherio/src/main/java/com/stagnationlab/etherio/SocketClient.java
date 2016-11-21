@@ -12,7 +12,7 @@ public class SocketClient implements MessageTransport {
     private class InputReader implements Runnable {
 
         private volatile boolean isRunning = true;
-        private BufferedReader socketIn;
+        private final BufferedReader socketIn;
 
         InputReader(BufferedReader socketIn) {
             this.socketIn = socketIn;
@@ -53,16 +53,13 @@ public class SocketClient implements MessageTransport {
 
     private Socket socket;
     private PrintWriter socketOut;
-    private BufferedReader socketIn;
     private InputReader inputReader;
-    private Thread inputThread;
 
-    private boolean isConnected = false;
-    private Queue<String> inputQueue;
-    private List<MessageListener> messageListeners;
+    private final Queue<String> inputQueue;
+    private final List<MessageListener> messageListeners;
     private int messageCounter = 0;
 
-    public SocketClient() {
+    private SocketClient() {
         inputQueue = new LinkedList<>();
         messageListeners = new ArrayList<>();
     }
@@ -73,7 +70,7 @@ public class SocketClient implements MessageTransport {
         setRemoteHost(hostName, portNumber);
     }
 
-    public void setRemoteHost(String hostName, int portNumber) {
+    private void setRemoteHost(String hostName, int portNumber) {
         this.hostName = hostName;
         this.portNumber = portNumber;
     }
@@ -81,13 +78,13 @@ public class SocketClient implements MessageTransport {
     public void connect() throws IOException {
         socket = new Socket(hostName, portNumber);
         socketOut = new PrintWriter(socket.getOutputStream(), true);
-        socketIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        BufferedReader socketIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
         inputReader = new InputReader(socketIn);
-        inputThread = new Thread(inputReader);
+        Thread inputThread = new Thread(inputReader);
         inputThread.start();
 
-        isConnected = true;
+        boolean isConnected = true;
     }
 
     public void addMessageListener(MessageListener messageListener) {

@@ -1,16 +1,15 @@
 package com.stagnationlab.etherio;
 
 
-import com.sun.javaws.exceptions.InvalidArgumentException;
-
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Command {
 
-    public int id;
-    public String name;
-    public List<String> arguments;
+    public final int id;
+    private final String name;
+    private final List<String> arguments;
 
     public Command(int id, String name, Object... arguments) {
         this.id = id;
@@ -22,7 +21,7 @@ public class Command {
         }
     }
 
-    public String getString(int argumentIndex) {
+    private String getString(int argumentIndex) {
         if (argumentIndex + 1 > arguments.size()) {
             throw new IllegalArgumentException("Invalid argument index provided");
         }
@@ -53,7 +52,7 @@ public class Command {
         return command;
     }
 
-    public static Command parse(String command) throws Exception {
+    public static Command parse(String command) {
         String[] tokens = command.split(":");
 
         if (tokens.length < 2) {
@@ -65,9 +64,7 @@ public class Command {
         List<String> arguments = new ArrayList<>();
 
         if (tokens.length >= 3) {
-            for (int i = 2; i < tokens.length; i++) {
-                arguments.add(tokens[i]);
-            }
+            arguments.addAll(Arrays.asList(tokens).subList(2, tokens.length));
         }
 
         return new Command(id, name, arguments.toArray());
