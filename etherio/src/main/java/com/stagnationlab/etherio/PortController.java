@@ -1,9 +1,6 @@
 package com.stagnationlab.etherio;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
@@ -56,20 +53,13 @@ public class PortController implements MessageTransport.MessageListener {
     }
 
     private enum Action {
-        MODE {
-            @Override
-            public String getValue() {
-                return "mode";
-            }
-        },
-        VALUE {
-            @Override
-            public String getValue() {
-                return "value";
-            }
-        };
+        MODE,
+        VALUE;
 
-        public abstract String getValue();
+        @Override
+        public String toString() {
+            return name().toLowerCase();
+        }
     }
 
     private static final String COMMAND_PORT = "port";
@@ -99,19 +89,15 @@ public class PortController implements MessageTransport.MessageListener {
     }
 
     public void setPortMode(PortMode portMode) {
-        sendCommand(
-                COMMAND_PORT,
-                id,
-                Action.MODE.getValue(),
+        sendPortCommand(
+                Action.MODE,
                 portMode.name()
         );
     }
 
     public void setValue(DigitalValue value) {
-        sendCommand(
-                COMMAND_PORT,
-                id,
-                Action.VALUE.getValue(),
+        sendPortCommand(
+                Action.VALUE,
                 value.name()
         );
     }
@@ -124,6 +110,13 @@ public class PortController implements MessageTransport.MessageListener {
         Command command = new Command(messageTransport.getNextMessageId(), name, arguments);
 
         return sendCommand(command);
+    }
+
+    public CompletableFuture<CommandResponse> sendPortCommand(Object... arguments) {
+        List<Object> argumentList = new LinkedList<>(Arrays.asList(arguments));
+        argumentList.add(0, id);
+
+        return sendCommand(COMMAND_PORT, argumentList.toArray());
     }
 
     public CompletableFuture<CommandResponse> sendCommand(Command command) {
