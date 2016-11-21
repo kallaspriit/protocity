@@ -16,6 +16,12 @@ public class PortController implements MessageTransport.MessageListener {
         ANALOG
     }
 
+    public enum PullMode {
+        NONE,
+        UP,
+        DOWN
+    }
+
     public enum DigitalValue {
         LOW,
         HIGH
@@ -54,6 +60,7 @@ public class PortController implements MessageTransport.MessageListener {
 
     private enum Action {
         MODE,
+        PULL,
         VALUE;
 
         @Override
@@ -66,6 +73,7 @@ public class PortController implements MessageTransport.MessageListener {
 
     private final int id;
     private PortMode portMode = PortMode.UNUSED;
+    private PullMode pullMode = PullMode.NONE;
 
     private final MessageTransport messageTransport;
     private final List<PortEventListener> portEventListeners;
@@ -84,7 +92,7 @@ public class PortController implements MessageTransport.MessageListener {
         return id;
     }
 
-    public PortMode getMode() {
+    public PortMode getPortMode() {
         return portMode;
     }
 
@@ -95,10 +103,28 @@ public class PortController implements MessageTransport.MessageListener {
         );
     }
 
+    public PullMode getPullMode() {
+        return pullMode;
+    }
+
+    public void setPullMode(PullMode pullMode) {
+        sendPortCommand(
+                Action.PULL,
+                pullMode.name()
+        );
+    }
+
     public void setValue(DigitalValue value) {
         sendPortCommand(
                 Action.VALUE,
                 value.name()
+        );
+    }
+
+    public void setPwmDutyCycle(float dutyCycle) {
+        sendPortCommand(
+                Action.VALUE,
+                dutyCycle
         );
     }
 
@@ -128,7 +154,7 @@ public class PortController implements MessageTransport.MessageListener {
 
         String message = command.toString();
 
-        System.out.printf("< %s%n", message);
+        System.out.printf("< port %d sent '%s'%n", id, message);
 
         messageTransport.sendMessage("%s\n", message);
 
@@ -140,8 +166,6 @@ public class PortController implements MessageTransport.MessageListener {
         try {
             Command responseCommand = Command.parse(message);
 
-            System.out.printf("> %s%n", message);
-
             handleResponse(responseCommand);
         } catch (Exception e) {
             System.out.printf("# got invalid response '%s'%n", message);
@@ -152,10 +176,12 @@ public class PortController implements MessageTransport.MessageListener {
         CommandPromise commandPromise = getCommandPromiseById(responseCommand.id);
 
         if (commandPromise == null) {
-            System.out.printf("# original command promise for %s was not found%n", responseCommand.toString());
+            // System.out.printf("# original command promise for %s was not found%n", responseCommand.toString());
 
             return;
         }
+
+        System.out.printf("> port %d got '%s'%n", id, responseCommand.toString());
 
         // System.out.printf("# got response %s for original command %s%n", responseCommand.toString(), commandPromise.command.toString());
 

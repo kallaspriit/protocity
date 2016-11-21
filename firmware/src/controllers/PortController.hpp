@@ -38,7 +38,7 @@ public:
 	PortController(int id, PinName pinName);
 
 	int getId();
-	PortMode getMode();
+	PortMode getPortMode();
 	void setPortMode(PortMode mode);
 	void setPinMode(PinMode mode);
 	void setValue(DigitalValue value);

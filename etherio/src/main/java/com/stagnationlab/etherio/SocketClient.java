@@ -7,7 +7,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.*;
 
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class SocketClient implements MessageTransport {
 
     private class InputReader implements Runnable {
@@ -35,10 +35,10 @@ public class SocketClient implements MessageTransport {
 
                     if (message != null) {
                         inputQueue.add(message);
-                    }
 
-                    for (MessageListener messageListener : messageListeners) {
-                        messageListener.onSocketMessageReceived(message);
+                        for (MessageListener messageListener : messageListeners) {
+                            messageListener.onSocketMessageReceived(message);
+                        }
                     }
                 } catch (IOException e) {
                     e.printStackTrace();

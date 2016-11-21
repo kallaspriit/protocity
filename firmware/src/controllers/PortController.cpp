@@ -11,7 +11,7 @@ int PortController::getId() {
 	return id;
 }
 
-PortController::PortMode PortController::getMode() {
+PortController::PortMode PortController::getPortMode() {
 	return portMode;
 }
 

@@ -6,7 +6,7 @@ import java.io.InputStreamReader;
 
 public class Main implements PortController.PortEventListener {
 
-    private PortController portController;
+    private SocketClient socketClient;
 
     public static void main(String[] args) throws Exception {
         (new Main()).run();
@@ -24,38 +24,38 @@ public class Main implements PortController.PortEventListener {
 
         System.out.printf("# connecting to %s:%d.. ", hostName, portNumber);
 
-        SocketClient socketClient = new SocketClient(hostName, portNumber);
+        socketClient = new SocketClient(hostName, portNumber);
         socketClient.connect();
 
         System.out.printf("success!%n");
 
-        portController = new PortController(1, socketClient);
+        testDigitalOut();
+        testPwm();
 
-        portController.addEventListener(this);
-
-        test();
+        // give some time to respond
+        Thread.sleep(10000);
 
         socketClient.close();
     }
 
-    private void test() throws Exception {
-        // listen for events
-        portController.addEventListener(this);
+    private void testDigitalOut() throws Exception {
+        PortController portController = new PortController(1, socketClient);
 
+        // digital out
+        portController.setPortMode(PortController.PortMode.OUTPUT);
+        portController.setValue(PortController.DigitalValue.HIGH);
+
+        /*
         // available memory
         portController.sendCommand("memory").thenAccept(
                 commandResponse -> System.out.printf("# got memory request response: %d bytes%n", commandResponse.response.getInt(0))
         );
 
-        // digital out
+
         // portController.sendCommand("port", 1, "mode", "OUTPUT");
         // portController.sendCommand("port", 1, "value", "HIGH");
         portController.setPortMode(PortController.PortMode.OUTPUT);
         portController.setValue(PortController.DigitalValue.HIGH);
-
-        // pwm out
-        portController.sendCommand("port", 2, "mode", "PWM");
-        portController.sendCommand("port", 2, "value", 0.25);
 
         // interrupt
         portController.sendCommand("port", 4, "mode", "INTERRUPT");
@@ -66,9 +66,15 @@ public class Main implements PortController.PortEventListener {
                 commandResponse -> System.out.printf("# port %d analog value: %f%n", commandResponse.command.getInt(0), commandResponse.response.getFloat(0))
         );
         portController.sendCommand("port", 6, "listen", 0.05, 500);
+        */
+    }
 
-        // give some time to respond
-        Thread.sleep(10000);
+    private void testPwm() throws Exception {
+        PortController portController = new PortController(2, socketClient);
+
+        // pwm out
+        portController.setPortMode(PortController.PortMode.PWM);
+        portController.setPwmDutyCycle(0.5f);
     }
 
     private static String askFor(String question, String defaultValue, BufferedReader consoleIn) throws IOException {

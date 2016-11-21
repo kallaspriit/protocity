@@ -381,7 +381,7 @@ CommandManager::Command::Response Application::handlePortPullCommand(CommandMana
 		return command->createFailureResponse("invalid port number requested");
 	}
 
-	PortController::PortMode portMode = portController->getMode();
+	PortController::PortMode portMode = portController->getPortMode();
 
 	if (portMode != PortController::PortMode::INPUT && portMode != PortController::PortMode::INTERRUPT) {
 		return command->createFailureResponse("setting pull mode is only applicable for INPUT and INTERRUPT ports");
@@ -421,7 +421,7 @@ CommandManager::Command::Response Application::handlePortValueCommand(CommandMan
 		return command->createFailureResponse("invalid port number requested");
 	}
 
-	PortController::PortMode portMode = portController->getMode();
+	PortController::PortMode portMode = portController->getPortMode();
 
 	switch (portMode) {
 		case PortController::PortMode::OUTPUT: {
@@ -482,7 +482,7 @@ CommandManager::Command::Response Application::handlePortReadCommand(CommandMana
 		return command->createFailureResponse("invalid port number requested");
 	}
 
-	PortController::PortMode portMode = portController->getMode();
+	PortController::PortMode portMode = portController->getPortMode();
 
 	if (portMode == PortController::PortMode::INPUT) {
 		PortController::DigitalValue value = portController->getDigitalValue();
@@ -510,7 +510,7 @@ CommandManager::Command::Response Application::handlePortListenCommand(CommandMa
 		return command->createFailureResponse("invalid port number requested");
 	}
 
-	PortController::PortMode portMode = portController->getMode();
+	PortController::PortMode portMode = portController->getPortMode();
 
 	if (portMode != PortController::PortMode::ANALOG) {
 		return command->createFailureResponse("listening for port events is only valid for analog inputs");
