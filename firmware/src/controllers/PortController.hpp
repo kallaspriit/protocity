@@ -41,15 +41,15 @@ public:
 	PortMode getPortMode();
 	void setPortMode(PortMode mode);
 	void setPinMode(PinMode mode);
-	void setValue(DigitalValue value);
-	void setValue(int value);
-	void setPwmDutyCycle(float dutyCycle);
-
 	static PortMode getPortModeByName(std::string mode);
 	static std::string getPortModeName(PortMode mode);
 
 	DigitalValue getDigitalValue();
+	void setDigitalValue(DigitalValue value);
+	void setDigitalValue(int value);
+
 	float getAnalogValue();
+	void setAnalogValue(float dutyCycle);
 
 	void addEventListener(PortEventListener *listener);
 	void addEventListener(PortEventListener *listener, float changeThreshold, int intervalMs);

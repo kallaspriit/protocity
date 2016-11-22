@@ -215,20 +215,12 @@ void Application::onPortDigitalValueChange(int id, PortController::DigitalValue 
 	snprintf(sendBuffer, SEND_BUFFER_SIZE, "0:INTERRUPT:%d:%s\n", id, value == PortController::DigitalValue::HIGH ? "HIGH" : "LOW");
 
 	messageQueue.push(std::string(sendBuffer));
-
-	// TODO remove temporary test
-	port1.setPortMode(PortController::PortMode::OUTPUT);
-	port1.setValue(value);
 }
 
 void Application::onPortAnalogValueChange(int id, float value) {
 	snprintf(sendBuffer, SEND_BUFFER_SIZE, "0:ANALOG:%d:%f\n", id, value);
 
 	messageQueue.push(std::string(sendBuffer));
-
-	// TODO remove temporary test
-	port2.setPortMode(PortController::PortMode::PWM);
-	port2.setPwmDutyCycle(value);
 }
 
 void Application::onPortValueRise(int id) {
@@ -442,7 +434,7 @@ CommandManager::Command::Response Application::handlePortValueCommand(CommandMan
 					: PortController::DigitalValue::LOW;
 			}
 
-			portController->setValue(digitalValue);
+			portController->setDigitalValue(digitalValue);
 
 			printf("# port set digital value for %d: %d\n", portNumber, digitalValue);
 		}
@@ -455,7 +447,7 @@ CommandManager::Command::Response Application::handlePortValueCommand(CommandMan
 
 			float pwmDutyCycle = min(max(value, 0.0f), 1.0f);
 
-			portController->setPwmDutyCycle(pwmDutyCycle);
+			portController->setAnalogValue(pwmDutyCycle);
 
 			printf("# port set pwm duty cycle value for %d: %f\n", portNumber, pwmDutyCycle);
 		}
@@ -563,7 +555,7 @@ void Application::testLoop() {
 		// printf("# test loop %d!\n", testFlipFlop);
 
 		// test digital port
-		// port1.setValue(testFlipFlop == 1 ? PortController::DigitalValue::HIGH : PortController::DigitalValue::LOW);
+		// port1.setDigitalValuetestFlipFlop == 1 ? PortController::DigitalValue::HIGH : PortController::DigitalValue::LOW);
 
 		// update loop
 		testFlipFlop = testFlipFlop == 1 ? 0 : 1;

@@ -37,7 +37,8 @@ public class PortController implements Commander.SpecialCommandListener {
     private enum Action {
         MODE,
         PULL,
-        VALUE;
+        VALUE,
+        READ;
 
         @Override
         public String toString() {
@@ -94,14 +95,26 @@ public class PortController implements Commander.SpecialCommandListener {
         );
     }
 
-    public CompletableFuture<Commander.CommandResponse> setValue(DigitalValue value) {
+    public CompletableFuture<Commander.CommandResponse> getDigitalValue() {
+        return sendPortCommand(
+                Action.READ
+        );
+    }
+
+    public CompletableFuture<Commander.CommandResponse> setDigitalValue(DigitalValue value) {
         return sendPortCommand(
                 Action.VALUE,
                 value.name()
         );
     }
 
-    public CompletableFuture<Commander.CommandResponse> setPwmDutyCycle(float dutyCycle) {
+    public CompletableFuture<Commander.CommandResponse> getAnalogValue() {
+        return sendPortCommand(
+                Action.READ
+        );
+    }
+
+    public CompletableFuture<Commander.CommandResponse> setAnalogValue(float dutyCycle) {
         return sendPortCommand(
                 Action.VALUE,
                 dutyCycle

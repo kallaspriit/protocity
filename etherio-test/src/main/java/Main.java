@@ -33,8 +33,10 @@ public class Main {
 
         testCustomCommand();
         testDigitalOut();
+        testDigitalIn();
         testPwm();
         testInterrupt();
+        testAnalog();
 
         // give some time to respond
         Thread.sleep(10000);
@@ -51,42 +53,54 @@ public class Main {
     private void testDigitalOut() throws Exception {
         PortController portController = new PortController(1, commander);
 
-        // digital out
         portController.setPortMode(PortController.PortMode.OUTPUT);
-        portController.setValue(PortController.DigitalValue.HIGH);
+        portController.setDigitalValue(PortController.DigitalValue.HIGH);
 
         /*
-        // interrupt
-        portController.sendCommand("port", 4, "mode", "INTERRUPT");
-
-        // analog in
-        portController.sendCommand("port", 6, "mode", "ANALOG");
-        portController.sendCommand("port", 6, "read").thenAccept(
-                commandResponse -> System.out.printf("# port %d analog value: %f%n", commandResponse.command.getInt(0), commandResponse.response.getFloat(0))
-        );
         portController.sendCommand("port", 6, "listen", 0.05, 500);
         */
+    }
+
+    private void testDigitalIn() throws Exception {
+        PortController portController = new PortController(4, commander);
+
+        portController.setPortMode(PortController.PortMode.INPUT);
+        portController.getDigitalValue().thenAccept(
+                commandResponse -> System.out.printf("# port %d digital value: %s%n", portController.getId(), PortController.DigitalValue.valueOf(commandResponse.response.getString(0)))
+        );
     }
 
     private void testPwm() throws Exception {
         PortController portController = new PortController(2, commander);
 
-        // pwm out
         portController.setPortMode(PortController.PortMode.PWM);
-
-        portController.setPwmDutyCycle(0.5f);
+        portController.setAnalogValue(0.5f);
     }
 
     private void testInterrupt() throws Exception {
         PortController portController = new PortController(4, commander);
 
         portController.setPortMode(PortController.PortMode.INTERRUPT);
+        portController.addEventListener(new PortController.PortEventListener() {
+
+            @Override
+            public void onPortDigitalValueChange(int id, PortController.DigitalValue digitalValue) {
+                System.out.printf("# port %d digital value changed to %s%n", id, digitalValue);
+            }
+
+        });
+    }
+
+    private void testAnalog() throws Exception {
+        PortController portController = new PortController(6, commander);
+
+        portController.setPortMode(PortController.PortMode.ANALOG);
 
         portController.addEventListener(new PortController.PortEventListener() {
 
             @Override
-            public void onPortDigitalValueChange(int i, PortController.DigitalValue digitalValue) {
-                System.out.printf("# port %d digital value changed to %s%n", portController.getId(), digitalValue);
+            public void onPortAnalogValueChange(int id, float value) {
+                System.out.printf("# port %d analog value changed to %f%n", id, value);
             }
 
         });

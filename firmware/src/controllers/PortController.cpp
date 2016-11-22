@@ -78,7 +78,7 @@ void PortController::setPinMode(PinMode pinMode) {
 	}
 }
 
-void PortController::setValue(DigitalValue value) {
+void PortController::setDigitalValue(DigitalValue value) {
 	switch (value) {
 		case DigitalValue::LOW:
 			printf("# setting port %d to digital LOW\n", id);
@@ -97,11 +97,11 @@ void PortController::setValue(DigitalValue value) {
 	}
 }
 
-void PortController::setValue(int value) {
-	setValue(value == 0 ? DigitalValue::LOW : DigitalValue::HIGH);
+void PortController::setDigitalValue(int value) {
+	setDigitalValue(value == 0 ? DigitalValue::LOW : DigitalValue::HIGH);
 }
 
-void PortController::setPwmDutyCycle(float dutyCycle) {
+void PortController::setAnalogValue(float dutyCycle) {
 	if (dutyCycle < 0.0f || dutyCycle > 1.0f) {
 		error("expected duty cycle value between 0.0 and 1.0");
 	}
