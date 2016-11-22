@@ -47,12 +47,12 @@ The following commands are supported (using "1" as example request id)
 
 ### Ports
 - `1:port:PORT_NUMBER:mode:MODE` - sets port mode
-  - for example call with `1:port:1:mode:OUTPUT`
+  - for example call with `1:port:1:mode:DIGITAL_OUT`
   - responds with OK if successful (for example `1:OK`)
   - responds with ERROR if invalid port or mode is requested
   - parameters
     - **PORT_NUMBER** port number
-    - **MODE** should be a string value in the set *INPUT*, *OUTPUT*, *PWM*, *INTERRUPT*, *ANALOG*
+    - **MODE** should be a string value in the set *DIGITAL_IN*, *DIGITAL_OUT*, *PWM*, *INTERRUPT*, *ANALOG*
 - `1:port:PORT_NUMBER:pull:MODE` - sets pull mode
   - for example call with `1:port:1:pull:UP`
   - responds with OK if successful (for example `1:OK`)
@@ -60,14 +60,14 @@ The following commands are supported (using "1" as example request id)
   - parameters
     - **PORT_NUMBER** port number
     - **MODE** should be a string value in the set *UP*, *DOWN*, *NONE*
-- `1:port:PORT_NUMBER:value:VALUE` - sets port value for *OUTPUT* and *PWM* modes
+- `1:port:PORT_NUMBER:value:VALUE` - sets port value for *DIGITAL_OUT* and *PWM* modes
   - for example call with `1:port:1:value:HIGH` or `1:port:1:value:0.5`
   - responds with OK if successful (for example `1:OK`)
   - responds with ERROR if invalid port or value is requested
   - parameters
     - **PORT_NUMBER** port number
-    - **VALUE** should be either *HIGH* or *LOW* for *OUTPUT* mode or a float value between 0..1 for *PWM* mode
-- `1:port:PORT_NUMBER:read` - reads current *INPUT*, *INTERRUPT* or *ANALOG* port value
+    - **VALUE** should be either *HIGH* or *LOW* for *DIGITAL_OUT* mode or a float value between 0..1 for *PWM* mode
+- `1:port:PORT_NUMBER:read` - reads current *DIGITAL_IN*, *INTERRUPT* or *ANALOG* port value
   - for example call with `1:port:1:read`
   - responds with OK and value if successful (for example `1:OK:HIGH` or `1:OK:0.5`)
   - responds with ERROR if invalid port is requested
@@ -103,7 +103,7 @@ The following commands are supported (using "1" as example request id)
 - Implemented digital port value reading.
 
 **02.11.2016**
-- Implemented digital port value command for OUTPUT and PWM modes.
+- Implemented digital port value command for DIGITAL_OUT and PWM modes.
 - Implemented digital port mode action.
 - Improved digital port controller logic.
 - Implemented test setup and loop.

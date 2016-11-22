@@ -35,11 +35,11 @@ void PortController::setPortMode(PortMode portMode) {
 			// dont do anything
 			break;
 
-		case PortMode::OUTPUT:
+		case PortMode::DIGITAL_OUT:
 			digitalOut = new DigitalOut(pinName);
 			break;
 
-		case PortMode::INPUT:
+		case PortMode::DIGITAL_IN:
 			digitalIn = new DigitalIn(pinName);
 			break;
 
@@ -65,7 +65,7 @@ void PortController::setPortMode(PortMode portMode) {
 
 void PortController::setPinMode(PinMode pinMode) {
 	switch (portMode) {
-		case PortMode::INPUT:
+		case PortMode::DIGITAL_IN:
 			digitalIn->mode(pinMode);
 			break;
 
@@ -74,7 +74,7 @@ void PortController::setPinMode(PinMode pinMode) {
 			break;
 
 		default:
-			error("setting pin mode is only valid for INPUT and INTERRUPT ports");
+			error("setting pin mode is only valid for DIGITAL_IN and INTERRUPT ports");
 	}
 }
 
@@ -114,10 +114,10 @@ void PortController::setAnalogValue(float dutyCycle) {
 PortController::PortMode PortController::getPortModeByName(std::string mode) {
 	if (mode == "UNUSED") {
 		return PortController::PortMode::UNUSED;
-	}if (mode == "OUTPUT") {
-		return PortController::PortMode::OUTPUT;
-	} else if (mode == "INPUT") {
-		return PortController::PortMode::INPUT;
+	}if (mode == "DIGITAL_OUT") {
+		return PortController::PortMode::DIGITAL_OUT;
+	} else if (mode == "DIGITAL_IN") {
+		return PortController::PortMode::DIGITAL_IN;
 	} else if (mode == "INTERRUPT") {
 		return PortController::PortMode::INTERRUPT;
 	} else if (mode == "PWM") {
@@ -134,11 +134,11 @@ std::string PortController::getPortModeName(PortController::PortMode mode) {
 		case PortMode::UNUSED:
 			return "UNUSED";
 
-		case PortMode::OUTPUT:
-			return "OUTPUT";
+		case PortMode::DIGITAL_OUT:
+			return "DIGITAL_OUT";
 
-		case PortMode::INPUT:
-			return "INPUT";
+		case PortMode::DIGITAL_IN:
+			return "DIGITAL_IN";
 
 		case PortMode::INTERRUPT:
 			return "INTERRUPT";
@@ -162,7 +162,7 @@ PortController::DigitalValue PortController::getDigitalValue() {
 
 	if (portMode == PortMode::INTERRUPT) {
 		value = interruptIn->read();
-	} else if (portMode == PortMode::INPUT) {
+	} else if (portMode == PortMode::DIGITAL_IN) {
 		value = digitalIn->read();
 	} else {
 		printf("# getting digital reading is valid only for port configured as digital input\n");

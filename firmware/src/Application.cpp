@@ -375,8 +375,8 @@ CommandManager::Command::Response Application::handlePortPullCommand(CommandMana
 
 	PortController::PortMode portMode = portController->getPortMode();
 
-	if (portMode != PortController::PortMode::INPUT && portMode != PortController::PortMode::INTERRUPT) {
-		return command->createFailureResponse("setting pull mode is only applicable for INPUT and INTERRUPT ports");
+	if (portMode != PortController::PortMode::DIGITAL_IN && portMode != PortController::PortMode::INTERRUPT) {
+		return command->createFailureResponse("setting pull mode is only applicable for DIGITAL_IN and INTERRUPT ports");
 	}
 
 	std::string modeName = command->getString(2);
@@ -416,7 +416,7 @@ CommandManager::Command::Response Application::handlePortValueCommand(CommandMan
 	PortController::PortMode portMode = portController->getPortMode();
 
 	switch (portMode) {
-		case PortController::PortMode::OUTPUT: {
+		case PortController::PortMode::DIGITAL_OUT: {
 			PortController::DigitalValue digitalValue = PortController::DigitalValue::LOW;
 			std::string stringValue = command->getString(2);
 
@@ -454,7 +454,7 @@ CommandManager::Command::Response Application::handlePortValueCommand(CommandMan
 		break;
 
 		default:
-			return command->createFailureResponse("setting port value is only valid for OUTPUT or PWM modes");
+			return command->createFailureResponse("setting port value is only valid for DIGITAL_OUT or PWM modes");
 	}
 
 
@@ -476,7 +476,7 @@ CommandManager::Command::Response Application::handlePortReadCommand(CommandMana
 
 	PortController::PortMode portMode = portController->getPortMode();
 
-	if (portMode == PortController::PortMode::INPUT) {
+	if (portMode == PortController::PortMode::DIGITAL_IN) {
 		PortController::DigitalValue value = portController->getDigitalValue();
 
 		return command->createSuccessResponse(value == PortController::DigitalValue::HIGH ? "HIGH" : "LOW");

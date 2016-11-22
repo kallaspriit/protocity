@@ -9,8 +9,8 @@ public class PortController implements Commander.SpecialCommandListener {
     public enum PortMode {
         UNUSED,
         INVALID,
-        OUTPUT,
-        INPUT,
+        DIGITAL_OUT,
+        DIGITAL_IN,
         INTERRUPT,
         PWM,
         ANALOG

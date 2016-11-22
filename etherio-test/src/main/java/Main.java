@@ -53,7 +53,7 @@ public class Main {
     private void testDigitalOut() throws Exception {
         PortController portController = new PortController(1, commander);
 
-        portController.setPortMode(PortController.PortMode.OUTPUT);
+        portController.setPortMode(PortController.PortMode.DIGITAL_OUT);
         portController.setDigitalValue(PortController.DigitalValue.HIGH);
 
         /*
@@ -64,7 +64,7 @@ public class Main {
     private void testDigitalIn() throws Exception {
         PortController portController = new PortController(4, commander);
 
-        portController.setPortMode(PortController.PortMode.INPUT);
+        portController.setPortMode(PortController.PortMode.DIGITAL_IN);
         portController.getDigitalValue().thenAccept(
                 commandResponse -> System.out.printf("# port %d digital value: %s%n", portController.getId(), PortController.DigitalValue.valueOf(commandResponse.response.getString(0)))
         );
