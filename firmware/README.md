@@ -52,7 +52,7 @@ The following commands are supported (using "1" as example request id)
   - responds with ERROR if invalid port or mode is requested
   - parameters
     - **PORT_NUMBER** port number
-    - **MODE** should be a string value in the set *DIGITAL_IN*, *DIGITAL_OUT*, *PWM*, *INTERRUPT*, *ANALOG*
+    - **MODE** should be a string value in the set *DIGITAL_IN*, *DIGITAL_OUT*, *ANALOG_OUT*, *INTERRUPT*, *ANALOG_IN*
 - `1:port:PORT_NUMBER:pull:MODE` - sets pull mode
   - for example call with `1:port:1:pull:UP`
   - responds with OK if successful (for example `1:OK`)
@@ -60,27 +60,27 @@ The following commands are supported (using "1" as example request id)
   - parameters
     - **PORT_NUMBER** port number
     - **MODE** should be a string value in the set *UP*, *DOWN*, *NONE*
-- `1:port:PORT_NUMBER:value:VALUE` - sets port value for *DIGITAL_OUT* and *PWM* modes
+- `1:port:PORT_NUMBER:value:VALUE` - sets port value for *DIGITAL_OUT* and *ANALOG_OUT* modes
   - for example call with `1:port:1:value:HIGH` or `1:port:1:value:0.5`
   - responds with OK if successful (for example `1:OK`)
   - responds with ERROR if invalid port or value is requested
   - parameters
     - **PORT_NUMBER** port number
-    - **VALUE** should be either *HIGH* or *LOW* for *DIGITAL_OUT* mode or a float value between 0..1 for *PWM* mode
-- `1:port:PORT_NUMBER:read` - reads current *DIGITAL_IN*, *INTERRUPT* or *ANALOG* port value
+    - **VALUE** should be either *HIGH* or *LOW* for *DIGITAL_OUT* mode or a float value between 0..1 for *ANALOG_OUT* mode
+- `1:port:PORT_NUMBER:read` - reads current *DIGITAL_IN*, *INTERRUPT* or *ANALOG_IN* port value
   - for example call with `1:port:1:read`
   - responds with OK and value if successful (for example `1:OK:HIGH` or `1:OK:0.5`)
   - responds with ERROR if invalid port is requested
   - parameters
     - **PORT_NUMBER** port number
-- `1:port:PORT_NUMBER:listen:THRESHOLD:INTERVAL` - sets up *ANALOG* port change listener
+- `1:port:PORT_NUMBER:listen:THRESHOLD:INTERVAL` - sets up *ANALOG_IN* port change listener
   - for example call with `1:port:1:listen:0.1:100` - change events are sent for every 0.1 value change no more often than every 100 milliseconds
   - responds with OK if successful (for example `1:OK`)
   - responds with ERROR if invalid port is requested
   - parameters
     - **THRESHOLD** value threshold 0..1 (optional, defaults to 0.01)
     - **INTERVAL** minimum change reporting interval in milliseconds (optional, defaults to 0)
-- `1:port:PORT_NUMBER:listen:off` - stops *ANALOG* port change listener
+- `1:port:PORT_NUMBER:listen:off` - stops *ANALOG_IN* port change listener
   - for example call with `1:port:1:listen:off`
   - responds with OK if successful (for example `1:OK`)
   - responds with ERROR if invalid port is requested
@@ -103,7 +103,7 @@ The following commands are supported (using "1" as example request id)
 - Implemented digital port value reading.
 
 **02.11.2016**
-- Implemented digital port value command for DIGITAL_OUT and PWM modes.
+- Implemented digital port value command for DIGITAL_OUT and ANALOG_OUT modes.
 - Implemented digital port mode action.
 - Improved digital port controller logic.
 - Implemented test setup and loop.

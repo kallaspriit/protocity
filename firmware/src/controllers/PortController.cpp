@@ -24,11 +24,12 @@ void PortController::setPortMode(PortMode portMode) {
 
 	this->portMode = portMode;
 
-	if (digitalOut != NULL) delete digitalOut;
-	if (pwmOut != NULL) delete pwmOut;
-	if (interruptIn != NULL) delete interruptIn;
-	if (digitalIn != NULL) delete digitalIn;
-	if (analogIn != NULL) delete analogIn;
+	// delete existing if already configured
+	if (digitalOut != NULL) delete digitalOut; digitalOut = NULL;
+	if (pwmOut != NULL) delete pwmOut; pwmOut = NULL;
+	if (interruptIn != NULL) delete interruptIn; interruptIn = NULL;
+	if (digitalIn != NULL) delete digitalIn; digitalIn = NULL;
+	if (analogIn != NULL) delete analogIn; analogIn = NULL;
 
 	switch (portMode) {
 		case PortMode::UNUSED:
@@ -50,11 +51,11 @@ void PortController::setPortMode(PortMode portMode) {
 
 			break;
 
-		case PortMode::PWM:
+		case PortMode::ANALOG_OUT:
 			pwmOut = new PwmOut(pinName);
 			break;
 
-		case PortMode::ANALOG:
+		case PortMode::ANALOG_IN:
 			analogIn = new AnalogIn(pinName);
 			break;
 
@@ -106,7 +107,7 @@ void PortController::setAnalogValue(float dutyCycle) {
 		error("expected duty cycle value between 0.0 and 1.0");
 	}
 
-	printf("# setting port %d PWM duty cycle to %f\n", id, dutyCycle);
+	printf("# setting port %d ANALOG_OUT duty cycle to %f\n", id, dutyCycle);
 
 	*pwmOut = dutyCycle;
 }
@@ -118,12 +119,12 @@ PortController::PortMode PortController::getPortModeByName(std::string mode) {
 		return PortController::PortMode::DIGITAL_OUT;
 	} else if (mode == "DIGITAL_IN") {
 		return PortController::PortMode::DIGITAL_IN;
+	} else if (mode == "ANALOG_OUT") {
+		return PortController::PortMode::ANALOG_OUT;
+	} else if (mode == "ANALOG_IN") {
+		return PortController::PortMode::ANALOG_IN;
 	} else if (mode == "INTERRUPT") {
 		return PortController::PortMode::INTERRUPT;
-	} else if (mode == "PWM") {
-		return PortController::PortMode::PWM;
-	} else if (mode == "ANALOG") {
-		return PortController::PortMode::ANALOG;
 	} else {
 		return PortController::PortMode::INVALID;
 	}
@@ -140,14 +141,14 @@ std::string PortController::getPortModeName(PortController::PortMode mode) {
 		case PortMode::DIGITAL_IN:
 			return "DIGITAL_IN";
 
+		case PortMode::ANALOG_OUT:
+			return "ANALOG_OUT";
+
+		case PortMode::ANALOG_IN:
+			return "ANALOG_IN";
+
 		case PortMode::INTERRUPT:
 			return "INTERRUPT";
-
-		case PortMode::PWM:
-			return "PWM";
-
-		case PortMode::ANALOG:
-			return "ANALOG";
 
 		case PortMode::INVALID:
 			return "INVALID";
@@ -176,7 +177,7 @@ PortController::DigitalValue PortController::getDigitalValue() {
 }
 
 float PortController::getAnalogValue() {
-	if (portMode != PortMode::ANALOG) {
+	if (portMode != PortMode::ANALOG_IN) {
 		printf("# getting analog reading is valid only for port configured as analog input\n");
 
 		return 0.0f;
@@ -229,7 +230,7 @@ void PortController::handleInterruptFall() {
 
 void PortController::update(int deltaUs) {
 	// the value change events is valid only for analog ports
-	if (portMode != PortMode::ANALOG) {
+	if (portMode != PortMode::ANALOG_IN) {
 		return;
 	}
 

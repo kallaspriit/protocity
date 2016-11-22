@@ -16,9 +16,9 @@ public:
 		INVALID,
 		DIGITAL_OUT,
 		DIGITAL_IN,
-		INTERRUPT,
-		PWM,
-		ANALOG
+		ANALOG_OUT,
+		ANALOG_IN,
+		INTERRUPT
 	};
 
 	enum DigitalValue {

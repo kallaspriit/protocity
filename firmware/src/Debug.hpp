@@ -38,7 +38,7 @@ private:
 
 	static const int LED_COUNT = 4;
 	static const int FREE_MEMORY_CELL_SIZE = 8;
-	const float BREATHE_PERIOD = 5.0f;
+	const float BREATHE_PERIOD = 2.0f;
 	const int UPDATE_FPS = 60;
 	const int FAST_BLINK_INTERVAL_MS = 200;
 	const int SLOW_BLINK_INTERVAL_MS = 2000;

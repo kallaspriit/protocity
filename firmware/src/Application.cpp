@@ -212,23 +212,27 @@ void Application::onSocketCommandReceived(const char *command, int length) {
 }
 
 void Application::onPortDigitalValueChange(int id, PortController::DigitalValue value) {
-	snprintf(sendBuffer, SEND_BUFFER_SIZE, "0:INTERRUPT:%d:%s\n", id, value == PortController::DigitalValue::HIGH ? "HIGH" : "LOW");
+	snprintf(sendBuffer, SEND_BUFFER_SIZE, "0:INTERRUPT_CHANGE:%d:%s\n", id, value == PortController::DigitalValue::HIGH ? "HIGH" : "LOW");
 
 	messageQueue.push(std::string(sendBuffer));
 }
 
 void Application::onPortAnalogValueChange(int id, float value) {
-	snprintf(sendBuffer, SEND_BUFFER_SIZE, "0:ANALOG:%d:%f\n", id, value);
+	snprintf(sendBuffer, SEND_BUFFER_SIZE, "0:ANALOG_IN:%d:%f\n", id, value);
 
 	messageQueue.push(std::string(sendBuffer));
 }
 
 void Application::onPortValueRise(int id) {
+	snprintf(sendBuffer, SEND_BUFFER_SIZE, "0:INTERRUPT_RISE:%d\n", id);
 
+	messageQueue.push(std::string(sendBuffer));
 }
 
 void Application::onPortValueFall(int id) {
+	snprintf(sendBuffer, SEND_BUFFER_SIZE, "0:INTERRUPT_FALL:%d\n", id);
 
+	messageQueue.push(std::string(sendBuffer));
 }
 
 void Application::handleSerialRx() {
@@ -440,7 +444,7 @@ CommandManager::Command::Response Application::handlePortValueCommand(CommandMan
 		}
 		break;
 
-		case PortController::PortMode::PWM: {
+		case PortController::PortMode::ANALOG_OUT: {
 			if (value < 0.0f || value > 1.0f) {
 				return command->createFailureResponse("expected value between 0.0 and 1.0");
 			}
@@ -454,7 +458,7 @@ CommandManager::Command::Response Application::handlePortValueCommand(CommandMan
 		break;
 
 		default:
-			return command->createFailureResponse("setting port value is only valid for DIGITAL_OUT or PWM modes");
+			return command->createFailureResponse("setting port value is only valid for DIGITAL_OUT or ANALOG_OUT modes");
 	}
 
 
@@ -480,7 +484,7 @@ CommandManager::Command::Response Application::handlePortReadCommand(CommandMana
 		PortController::DigitalValue value = portController->getDigitalValue();
 
 		return command->createSuccessResponse(value == PortController::DigitalValue::HIGH ? "HIGH" : "LOW");
-	} else if (portMode == PortController::PortMode::ANALOG) {
+	} else if (portMode == PortController::PortMode::ANALOG_IN) {
 		float value = portController->getAnalogValue();
 
 		return command->createSuccessResponse(value);
@@ -504,7 +508,7 @@ CommandManager::Command::Response Application::handlePortListenCommand(CommandMa
 
 	PortController::PortMode portMode = portController->getPortMode();
 
-	if (portMode != PortController::PortMode::ANALOG) {
+	if (portMode != PortController::PortMode::ANALOG_IN) {
 		return command->createFailureResponse("listening for port events is only valid for analog inputs");
 	}
 

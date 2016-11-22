@@ -31,12 +31,13 @@ public class Main {
 
         commander = new Commander(socketClient);
 
+        // run various tests
         testCustomCommand();
         testDigitalOut();
         testDigitalIn();
-        testPwm();
+        testAnalogOut();
+        testAnalogIn();
         testInterrupt();
-        testAnalog();
 
         // give some time to respond
         Thread.sleep(10000);
@@ -70,32 +71,31 @@ public class Main {
         );
     }
 
-    private void testPwm() throws Exception {
+    private void testAnalogOut() throws Exception {
         PortController portController = new PortController(2, commander);
 
-        portController.setPortMode(PortController.PortMode.PWM);
+        portController.setPortMode(PortController.PortMode.ANALOG_OUT);
         portController.setAnalogValue(0.5f);
     }
 
-    private void testInterrupt() throws Exception {
-        PortController portController = new PortController(4, commander);
+    private void testAnalogIn() throws Exception {
+        PortController portController = new PortController(6, commander);
 
-        portController.setPortMode(PortController.PortMode.INTERRUPT);
-        portController.addEventListener(new PortController.PortEventListener() {
+        portController.setPortMode(PortController.PortMode.ANALOG_IN);
+        portController.getAnalogValue().thenAccept(
+                commandResponse -> System.out.printf("# port %d analog value: %f%n", portController.getId(), commandResponse.response.getFloat(0))
+        );
+
+        portController.listenAnalogValueChange(0.05f, 100, new PortController.PortEventListener() {
 
             @Override
-            public void onPortDigitalValueChange(int id, PortController.DigitalValue digitalValue) {
-                System.out.printf("# port %d digital value changed to %s%n", id, digitalValue);
+            public void onPortAnalogValueChange(int id, float value) {
+                System.out.printf("# port %d analog value changed to %f%n", id, value);
             }
 
         });
-    }
 
-    private void testAnalog() throws Exception {
-        PortController portController = new PortController(6, commander);
-
-        portController.setPortMode(PortController.PortMode.ANALOG);
-
+        /*
         portController.addEventListener(new PortController.PortEventListener() {
 
             @Override
@@ -103,6 +103,29 @@ public class Main {
                 System.out.printf("# port %d analog value changed to %f%n", id, value);
             }
 
+        });
+        */
+    }
+
+    private void testInterrupt() throws Exception {
+        PortController portController = new PortController(4, commander);
+
+        portController.setPortMode(PortController.PortMode.INTERRUPT, new PortController.PortEventListener() {
+
+            @Override
+            public void onPortDigitalValueChange(int id, PortController.DigitalValue digitalValue) {
+                System.out.printf("# port %d digital value changed to %s%n", id, digitalValue);
+            }
+
+            @Override
+            public void onPortValueRise(int id) {
+                System.out.printf("# port %d digital value became high%n", id);
+            }
+
+            @Override
+            public void onPortValueFall(int id) {
+                System.out.printf("# port %d digital value became low%n", id);
+            }
         });
     }
 
