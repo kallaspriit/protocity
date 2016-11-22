@@ -6,7 +6,7 @@ import java.io.InputStreamReader;
 
 public class Main implements PortController.PortEventListener {
 
-    private SocketClient socketClient;
+    private Commander commander;
 
     public static void main(String[] args) throws Exception {
         (new Main()).run();
@@ -24,11 +24,14 @@ public class Main implements PortController.PortEventListener {
 
         System.out.printf("# connecting to %s:%d.. ", hostName, portNumber);
 
-        socketClient = new SocketClient(hostName, portNumber);
+        SocketClient socketClient = new SocketClient(hostName, portNumber);
         socketClient.connect();
 
         System.out.printf("success!%n");
 
+        commander = new Commander(socketClient);
+
+        testCustomCommand();
         testDigitalOut();
         testPwm();
 
@@ -38,8 +41,14 @@ public class Main implements PortController.PortEventListener {
         socketClient.close();
     }
 
+    private void testCustomCommand() throws Exception {
+        commander.sendCommand("memory").thenAccept(
+                commandResponse -> System.out.printf("# got memory request response: %d bytes%n", commandResponse.response.getInt(0))
+        );
+    }
+
     private void testDigitalOut() throws Exception {
-        PortController portController = new PortController(1, socketClient);
+        PortController portController = new PortController(1, commander);
 
         // digital out
         portController.setPortMode(PortController.PortMode.OUTPUT);
@@ -70,7 +79,7 @@ public class Main implements PortController.PortEventListener {
     }
 
     private void testPwm() throws Exception {
-        PortController portController = new PortController(2, socketClient);
+        PortController portController = new PortController(2, commander);
 
         // pwm out
         portController.setPortMode(PortController.PortMode.PWM);
@@ -78,7 +87,7 @@ public class Main implements PortController.PortEventListener {
     }
 
     private static String askFor(String question, String defaultValue, BufferedReader consoleIn) throws IOException {
-        System.out.printf("> %s (%s): ", question, defaultValue);
+        System.out.printf("@ %s (%s): ", question, defaultValue);
 
         String userInput = consoleIn.readLine();
 

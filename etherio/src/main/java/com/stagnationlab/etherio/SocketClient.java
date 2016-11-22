@@ -36,8 +36,10 @@ public class SocketClient implements MessageTransport {
                     if (message != null) {
                         inputQueue.add(message);
 
-                        for (MessageListener messageListener : messageListeners) {
-                            messageListener.onSocketMessageReceived(message);
+                        synchronized (this) {
+                            for (MessageListener messageListener : messageListeners) {
+                                messageListener.onSocketMessageReceived(message);
+                            }
                         }
                     }
                 } catch (IOException e) {
@@ -58,7 +60,7 @@ public class SocketClient implements MessageTransport {
 
     private final Queue<String> inputQueue;
     private final List<MessageListener> messageListeners;
-    private int messageCounter = 0;
+    private int messageCounter = 1;
 
     private SocketClient() {
         inputQueue = new LinkedList<>();
