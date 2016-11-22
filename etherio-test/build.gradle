@@ -10,8 +10,8 @@ mainClassName = "Main"
 
 repositories {
     flatDir {
-        //dirs 'libs'
-        dirs $/../etherio/build/libs/$
+        dirs 'libs'
+        //dirs $/../etherio/build/libs/$
     }
 
     mavenCentral()
