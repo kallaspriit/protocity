@@ -9,7 +9,7 @@ import java.util.List;
 public class Command {
 
     public final int id;
-    private final String name;
+    public final String name;
     private final List<String> arguments;
 
     public Command(int id, String name, Object... arguments) {
@@ -22,7 +22,7 @@ public class Command {
         }
     }
 
-    private String getString(int argumentIndex) {
+    public String getString(int argumentIndex) {
         if (argumentIndex + 1 > arguments.size()) {
             throw new IllegalArgumentException("Invalid argument index provided");
         }

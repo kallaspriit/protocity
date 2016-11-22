@@ -4,7 +4,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
-public class PortController {
+public class PortController implements Commander.SpecialCommandListener {
 
     public enum PortMode {
         UNUSED,
@@ -28,10 +28,10 @@ public class PortController {
     }
 
     public interface PortEventListener {
-        void onPortDigitalValueChange(int id, DigitalValue value);
-        void onPortAnalogValueChange(int id, float value);
-        void onPortValueRise(int id);
-        void onPortValueFall(int id);
+        default void onPortDigitalValueChange(int id, DigitalValue value) {}
+        default void onPortAnalogValueChange(int id, float value) {}
+        default void onPortValueRise(int id) {}
+        default void onPortValueFall(int id) {}
     }
 
     private enum Action {
@@ -46,6 +46,8 @@ public class PortController {
     }
 
     private static final String COMMAND_PORT = "port";
+    private static final String EVENT_INTERRUPT = "INTERRUPT";
+    private static final String EVENT_ANALOG = "ANALOG";
 
     private Commander commander;
     private final List<PortEventListener> portEventListeners;
@@ -58,6 +60,8 @@ public class PortController {
         this.id = id;
         this.commander = commander;
         this.portEventListeners = new ArrayList<>();
+
+        commander.addSpecialCommandListener(this);
     }
 
     public void addEventListener(PortEventListener listener) {
@@ -104,12 +108,45 @@ public class PortController {
         );
     }
 
-
-
     public CompletableFuture<Commander.CommandResponse> sendPortCommand(Object... arguments) {
         List<Object> argumentList = new LinkedList<>(Arrays.asList(arguments));
         argumentList.add(0, id);
 
         return commander.sendCommand(COMMAND_PORT, argumentList.toArray());
+    }
+
+    @Override
+    public void handleSpecialCommand(Command command) {
+        String[] handledCommands = {
+                EVENT_INTERRUPT,
+                EVENT_ANALOG
+        };
+
+        boolean isHandledCommand = Arrays.asList(handledCommands).contains(command.name);
+
+        // only handle predefined list of special commands
+        if (!isHandledCommand) {
+            return;
+        }
+
+        int portId = command.getInt(0);
+
+        // only handle special commands of given port
+        if (portId != id) {
+            return;
+        }
+
+        // notify the event listeners
+        for (PortEventListener listener : portEventListeners) {
+            switch (command.name) {
+                case EVENT_INTERRUPT:
+                    listener.onPortDigitalValueChange(id, DigitalValue.valueOf(command.getString(1)));
+                    break;
+
+                case EVENT_ANALOG:
+                    listener.onPortAnalogValueChange(id, command.getFloat(1));
+                    break;
+            }
+        }
     }
 }

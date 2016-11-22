@@ -1,6 +1,8 @@
 package com.stagnationlab.etherio;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -21,6 +23,10 @@ public class Commander implements MessageTransport.MessageListener {
         }
     }
 
+    public interface SpecialCommandListener {
+        void handleSpecialCommand(Command command);
+    }
+
     private class CommandPromise {
         final CommandResponse commandResponse;
         final CompletableFuture<CommandResponse> promise;
@@ -33,12 +39,18 @@ public class Commander implements MessageTransport.MessageListener {
 
     private final MessageTransport messageTransport;
     private final Map<Integer, CommandPromise> commandPromises;
+    private final List<SpecialCommandListener> specialCommandListeners;
 
     public Commander(MessageTransport messageTransport) {
         this.messageTransport = messageTransport;
         this.commandPromises = new HashMap<>();
+        this.specialCommandListeners = new ArrayList<>();
 
         messageTransport.addMessageListener(this);
+    }
+
+    public void addSpecialCommandListener(SpecialCommandListener listener) {
+        specialCommandListeners.add(listener);
     }
 
     public CompletableFuture<Commander.CommandResponse> sendCommand(String name, Object... arguments) {
@@ -75,6 +87,10 @@ public class Commander implements MessageTransport.MessageListener {
     }
 
     private void handleResponse(Command responseCommand) {
+        if (responseCommand.id == 0) {
+            handleSpecialCommand(responseCommand);
+        }
+
         CommandPromise commandPromise = getCommandPromiseById(responseCommand.id);
 
         if (commandPromise == null) {
@@ -90,6 +106,14 @@ public class Commander implements MessageTransport.MessageListener {
         commandPromise.commandResponse.response = responseCommand;
         commandPromise.promise.complete(commandPromise.commandResponse);
         commandPromises.remove(responseCommand.id);
+    }
+
+    private void handleSpecialCommand(Command responseCommand) {
+        synchronized (this) {
+            for (SpecialCommandListener listener : specialCommandListeners) {
+                listener.handleSpecialCommand(responseCommand);
+            }
+        }
     }
 
     private CommandPromise getCommandPromiseById(int id) {
