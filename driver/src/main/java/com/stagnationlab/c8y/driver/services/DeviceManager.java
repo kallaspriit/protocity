@@ -26,7 +26,11 @@ public class DeviceManager {
         log.info("creating child managed object with id '" + id + "' of type '" + type + "'");
 
         ManagedObjectRepresentation child = new ManagedObjectRepresentation();
-        child.set(hardware);
+
+        if (hardware != null) {
+            child.set(hardware);
+        }
+
         child.setType(type);
         child.setName(child.getType() + " " + id);
 

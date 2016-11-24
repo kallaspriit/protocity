@@ -7,6 +7,7 @@ import com.cumulocity.model.operation.OperationStatus;
 import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
 import com.cumulocity.rest.representation.operation.OperationRepresentation;
 import com.cumulocity.sdk.client.Platform;
+import com.stagnationlab.c8y.driver.platforms.etherio.EtherioLightSensor;
 import com.stagnationlab.c8y.driver.platforms.etherio.EtherioRelayActuator;
 import com.stagnationlab.c8y.driver.platforms.simulated.SimulatedLightSensor;
 import com.stagnationlab.c8y.driver.platforms.simulated.SimulatedMotionSensor;
@@ -125,6 +126,10 @@ public class GatewayDriver implements Driver, OperationExecutor {
         return operationExecutorsList.toArray(new OperationExecutor[operationExecutorsList.size()]);
     }
 
+    private void registerDriver(Driver driver) {
+        drivers.add(driver);
+    }
+
     private void initializeDrivers() {
         log.info("initializing drivers");
 
@@ -177,19 +182,18 @@ public class GatewayDriver implements Driver, OperationExecutor {
     private void setupDevices() {
         log.info("setting up sensors");
 
+        setupEtherioLightSensor();
         setupEtherioRelayActuator();
 
         setupSimulatedLightSensor();
         setupSimulatedMotionSensor();
-
         setupSimulatedRelayActuator();
-        setupEtherioRelayActuator();
     }
 
     private void setupSimulatedLightSensor() {
         log.info("setting up simulated light sensor");
 
-        drivers.add(
+        registerDriver(
                 new SimulatedLightSensor("1")
         );
     }
@@ -197,7 +201,7 @@ public class GatewayDriver implements Driver, OperationExecutor {
     private void setupSimulatedMotionSensor() {
         log.info("setting up simulated motion sensor");
 
-        drivers.add(
+        registerDriver(
                 new SimulatedMotionSensor("1")
         );
     }
@@ -205,15 +209,23 @@ public class GatewayDriver implements Driver, OperationExecutor {
     private void setupSimulatedRelayActuator() {
         log.info("setting up simulated relay actuator");
 
-        drivers.add(
+        registerDriver(
                 new SimulatedRelayActuator("1")
+        );
+    }
+
+    private void setupEtherioLightSensor() {
+        log.info("setting up EtherIO light sensor");
+
+        registerDriver(
+                new EtherioLightSensor("1", commander, 6)
         );
     }
 
     private void setupEtherioRelayActuator() {
         log.info("setting up EtherIO relay actuator");
 
-        drivers.add(
+        registerDriver(
                 new EtherioRelayActuator("1", commander, 1)
         );
     }

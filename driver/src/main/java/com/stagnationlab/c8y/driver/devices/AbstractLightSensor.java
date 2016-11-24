@@ -1,67 +1,38 @@
 package com.stagnationlab.c8y.driver.devices;
 
-import c8y.Hardware;
 import c8y.LightMeasurement;
 import c8y.LightSensor;
-import c8y.lx.driver.MeasurementPollingDriver;
-import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
-import com.stagnationlab.c8y.driver.services.DeviceManager;
-import com.stagnationlab.c8y.driver.platforms.simulated.SimulatedLightSensor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.cumulocity.rest.representation.measurement.MeasurementRepresentation;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
-public abstract class AbstractLightSensor extends MeasurementPollingDriver {
-
-    private static final Logger log = LoggerFactory.getLogger(SimulatedLightSensor.class);
-
-    private static final String TYPE = "Light";
-
-    private final String id;
+public abstract class AbstractLightSensor extends AbstractMeasurementSensor {
 
     protected AbstractLightSensor(String id) {
-        super("c8y_" + TYPE + "Sensor", "c8y." + TYPE.toLowerCase(), 5000);
-
-        this.id = id;
+        super(id);
     }
 
-    @Override
-    public void initialize() throws Exception {
-        log.info("initializing");
+    protected String getType() {
+        return "Light";
     }
 
-    @Override
-    public void discoverChildren(ManagedObjectRepresentation parent) {
-        log.info("creating child");
-
-        ManagedObjectRepresentation childDevice = DeviceManager.createChild(
-                id,
-                TYPE,
-                getPlatform(),
-                parent,
-                getHardware(),
-                getSupportedOperations(),
-                new LightSensor()
-        );
-
-        setSource(childDevice);
+    protected Object getSensorFragment() {
+        return new LightSensor();
     }
 
-    @Override
-    public void run() {
-        double illuminance = getIlluminance();
-
+    protected void reportIlluminance(float illuminance) {
         LightMeasurement lightMeasurement = new LightMeasurement();
         lightMeasurement.setIlluminance(new BigDecimal(illuminance));
 
-        sendMeasurement(lightMeasurement);
+        MeasurementRepresentation measurementRepresentation = new MeasurementRepresentation();
 
-        //log.info("sending light illuminance measurement: " + illuminance);
+        measurementRepresentation.setSource(childDevice);
+        measurementRepresentation.setType(getType());
+        measurementRepresentation.set(lightMeasurement);
+        measurementRepresentation.setTime(new Date());
+
+        measurementApi.create(measurementRepresentation);
     }
-
-    protected abstract Hardware getHardware();
-
-    protected abstract double getIlluminance();
 
 }

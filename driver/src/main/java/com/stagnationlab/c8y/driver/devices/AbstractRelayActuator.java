@@ -23,11 +23,13 @@ public abstract class AbstractRelayActuator implements Driver, OperationExecutor
 
     private static final String TYPE = "Relay";
 
-    private final Relay relay = new Relay();
     private Platform platform;
     private MeasurementApi measurementApi;
     private ManagedObjectRepresentation childDevice;
+
     private final String id;
+    private final Relay relay = new Relay();
+
 
     protected AbstractRelayActuator(String id) {
         this.id = id;
