@@ -7,12 +7,16 @@ import com.cumulocity.model.operation.OperationStatus;
 import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
 import com.cumulocity.rest.representation.operation.OperationRepresentation;
 import com.cumulocity.sdk.client.Platform;
+import com.stagnationlab.c8y.driver.platforms.etherio.EtherioRelayActuator;
 import com.stagnationlab.c8y.driver.platforms.simulated.SimulatedLightSensor;
 import com.stagnationlab.c8y.driver.platforms.simulated.SimulatedMotionSensor;
 import com.stagnationlab.c8y.driver.platforms.simulated.SimulatedRelayActuator;
+import com.stagnationlab.etherio.Commander;
+import com.stagnationlab.etherio.SocketClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -25,13 +29,16 @@ public class GatewayDriver implements Driver, OperationExecutor {
     private final List<Driver> drivers = new ArrayList<>();
     private GId gid;
 
+    // EtherIO
+    private SocketClient socketClient;
+    private Commander commander;
 
     @Override
     public void initialize() throws Exception {
         log.info("initializing");
 
-        setupSensors();
-        setupActuators();
+        setupEtherio();
+        setupDevices();
 
         try {
             initializeDrivers();
@@ -156,11 +163,27 @@ public class GatewayDriver implements Driver, OperationExecutor {
         }
     }
 
-    private void setupSensors() {
+    private void setupEtherio() throws IOException {
+        // TODO make configurable
+        String hostName = "10.220.20.17";
+        int portNumber = 8080;
+
+        socketClient = new SocketClient(hostName, portNumber);
+        socketClient.connect();
+
+        commander = new Commander(socketClient);
+    }
+
+    private void setupDevices() {
         log.info("setting up sensors");
+
+        setupEtherioRelayActuator();
 
         setupSimulatedLightSensor();
         setupSimulatedMotionSensor();
+
+        setupSimulatedRelayActuator();
+        setupEtherioRelayActuator();
     }
 
     private void setupSimulatedLightSensor() {
@@ -179,17 +202,19 @@ public class GatewayDriver implements Driver, OperationExecutor {
         );
     }
 
-    private void setupActuators() {
-        log.info("setting up actuators");
-
-        setupSimulatedRelayActuator();
-    }
-
     private void setupSimulatedRelayActuator() {
         log.info("setting up simulated relay actuator");
 
         drivers.add(
                 new SimulatedRelayActuator("1")
+        );
+    }
+
+    private void setupEtherioRelayActuator() {
+        log.info("setting up EtherIO relay actuator");
+
+        drivers.add(
+                new EtherioRelayActuator("1", commander, 1)
         );
     }
 }

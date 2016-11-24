@@ -19,6 +19,11 @@ repositories {
     maven {
         url "http://download.cumulocity.com/maven/repository"
     }
+
+    flatDir {
+        dirs 'libs'
+        //dirs $/../etherio/build/libs/$
+    }
 }
 
 dependencies {
@@ -26,14 +31,11 @@ dependencies {
     compile group: 'com.nsn.cumulocity.clients-java', name: 'java-client', version: '5.19.0'
     compile group: 'com.nsn.cumulocity.model', name: 'device-capability-model', version: '5.19.0'
 
-    // pi4j raspberry pi gpio
-    compile group: 'com.pi4j', name: 'pi4j-core', version: '1.0'
-
     // jackson JSON
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.0.1'
 
-    // serial communication
-    compile 'com.fazecast:jSerialComm:1.3.11'
+    // EtherIO
+    compile name: 'etherio-1.0.0'
 
     // logging
     //compile group: 'org.slf4j', name: 'slf4j-simple', version: 'latest.release'
@@ -58,6 +60,11 @@ jar {
     }
 }
 */
+
+task deploy(type: Copy, dependsOn: 'jar') {
+    from 'build/libs'
+    into '../../../cumulocity-agent/lib'
+}
 
 // make input available for gradle run
 run {
