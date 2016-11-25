@@ -9,7 +9,7 @@ import java.util.TimerTask;
  */
 public class RestartableTimerTask extends TimerTask {
 
-	private final Runnable runnable;
+	private Runnable runnable;
 
 	public RestartableTimerTask(Runnable runnable) {
 		this.runnable = runnable;

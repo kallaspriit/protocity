@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-
 @SuppressWarnings("unused")
 public class Gateway implements Driver, OperationExecutor {
     private static final Logger log = LoggerFactory.getLogger(Gateway.class);
