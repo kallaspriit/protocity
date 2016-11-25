@@ -40,9 +40,9 @@ public class EtherioRelayActuator extends AbstractRelayActuator {
     }
 
     @Override
-    protected void applyRelayState(boolean isRelayOn) {
-        log.info("turning relay " + (isRelayOn ? "on" : "off") + " on port " + portNumber);
+    protected void applyRelayState(boolean isRelayClosed) {
+        log.info("turning relay " + (isRelayClosed ? "on" : "off") + " on port " + portNumber);
 
-        portController.setDigitalValue(isRelayOn ? PortController.DigitalValue.HIGH : PortController.DigitalValue.LOW);
+        portController.setDigitalValue(isRelayClosed ? PortController.DigitalValue.HIGH : PortController.DigitalValue.LOW);
     }
 }

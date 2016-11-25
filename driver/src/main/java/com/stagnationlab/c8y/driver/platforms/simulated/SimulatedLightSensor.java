@@ -2,8 +2,6 @@ package com.stagnationlab.c8y.driver.platforms.simulated;
 
 import com.stagnationlab.c8y.driver.devices.AbstractLightSensor;
 
-import java.util.concurrent.ScheduledFuture;
-
 public class SimulatedLightSensor extends AbstractLightSensor {
 
     private float illuminance = 50.0f;
@@ -16,9 +14,7 @@ public class SimulatedLightSensor extends AbstractLightSensor {
     public void start() {
         super.start();
 
-        setInterval(() -> {
-            reportIlluminance(getSimulatedIlluminance());
-        }, 5000);
+        setInterval(() -> reportIlluminance(getSimulatedIlluminance()), 5000);
     }
 
     private float getSimulatedIlluminance() {

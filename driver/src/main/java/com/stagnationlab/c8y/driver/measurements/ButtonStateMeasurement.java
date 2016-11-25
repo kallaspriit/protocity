@@ -1,7 +1,7 @@
 package com.stagnationlab.c8y.driver.measurements;
 
-import com.stagnationlab.c8y.driver.devices.AbstractButtonSensor;
+import com.stagnationlab.c8y.driver.fragments.ButtonSensor;
 
-public class ButtonStateMeasurement extends StateMeasurement<AbstractButtonSensor.State> {
+public class ButtonStateMeasurement extends StateMeasurement<ButtonSensor.ButtonState> {
 
 }

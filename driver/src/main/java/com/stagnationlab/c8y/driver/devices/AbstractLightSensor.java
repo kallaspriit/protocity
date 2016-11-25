@@ -1,22 +1,22 @@
 package com.stagnationlab.c8y.driver.devices;
 
 import c8y.LightMeasurement;
-import c8y.LightSensor;
-import com.cumulocity.rest.representation.measurement.MeasurementRepresentation;
+import com.stagnationlab.c8y.driver.fragments.LightSensor;
 
 import java.math.BigDecimal;
-import java.util.Date;
 
-public abstract class AbstractLightSensor extends AbstractMeasurementSensor {
+public abstract class AbstractLightSensor extends AbstractDevice {
 
     protected AbstractLightSensor(String id) {
         super(id);
     }
 
+    @Override
     protected String getType() {
         return "Light";
     }
 
+    @Override
     protected Object getSensorFragment() {
         return new LightSensor();
     }
@@ -25,14 +25,7 @@ public abstract class AbstractLightSensor extends AbstractMeasurementSensor {
         LightMeasurement lightMeasurement = new LightMeasurement();
         lightMeasurement.setIlluminance(new BigDecimal(illuminance));
 
-        MeasurementRepresentation measurementRepresentation = new MeasurementRepresentation();
-
-        measurementRepresentation.setSource(childDevice);
-        measurementRepresentation.setType(getType());
-        measurementRepresentation.set(lightMeasurement);
-        measurementRepresentation.setTime(new Date());
-
-        measurementApi.create(measurementRepresentation);
+        reportMeasurement(lightMeasurement);
     }
 
 }

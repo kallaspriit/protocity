@@ -20,6 +20,12 @@ public class StateMeasurement<E extends Enum> {
         );
     }
 
+    StateMeasurement(E measurementValue) {
+        this();
+
+        setState(measurementValue);
+    }
+
     @SuppressWarnings("unused")
     public MeasurementValue getState() {
         return measurementValue;

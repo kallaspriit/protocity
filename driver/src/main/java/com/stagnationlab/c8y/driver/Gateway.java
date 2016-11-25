@@ -24,14 +24,12 @@ import java.util.List;
 
 
 @SuppressWarnings("unused")
-public class GatewayDriver implements Driver, OperationExecutor {
-    private static final Logger log = LoggerFactory.getLogger(GatewayDriver.class);
+public class Gateway implements Driver, OperationExecutor {
+    private static final Logger log = LoggerFactory.getLogger(Gateway.class);
 
     private final List<Driver> drivers = new ArrayList<>();
     private GId gid;
 
-    // EtherIO
-    private SocketClient socketClient;
     private Commander commander;
 
     @Override
@@ -62,6 +60,14 @@ public class GatewayDriver implements Driver, OperationExecutor {
     @Override
     public void initializeInventory(ManagedObjectRepresentation managedObjectRepresentation) {
         log.info("initializing inventory");
+
+        for (Driver driver : drivers) {
+            try {
+                driver.initializeInventory(managedObjectRepresentation);
+            } catch (Throwable e) {
+                log.warn("initializing driver {} inventory failed with {} ({})", driver.getClass().getSimpleName(), e.getClass().getSimpleName(), e.getMessage());
+            }
+        }
     }
 
     @Override
@@ -86,14 +92,12 @@ public class GatewayDriver implements Driver, OperationExecutor {
 
     @Override
     public String supportedOperationType() {
-        log.info("supported operation type requested");
-
         return "c8y_Restart";
     }
 
     @Override
     public void execute(OperationRepresentation operation, boolean cleanup) throws Exception {
-        log.info("execution requested (cleanup: " + (cleanup ? "yes" : "no") + ")");
+        log.info("execution requested{}", cleanup ? " (cleaning up)" : "");
 
         if (!this.gid.equals(operation.getDeviceId())) {
             // Silently ignore the operation if it is not targeted to us, another driver will (hopefully) care.
@@ -101,18 +105,21 @@ public class GatewayDriver implements Driver, OperationExecutor {
         }
 
         if (cleanup) {
-            operation.setStatus(OperationStatus.SUCCESSFUL.toString());
-        } else {
-            log.info("shutting down");
+            operation.setStatus(OperationStatus.FAILED.toString());
 
-            new ProcessBuilder(new String[]{"shutdown", "-r"}).start().waitFor();
+            return;
         }
+
+
+        log.info("restarting...");
+
+        operation.setStatus(OperationStatus.SUCCESSFUL.toString());
+
+        new ProcessBuilder(new String[]{"shutdown", "-r"}).start().waitFor();
     }
 
     @Override
     public OperationExecutor[] getSupportedOperations() {
-        log.info("supported operations requested");
-
         List<OperationExecutor> operationExecutorsList = new ArrayList<>();
 
         operationExecutorsList.add(this);
@@ -131,7 +138,7 @@ public class GatewayDriver implements Driver, OperationExecutor {
     }
 
     private void initializeDrivers() {
-        log.info("initializing drivers");
+        log.info("initializing drivers ({} total)", drivers.size());
 
         Iterator<Driver> iterator = drivers.iterator();
 
@@ -139,11 +146,11 @@ public class GatewayDriver implements Driver, OperationExecutor {
             Driver driver = iterator.next();
 
             try {
-                log.info("initializing driver " + driver.getClass().getName());
+                log.info("initializing driver '{}'", driver.getClass().getSimpleName());
 
                 driver.initialize();
             } catch (Throwable e) {
-                log.warn("initializing driver failed with " + e.getClass().getName() + " (" + e.getMessage() + "), skipping the driver " + driver.getClass().getName());
+                log.warn("initializing driver '{}' failed with '{}' ({}), skipping it", driver.getClass().getSimpleName(), e.getClass().getSimpleName(), e.getMessage());
 
                 iterator.remove();
             }
@@ -161,7 +168,7 @@ public class GatewayDriver implements Driver, OperationExecutor {
             try {
                 driver.initialize(platform);
             } catch (Throwable e) {
-                log.warn("initializing driver platform failed with " + e.getClass().getName() + " (" + e.getMessage() + "), skipping the driver " + driver.getClass().getName());
+                log.warn("initializing driver '{}' platform failed with '{}' ({}), skipping it", driver.getClass().getSimpleName(), e.getClass().getSimpleName(), e.getMessage());
 
                 iterator.remove();
             }
@@ -169,11 +176,11 @@ public class GatewayDriver implements Driver, OperationExecutor {
     }
 
     private void setupEtherio() throws IOException {
-        // TODO make configurable
+        // TODO make host and port configurable, support multiple
         String hostName = "10.220.20.17";
         int portNumber = 8080;
 
-        socketClient = new SocketClient(hostName, portNumber);
+        SocketClient socketClient = new SocketClient(hostName, portNumber);
         socketClient.connect();
 
         commander = new Commander(socketClient);
@@ -182,11 +189,13 @@ public class GatewayDriver implements Driver, OperationExecutor {
     private void setupDevices() {
         log.info("setting up sensors");
 
-        setupEtherioLightSensor();
-        setupEtherioRelayActuator();
+        // EtherIO devices
+        //setupEtherioLightSensor();
+        //setupEtherioRelayActuator();
 
-        setupSimulatedLightSensor();
-        setupSimulatedMotionSensor();
+        // simulated devices
+        //setupSimulatedLightSensor();
+        //setupSimulatedMotionSensor();
         setupSimulatedRelayActuator();
     }
 
@@ -194,7 +203,7 @@ public class GatewayDriver implements Driver, OperationExecutor {
         log.info("setting up simulated light sensor");
 
         registerDriver(
-                new SimulatedLightSensor("1")
+                new SimulatedLightSensor("Simulated light sensor")
         );
     }
 
@@ -202,7 +211,7 @@ public class GatewayDriver implements Driver, OperationExecutor {
         log.info("setting up simulated motion sensor");
 
         registerDriver(
-                new SimulatedMotionSensor("1")
+                new SimulatedMotionSensor("Simulated motion sensor")
         );
     }
 
@@ -210,23 +219,25 @@ public class GatewayDriver implements Driver, OperationExecutor {
         log.info("setting up simulated relay actuator");
 
         registerDriver(
-                new SimulatedRelayActuator("1")
+                new SimulatedRelayActuator("Simulated relay")
         );
     }
 
     private void setupEtherioLightSensor() {
         log.info("setting up EtherIO light sensor");
 
+        // TODO make port configurable
         registerDriver(
-                new EtherioLightSensor("1", commander, 6)
+                new EtherioLightSensor("EtherIO light sensor", commander, 6)
         );
     }
 
     private void setupEtherioRelayActuator() {
         log.info("setting up EtherIO relay actuator");
 
+        // TODO make port configurable
         registerDriver(
-                new EtherioRelayActuator("1", commander, 1)
+                new EtherioRelayActuator("EtherIO relay", commander, 1)
         );
     }
 }

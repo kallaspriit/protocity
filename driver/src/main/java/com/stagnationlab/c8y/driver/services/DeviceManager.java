@@ -10,6 +10,9 @@ import com.cumulocity.sdk.client.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DeviceManager {
 
     private static final Logger log = LoggerFactory.getLogger(DeviceManager.class);
@@ -21,18 +24,13 @@ public class DeviceManager {
             ManagedObjectRepresentation parent,
             Hardware hardware,
             OperationExecutor[] supportedOperations,
-            Object sensorFragment
+            Object... fragments
     ) {
         log.info("creating child managed object with id '" + id + "' of type '" + type + "'");
 
         ManagedObjectRepresentation child = new ManagedObjectRepresentation();
-
-        if (hardware != null) {
-            child.set(hardware);
-        }
-
         child.setType(type);
-        child.setName(child.getType() + " " + id);
+        child.setName(id);
 
         for (OperationExecutor operation : supportedOperations) {
             log.info("registering supported operation type '" + operation.supportedOperationType() + "'");
@@ -40,8 +38,16 @@ public class DeviceManager {
             OpsUtil.addSupportedOperation(child, operation.supportedOperationType());
         }
 
-        if (sensorFragment != null) {
-            child.set(sensorFragment);
+        if (hardware != null) {
+            child.set(hardware);
+        }
+
+        for (Object fragment : fragments) {
+            if (fragment == null) {
+                continue;
+            }
+
+            child.set(fragment);
         }
 
         DeviceManagedObject deviceManagedObject = new DeviceManagedObject(platform);
@@ -51,23 +57,25 @@ public class DeviceManager {
         return child;
     }
 
-    public static ManagedObjectRepresentation createChild(
-            String id,
-            String type,
-            Platform platform,
-            ManagedObjectRepresentation parent,
-            Hardware hardware,
-            OperationExecutor[] supportedOperations
-    ) {
-        return createChild(id, type, platform, parent, hardware, supportedOperations, null);
-    }
-
     private static ID buildExternalId(ManagedObjectRepresentation parent, ManagedObjectRepresentation child, String id) {
-        return new ID(
-                parent.get(Hardware.class).getSerialNumber() +
-                "-" + child.get(Hardware.class).getSerialNumber() +
-                "-" + id
-        );
+        List<String> tokens = new ArrayList<>();
+        Hardware parentHardware = parent.get(Hardware.class);
+        Hardware childHardware = child.get(Hardware.class);
+
+        if (parentHardware != null) {
+            tokens.add(parentHardware.getSerialNumber());
+        }
+
+        if (childHardware != null) {
+            tokens.add(childHardware.getSerialNumber());
+        }
+
+        tokens.add(child.getType());
+        tokens.add(id);
+
+        String identifier = String.join("-", tokens);
+
+        return new ID(identifier);
     }
 
 }

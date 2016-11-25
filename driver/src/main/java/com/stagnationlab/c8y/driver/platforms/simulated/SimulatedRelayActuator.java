@@ -1,6 +1,5 @@
 package com.stagnationlab.c8y.driver.platforms.simulated;
 
-import c8y.Hardware;
 import com.stagnationlab.c8y.driver.devices.AbstractRelayActuator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,16 +13,7 @@ public class SimulatedRelayActuator extends AbstractRelayActuator {
     }
 
     @Override
-    protected Hardware getHardware() {
-        return new Hardware(
-                "Simulated Relay Actuator",
-                "356734556743235",
-                "1.0.0"
-        );
-    }
-
-    @Override
-    protected void applyRelayState(boolean isRelayOn) {
-        log.info("turning simulated relay " + (isRelayOn ? "on" : "off"));
+    protected void applyRelayState(boolean isRelayClosed) {
+        log.info("{} simulated relay", isRelayClosed ? "closing" : "opening");
     }
 }

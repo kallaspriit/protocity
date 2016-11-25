@@ -14,12 +14,12 @@ public abstract class AbstractMonitoringSensor extends MeasurementPollingDriver 
     class MonitoringSensor {}
 
     static class MonitoringStatus {
-        double totalMemory;
-        double usedMemory;
-        double freeMemory;
-        double sharedMemory;
-        double bufferedMemory;
-        double cachedMemory;
+        final double totalMemory;
+        final double usedMemory;
+        final double freeMemory;
+        final double sharedMemory;
+        final double bufferedMemory;
+        final double cachedMemory;
 
         MonitoringStatus(
                 double totalMemory,
