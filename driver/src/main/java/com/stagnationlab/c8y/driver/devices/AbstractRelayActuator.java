@@ -39,8 +39,6 @@ public abstract class AbstractRelayActuator extends AbstractDevice {
             @Override
             public void execute(OperationRepresentation operation, boolean cleanup) throws Exception {
                 if (!childDevice.getId().equals(operation.getDeviceId())) {
-                    log.info("ignore relay operation because of id mismatch ({} vs {})", operation.getDeviceId(), childDevice.getId());
-
                     return;
                 }
 
@@ -67,6 +65,8 @@ public abstract class AbstractRelayActuator extends AbstractDevice {
     @Override
     public void start() {
         log.info("starting '{}', relay is currently {}", id, relay.getRelayState() == Relay.RelayState.CLOSED ? "closed" : "open");
+
+        applyRelayState(relay.getRelayState() == Relay.RelayState.CLOSED);
     }
 
     protected abstract void applyRelayState(boolean isRelayClosed);

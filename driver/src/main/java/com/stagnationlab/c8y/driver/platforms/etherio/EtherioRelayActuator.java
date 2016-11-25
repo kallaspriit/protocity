@@ -1,6 +1,5 @@
 package com.stagnationlab.c8y.driver.platforms.etherio;
 
-import c8y.Hardware;
 import com.stagnationlab.c8y.driver.devices.AbstractRelayActuator;
 import com.stagnationlab.etherio.Commander;
 import com.stagnationlab.etherio.PortController;
@@ -24,19 +23,12 @@ public class EtherioRelayActuator extends AbstractRelayActuator {
 
     @Override
     public void initialize() throws Exception {
+        super.initialize();
+
         log.info("initializing");
 
         portController = new PortController(portNumber, commander);
         portController.setPortMode(PortController.PortMode.DIGITAL_OUT);
-    }
-
-    @Override
-    protected Hardware getHardware() {
-        return new Hardware(
-                "EtherIO Relay Actuator",
-                "882347545672456",
-                "1.0.0"
-        );
     }
 
     @Override

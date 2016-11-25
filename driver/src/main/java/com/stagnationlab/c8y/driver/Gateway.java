@@ -100,7 +100,6 @@ public class Gateway implements Driver, OperationExecutor {
         log.info("execution requested{}", cleanup ? " (cleaning up)" : "");
 
         if (!this.gid.equals(operation.getDeviceId())) {
-            // Silently ignore the operation if it is not targeted to us, another driver will (hopefully) care.
             return;
         }
 
@@ -191,7 +190,7 @@ public class Gateway implements Driver, OperationExecutor {
 
         // EtherIO devices
         //setupEtherioLightSensor();
-        //setupEtherioRelayActuator();
+        setupEtherioRelayActuator();
 
         // simulated devices
         //setupSimulatedLightSensor();
