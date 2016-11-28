@@ -48,6 +48,7 @@ void SocketServer::runListenThread() {
         printf("# got socket connection from: %s\n", client.get_address());
 
 		connectedClient = &client;
+		isConnected = true;
 
 		// notify listeners
 		for (ListenerList::iterator it = listeners.begin(); it != listeners.end(); ++it) {
@@ -56,20 +57,14 @@ void SocketServer::runListenThread() {
 
         char buffer[256];
 
-        while (true) {
+        while (isConnected) {
 			// check whether the connection is still valid
 			if (!client.is_connected()) {
 				printf("# socket connection to %s has been closed\n", client.get_address());
 
-				// notify listeners
-				for (ListenerList::iterator it = listeners.begin(); it != listeners.end(); ++it) {
-					(*it)->onSocketClientDisconnected(connectedClient);
-				}
+				dropConnection();
 
-				client.close();
-				connectedClient = NULL;
-
-				break;
+				continue;
 			}
 
 			// attempt to receive some data
@@ -114,11 +109,27 @@ void SocketServer::runListenThread() {
 }
 
 bool SocketServer::isClientConnected() {
-	return connectedClient != NULL && connectedClient->is_connected();
+	return isConnected && connectedClient != NULL && connectedClient->is_connected();
 }
 
 TCPSocketConnection *SocketServer::getConnectedClient() {
 	return connectedClient;
+}
+
+void SocketServer::dropConnection() {
+	printf("# dropping socket connection\n");
+
+	// notify listeners
+	for (ListenerList::iterator it = listeners.begin(); it != listeners.end(); ++it) {
+		(*it)->onSocketClientDisconnected(connectedClient);
+	}
+
+	if (connectedClient != NULL) {
+		connectedClient->close();
+		connectedClient = NULL;
+	}
+
+	isConnected = false;
 }
 
 bool SocketServer::sendMessage(std::string message) {
@@ -142,6 +153,8 @@ bool SocketServer::sendMessage(char *message, int length) {
 	// close client if sending failed
 	if (sentBytes == -1) {
 		printf("# sending socket message '%s' failed\n", message);
+
+		dropConnection();
 
 		return false;
 	}

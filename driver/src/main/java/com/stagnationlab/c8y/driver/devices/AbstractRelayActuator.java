@@ -55,6 +55,8 @@ public abstract class AbstractRelayActuator extends AbstractDevice {
 
                 boolean shouldRelayBeClosed = relayState == Relay.RelayState.CLOSED;
 
+                log.info("got request: {}", relayState);
+
                 setRelayClosed(shouldRelayBeClosed);
 
                 operation.setStatus(OperationStatus.SUCCESSFUL.toString());

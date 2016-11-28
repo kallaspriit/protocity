@@ -38,6 +38,7 @@ void Application::loop() {
 	consumeQueuedCommands();
 	sendQueuedMessages();
 	updateControllers(deltaUs);
+	updateHeartbeat(deltaUs);
 }
 
 void Application::setupSerial() {
@@ -143,6 +144,26 @@ void Application::updateControllers(int deltaUs) {
 	}
 }
 
+void Application::updateHeartbeat(int deltaUs) {
+	timeSinceLastHeartbeatUs += deltaUs;
+
+	if (timeSinceLastHeartbeatUs > HEATBEAT_INTERVAL_US) {
+		sendHeartbeat();
+
+		timeSinceLastHeartbeatUs = 0;
+	}
+}
+
+void Application::sendHeartbeat() {
+	if (!socketServer.isClientConnected()) {
+		return;
+	}
+
+	int length = snprintf(sendBuffer, SEND_BUFFER_SIZE, "0:HEARTBEAT:%d\n", heartbeatCounter++);
+
+	socketServer.sendMessage(sendBuffer, length);
+}
+
 void Application::consumeCommand(CommandManager::Command *command) {
 	CommandHandlerMap::iterator commandIt = commandHandlerMap.find(command->name);
 
@@ -214,25 +235,25 @@ void Application::onSocketCommandReceived(const char *command, int length) {
 void Application::onPortDigitalValueChange(int id, PortController::DigitalValue value) {
 	snprintf(sendBuffer, SEND_BUFFER_SIZE, "0:INTERRUPT_CHANGE:%d:%s\n", id, value == PortController::DigitalValue::HIGH ? "HIGH" : "LOW");
 
-	messageQueue.push(std::string(sendBuffer));
+	enqueueMessage(std::string(sendBuffer));
 }
 
 void Application::onPortAnalogValueChange(int id, float value) {
 	snprintf(sendBuffer, SEND_BUFFER_SIZE, "0:ANALOG_IN:%d:%f\n", id, value);
 
-	messageQueue.push(std::string(sendBuffer));
+	enqueueMessage(std::string(sendBuffer));
 }
 
 void Application::onPortValueRise(int id) {
 	snprintf(sendBuffer, SEND_BUFFER_SIZE, "0:INTERRUPT_RISE:%d\n", id);
 
-	messageQueue.push(std::string(sendBuffer));
+	enqueueMessage(std::string(sendBuffer));
 }
 
 void Application::onPortValueFall(int id) {
 	snprintf(sendBuffer, SEND_BUFFER_SIZE, "0:INTERRUPT_FALL:%d\n", id);
 
-	messageQueue.push(std::string(sendBuffer));
+	enqueueMessage(std::string(sendBuffer));
 }
 
 void Application::handleSerialRx() {
@@ -255,6 +276,10 @@ void Application::handleSerialRx() {
 		commandBuffer[commandLength++] = receivedChar;
 		commandBuffer[commandLength] = '\0';
 	}
+}
+
+void Application::enqueueMessage(std::string message) {
+	messageQueue.push(message);
 }
 
 CommandManager::Command::Response Application::handleMemoryCommand(CommandManager::Command *command) {

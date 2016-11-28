@@ -86,6 +86,9 @@ The following commands are supported (using "1" as example request id)
   - responds with ERROR if invalid port is requested
 
 ## Changelog
+**28.11.2016**
+- Implemented heartbeat and closing socket connection if sending a message fails.
+
 **21.11.2016**
 - Improved listen command supporting variable number of arguments.
 

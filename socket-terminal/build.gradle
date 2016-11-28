@@ -2,16 +2,24 @@ apply plugin: 'java'
 apply plugin: 'application'
 apply plugin: 'idea'
 
+//noinspection GroovyUnusedAssignment
+sourceCompatibility = 1.8
 group 'com.stagnationlab.socket'
 version '1.0.0'
-sourceCompatibility = 1.8
-mainClassName = "com.stagnationlab.socket.Main"
+mainClassName = "Main"
 
 repositories {
+    flatDir {
+        dirs 'libs'
+        //dirs $/../etherio/build/libs/$
+    }
+
     mavenCentral()
 }
 
 dependencies {
+    compile name: 'etherio-1.0.0'
+
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }
 

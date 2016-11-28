@@ -1,8 +1,8 @@
-package com.stagnationlab.socket;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+
+import com.stagnationlab.etherio.SocketClient;
 
 public class Main {
 
@@ -15,7 +15,7 @@ public class Main {
         hostName = askFor("Enter host", hostName, consoleIn);
         portNumber = Integer.parseInt(askFor("Enter port", Integer.toString(portNumber), consoleIn));
 
-        System.out.printf("### connecting to %s:%d ###%n", hostName, portNumber);
+        System.out.printf("# connecting to %s:%d%n", hostName, portNumber);
 
         SocketClient socketClient = new SocketClient(hostName, portNumber);
         socketClient.connect();
@@ -23,6 +23,11 @@ public class Main {
         System.out.printf("# connected, type 'quit' to exit%n> ");
 
         socketClient.addMessageListener(message -> {
+	        // don't display heartbeat messages
+            if (message.length() >= 13 && message.substring(0, 11).equals("0:HEARTBEAT")) {
+                return;
+            }
+
             System.out.printf("> %s%n> ", message);
         });
 

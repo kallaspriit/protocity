@@ -54,11 +54,16 @@ private:
 	void consumeCommand(CommandManager::Command *command);
 	bool validateCommandArgumentCount(CommandManager::Command *command, int expectedArgumentCount);
 	void handleSerialRx();
+	void enqueueMessage(std::string message);
 
 	// loop updates
 	void consumeQueuedCommands();
 	void sendQueuedMessages();
 	void updateControllers(int deltaUs);
+	void updateHeartbeat(int deltaUs);
+
+	// heatbeat
+	void sendHeartbeat();
 
 	// built in command handlers
 	CommandManager::Command::Response handleMemoryCommand(CommandManager::Command *command);
@@ -98,6 +103,7 @@ private:
 	const int LED_ETHERNET_STATUS_INDEX = 2;
 	static const int MAX_COMMAND_LENGTH = 64;
 	static const int SEND_BUFFER_SIZE = 64;
+	static const int HEATBEAT_INTERVAL_US = 1000000;
 
 	// services
 	Config *config = NULL;
@@ -129,6 +135,10 @@ private:
 
 	// queued messages
 	StringQueue messageQueue;
+
+	// heartbeat
+	int timeSinceLastHeartbeatUs = 0;
+	int heartbeatCounter = 0;
 
 	// test lifecycle methods
 	void testSetup();				// sets up the tests
