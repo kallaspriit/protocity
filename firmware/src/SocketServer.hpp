@@ -30,6 +30,7 @@ public:
 
 private:
 	void runListenThread();
+	void handleReceivedData(char *buffer, int receivedBytes);
 
 	TCPSocketServer tpcSocketServer;
 	TCPSocketConnection *connectedClient = NULL;
@@ -38,10 +39,11 @@ private:
 
 	static const int MAX_COMMAND_LENGTH = 64;
 	static const int SEND_BUFFER_SIZE = 64;
+	static const int RECEIVE_BUFFER_SIZE = 256;
 	char commandBuffer[MAX_COMMAND_LENGTH + 1];
+	char receiveBuffer[RECEIVE_BUFFER_SIZE];
 	char sendBuffer[SEND_BUFFER_SIZE];
 	int commandLength = 0;
-	bool isConnected = false;
 
 	typedef std::vector<SocketServerListener*> ListenerList;
 	ListenerList listeners;

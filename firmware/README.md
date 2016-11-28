@@ -87,6 +87,7 @@ The following commands are supported (using "1" as example request id)
 
 ## Changelog
 **28.11.2016**
+- Improved socket server disconnect handling.
 - Implemented heartbeat and closing socket connection if sending a message fails.
 
 **21.11.2016**

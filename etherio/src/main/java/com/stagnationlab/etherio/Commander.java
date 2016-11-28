@@ -6,122 +6,121 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-@SuppressWarnings({"WeakerAccess", "unused"})
+import lombok.extern.slf4j.Slf4j;
+
+@SuppressWarnings({ "WeakerAccess", "unused" })
+@Slf4j
 public class Commander implements MessageTransport.MessageListener {
 
-    public class CommandResponse {
-        public final Command command;
-        public Command response;
+	public class CommandResponse {
+		public final Command command;
+		public Command response;
 
-        CommandResponse(Command command, Command response) {
-            this.command = command;
-            this.response = response;
-        }
+		CommandResponse(Command command, Command response) {
+			this.command = command;
+			this.response = response;
+		}
 
-        CommandResponse(Command command) {
-            this(command, null);
-        }
-    }
+		CommandResponse(Command command) {
+			this(command, null);
+		}
+	}
 
-    public interface SpecialCommandListener {
-        void handleSpecialCommand(Command command);
-    }
+	public interface SpecialCommandListener {
+		void handleSpecialCommand(Command command);
+	}
 
-    private class CommandPromise {
-        final CommandResponse commandResponse;
-        final CompletableFuture<CommandResponse> promise;
+	private class CommandPromise {
+		final CommandResponse commandResponse;
+		final CompletableFuture<CommandResponse> promise;
 
-        CommandPromise(CommandResponse commandResponse, CompletableFuture<CommandResponse> promise) {
-            this.commandResponse = commandResponse;
-            this.promise = promise;
-        }
-    }
+		CommandPromise(CommandResponse commandResponse, CompletableFuture<CommandResponse> promise) {
+			this.commandResponse = commandResponse;
+			this.promise = promise;
+		}
+	}
 
-    private final MessageTransport messageTransport;
-    private final Map<Integer, CommandPromise> commandPromises;
-    private final List<SpecialCommandListener> specialCommandListeners;
+	private final MessageTransport messageTransport;
+	private final Map<Integer, CommandPromise> commandPromises;
+	private final List<SpecialCommandListener> specialCommandListeners;
 
-    public Commander(MessageTransport messageTransport) {
-        this.messageTransport = messageTransport;
-        this.commandPromises = new HashMap<>();
-        this.specialCommandListeners = new ArrayList<>();
+	public Commander(MessageTransport messageTransport) {
+		this.messageTransport = messageTransport;
+		this.commandPromises = new HashMap<>();
+		this.specialCommandListeners = new ArrayList<>();
 
-        messageTransport.addMessageListener(this);
-    }
+		messageTransport.addMessageListener(this);
+	}
 
-    public void addSpecialCommandListener(SpecialCommandListener listener) {
-        specialCommandListeners.add(listener);
-    }
+	public void addSpecialCommandListener(SpecialCommandListener listener) {
+		specialCommandListeners.add(listener);
+	}
 
-    public CompletableFuture<Commander.CommandResponse> sendCommand(String name, Object... arguments) {
-        Command command = new Command(messageTransport.getNextMessageId(), name, arguments);
+	public CompletableFuture<Commander.CommandResponse> sendCommand(String name, Object... arguments) {
+		Command command = new Command(messageTransport.getNextMessageId(), name, arguments);
 
-        return sendCommand(command);
-    }
+		return sendCommand(command);
+	}
 
-    public CompletableFuture<CommandResponse> sendCommand(Command command) {
-        CompletableFuture<CommandResponse> promise = new CompletableFuture<>();
-        CommandResponse commandResponse = new CommandResponse(command);
-        CommandPromise commandPromise = new CommandPromise(commandResponse, promise);
+	public CompletableFuture<CommandResponse> sendCommand(Command command) {
+		CompletableFuture<CommandResponse> promise = new CompletableFuture<>();
+		CommandResponse commandResponse = new CommandResponse(command);
+		CommandPromise commandPromise = new CommandPromise(commandResponse, promise);
 
-        commandPromises.put(command.id, commandPromise);
+		commandPromises.put(command.id, commandPromise);
 
-        String message = command.toString();
+		String message = command.toString();
 
-        System.out.printf("< %s%n", message);
+		log.info("< {}", message);
 
-        messageTransport.sendMessage("%s\n", message);
+		messageTransport.sendMessage("%s\n", message);
 
-        return promise;
-    }
+		return promise;
+	}
 
-    @Override
-    public void onSocketMessageReceived(String message) {
-        try {
-            Command responseCommand = Command.parse(message);
+	@Override
+	public void onSocketMessageReceived(String message) {
+		try {
+			Command responseCommand = Command.parse(message);
 
-            handleResponse(responseCommand);
-        } catch (Exception e) {
-            System.out.printf("# got invalid response '%s'%n", message);
-        }
-    }
+			handleResponse(responseCommand);
+		} catch (Exception e) {
+			log.warn("got invalid response '{}'", message);
+		}
+	}
 
-    private void handleResponse(Command responseCommand) {
-        if (responseCommand.id == 0) {
-            handleSpecialCommand(responseCommand);
-        }
+	private void handleResponse(Command responseCommand) {
+		if (responseCommand.id == 0) {
+			handleSpecialCommand(responseCommand);
+		}
 
-        CommandPromise commandPromise = getCommandPromiseById(responseCommand.id);
+		CommandPromise commandPromise = getCommandPromiseById(responseCommand.id);
 
-        if (commandPromise == null) {
-            // System.out.printf("# original command promise for %s was not found%n", responseCommand.toString());
+		if (commandPromise == null) {
+			return;
+		}
 
-            return;
-        }
+		log.info("> {}", responseCommand.toString());
 
-        System.out.printf("> %s%n", responseCommand.toString());
+		commandPromise.commandResponse.response = responseCommand;
+		commandPromise.promise.complete(commandPromise.commandResponse);
+		commandPromises.remove(responseCommand.id);
+	}
 
-        // System.out.printf("# got response %s for original command %s%n", responseCommand.toString(), commandPromise.command.toString());
+	private void handleSpecialCommand(Command responseCommand) {
+		synchronized (this) {
+			for (SpecialCommandListener listener : specialCommandListeners) {
+				listener.handleSpecialCommand(responseCommand);
+			}
+		}
+	}
 
-        commandPromise.commandResponse.response = responseCommand;
-        commandPromise.promise.complete(commandPromise.commandResponse);
-        commandPromises.remove(responseCommand.id);
-    }
+	private CommandPromise getCommandPromiseById(int id) {
+		if (!commandPromises.containsKey(id)) {
+			return null;
+		}
 
-    private void handleSpecialCommand(Command responseCommand) {
-        synchronized (this) {
-            for (SpecialCommandListener listener : specialCommandListeners) {
-                listener.handleSpecialCommand(responseCommand);
-            }
-        }
-    }
-
-    private CommandPromise getCommandPromiseById(int id) {
-        if (!commandPromises.containsKey(id)) {
-            return null;
-        }
-
-        return commandPromises.get(id);
-    }
+		return commandPromises.get(id);
+	}
 
 }

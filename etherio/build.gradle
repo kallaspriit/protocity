@@ -1,25 +1,28 @@
 apply plugin: 'java'
-apply plugin: 'application'
 apply plugin: 'idea'
 
+//noinspection GroovyUnusedAssignment
+sourceCompatibility = 1.8
 group 'com.stagnationlab.etherio'
 version '1.0.0'
-sourceCompatibility = 1.8
-mainClassName = "com.stagnationlab.etherio.Main"
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
+    // lombok
+    compileOnly "org.projectlombok:lombok:1.16.10"
+
+    // logging
+    compile group: 'org.slf4j', name: 'slf4j-simple', version: 'latest.release'
+    compile group: 'ch.qos.logback', name: 'logback-classic', version: 'latest.release'
+
+    // testing
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }
 
 jar {
-    manifest {
-        attributes "Main-Class": mainClassName
-    }
-
     from {
         configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
     }
