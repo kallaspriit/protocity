@@ -3,8 +3,8 @@ package com.stagnationlab.c8y.driver.fragments;
 public class ButtonSensor {
 
     public enum ButtonState {
-        PRESSED,
-        RELEASED
+        RELEASED,
+        PRESSED
     }
 
     private ButtonState buttonState;

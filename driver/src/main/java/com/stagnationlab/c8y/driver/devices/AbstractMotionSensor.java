@@ -1,31 +1,29 @@
 package com.stagnationlab.c8y.driver.devices;
 
-import c8y.Hardware;
-import c8y.MotionSensor;
-import c8y.lx.driver.Driver;
-import c8y.lx.driver.OperationExecutor;
+import java.util.Date;
+
 import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
 import com.cumulocity.rest.representation.measurement.MeasurementRepresentation;
 import com.cumulocity.sdk.client.Platform;
 import com.cumulocity.sdk.client.event.EventApi;
 import com.cumulocity.sdk.client.measurement.MeasurementApi;
-import com.stagnationlab.c8y.driver.services.DeviceManager;
 import com.stagnationlab.c8y.driver.events.MotionDetectedEvent;
 import com.stagnationlab.c8y.driver.events.MotionEndedEvent;
 import com.stagnationlab.c8y.driver.measurements.MotionStateMeasurement;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.stagnationlab.c8y.driver.services.DeviceManager;
 
-import java.util.Date;
+import c8y.Hardware;
+import c8y.MotionSensor;
+import c8y.lx.driver.Driver;
+import c8y.lx.driver.OperationExecutor;
 
+// TODO Convert to use AbstractDevice
 public abstract class AbstractMotionSensor implements Driver {
 
     public enum State {
         MOTION_ENDED,
         MOTION_DETECTED
     }
-
-    private static final Logger log = LoggerFactory.getLogger(AbstractMotionSensor.class);
 
     private static final String TYPE = "Motion";
 
@@ -40,14 +38,7 @@ public abstract class AbstractMotionSensor implements Driver {
     }
 
     @Override
-    public void initialize() throws Exception {
-        log.info("initializing");
-    }
-
-    @Override
     public void initialize(Platform platform) throws Exception {
-        log.info("initializing platform");
-
         this.platform = platform;
 
         eventApi = platform.getEventApi();
@@ -56,8 +47,6 @@ public abstract class AbstractMotionSensor implements Driver {
 
     @Override
     public void discoverChildren(ManagedObjectRepresentation parent) {
-        log.info("creating child");
-
         childDevice = DeviceManager.createChild(
                 id,
                 TYPE,
@@ -72,16 +61,6 @@ public abstract class AbstractMotionSensor implements Driver {
     @Override
     public OperationExecutor[] getSupportedOperations() {
         return new OperationExecutor[0];
-    }
-
-    @Override
-    public void initializeInventory(ManagedObjectRepresentation parent) {
-        log.info("initializing inventory");
-    }
-
-    @Override
-    public void start() {
-        log.info("starting driver");
     }
 
     protected abstract Hardware getHardware();

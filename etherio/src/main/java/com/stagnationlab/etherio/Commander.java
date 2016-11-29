@@ -80,12 +80,20 @@ public class Commander implements MessageTransport.MessageListener {
 
 	@Override
 	public void onSocketMessageReceived(String message) {
-		try {
-			Command responseCommand = Command.parse(message);
+		Command responseCommand;
 
+		try {
+			responseCommand = Command.parse(message);
+		} catch (Exception e) {
+			log.warn("got invalid response '{}' ({})", message, e.getMessage());
+
+			return;
+		}
+
+		try {
 			handleResponse(responseCommand);
 		} catch (Exception e) {
-			log.warn("got invalid response '{}'", message);
+			log.warn("handling command '{}' failed ({})", responseCommand.toString(), e.getMessage());
 		}
 	}
 

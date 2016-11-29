@@ -1,21 +1,19 @@
 package com.stagnationlab.c8y.driver.devices;
 
+import java.math.BigDecimal;
+
+import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
+import com.stagnationlab.c8y.driver.services.DeviceManager;
+
 import c8y.Hardware;
 import c8y.TemperatureMeasurement;
 import c8y.TemperatureSensor;
 import c8y.lx.driver.MeasurementPollingDriver;
-import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
-import com.stagnationlab.c8y.driver.services.DeviceManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.math.BigDecimal;
-
+// TODO Convert to use AbstractDevice
 public abstract class AbstractTemperatureSensor extends MeasurementPollingDriver {
 
-    private static final Logger log = LoggerFactory.getLogger(AbstractTemperatureSensor.class);
-
-    private static final String TYPE = "Temperature";
+    private static final String TYPE = "TemperatureSensor";
 
     private final String id;
 
@@ -26,14 +24,7 @@ public abstract class AbstractTemperatureSensor extends MeasurementPollingDriver
     }
 
     @Override
-    public void initialize() throws Exception {
-        log.info("initializing");
-    }
-
-    @Override
     public void discoverChildren(ManagedObjectRepresentation parent) {
-        log.info("creating child");
-
         ManagedObjectRepresentation childDevice = DeviceManager.createChild(
                 id,
                 TYPE,

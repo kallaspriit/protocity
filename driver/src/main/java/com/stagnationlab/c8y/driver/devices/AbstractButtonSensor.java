@@ -1,24 +1,21 @@
 package com.stagnationlab.c8y.driver.devices;
 
 import com.stagnationlab.c8y.driver.events.ButtonPressedEvent;
+import com.stagnationlab.c8y.driver.events.ButtonReleasedEvent;
 import com.stagnationlab.c8y.driver.fragments.ButtonSensor;
 import com.stagnationlab.c8y.driver.measurements.ButtonStateMeasurement;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class AbstractButtonSensor extends AbstractDevice {
 
-    private static final Logger log = LoggerFactory.getLogger(AbstractButtonSensor.class);
-
     private final ButtonSensor buttonSensor = new ButtonSensor();
 
-    AbstractButtonSensor(String id) {
+    protected AbstractButtonSensor(String id) {
         super(id);
     }
 
     @Override
     protected String getType() {
-        return "Button";
+        return "ButtonSensor";
     }
 
     @Override
@@ -26,12 +23,10 @@ public abstract class AbstractButtonSensor extends AbstractDevice {
         return buttonSensor;
     }
 
-    protected void setButtonPressed(boolean isButtonPressed) {
-        log.info("button {} is now {}", id, isButtonPressed ? "pressed" : "released");
-
+    protected void setIsButtonPressed(boolean isButtonPressed) {
         buttonSensor.setButtonState(isButtonPressed ? ButtonSensor.ButtonState.PRESSED : ButtonSensor.ButtonState.RELEASED);
 
-        reportEvent(new ButtonPressedEvent());
+        reportEvent(isButtonPressed ? new ButtonPressedEvent() : new ButtonReleasedEvent());
         updateState(buttonSensor);
         sendStateMeasurement();
     }

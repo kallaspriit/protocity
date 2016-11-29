@@ -10,8 +10,6 @@ import org.slf4j.LoggerFactory;
 
 public abstract class AbstractRelayActuator extends AbstractDevice {
 
-    private static final Logger log = LoggerFactory.getLogger(AbstractRelayActuator.class);
-
     private final Relay relay = new Relay();
 
     protected AbstractRelayActuator(String id) {
@@ -20,7 +18,7 @@ public abstract class AbstractRelayActuator extends AbstractDevice {
 
     @Override
     protected String getType() {
-        return "Relay";
+        return "RelayActuator";
     }
 
     @Override
@@ -46,16 +44,12 @@ public abstract class AbstractRelayActuator extends AbstractDevice {
                 Relay.RelayState relayState = relay.getRelayState();
 
                 if (cleanup) {
-                    log.info("got relay cleanup operation with state '{}', ignoring it and reporting failed status", relayState);
-
                     operation.setStatus(OperationStatus.FAILED.toString());
 
                     return;
                 }
 
                 boolean shouldRelayBeClosed = relayState == Relay.RelayState.CLOSED;
-
-                log.info("got request: {}", relayState);
 
                 setRelayClosed(shouldRelayBeClosed);
 
@@ -66,8 +60,6 @@ public abstract class AbstractRelayActuator extends AbstractDevice {
 
     @Override
     public void start() {
-        log.info("starting '{}', relay is currently {}", id, relay.getRelayState() == Relay.RelayState.CLOSED ? "closed" : "open");
-
         applyRelayState(relay.getRelayState() == Relay.RelayState.CLOSED);
     }
 
@@ -77,8 +69,6 @@ public abstract class AbstractRelayActuator extends AbstractDevice {
         boolean isRelayCurrentlyOn = relay.getRelayState() == Relay.RelayState.CLOSED;
 
         if (!isForced && isRelayClosed == isRelayCurrentlyOn) {
-            log.info("'{}' is already {}, ignoring request", id, isRelayClosed ? "closed" : "open");
-
             return;
         }
 
@@ -87,8 +77,6 @@ public abstract class AbstractRelayActuator extends AbstractDevice {
         applyRelayState(isRelayClosed);
         updateState(relay);
         sendStateMeasurement();
-
-        log.info("'{}' is now {}", id, isRelayClosed ? "closed" : "open");
     }
 
     private void setRelayClosed(boolean isRelayClosed) {

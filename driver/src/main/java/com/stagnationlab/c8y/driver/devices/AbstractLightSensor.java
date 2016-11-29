@@ -13,7 +13,7 @@ public abstract class AbstractLightSensor extends AbstractDevice {
 
     @Override
     protected String getType() {
-        return "Light";
+        return "LightSensor";
     }
 
     @Override
