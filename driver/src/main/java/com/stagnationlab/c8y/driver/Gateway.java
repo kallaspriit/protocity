@@ -11,6 +11,7 @@ import com.stagnationlab.c8y.driver.platforms.etherio.EtherioAnalogInputSensor;
 import com.stagnationlab.c8y.driver.platforms.etherio.EtherioButtonSensor;
 import com.stagnationlab.c8y.driver.platforms.etherio.EtherioLightSensor;
 import com.stagnationlab.c8y.driver.platforms.etherio.EtherioMonitoringSensor;
+import com.stagnationlab.c8y.driver.platforms.etherio.EtherioMotionSensor;
 import com.stagnationlab.c8y.driver.platforms.etherio.EtherioRelayActuator;
 import com.stagnationlab.c8y.driver.platforms.simulated.SimulatedLightSensor;
 import com.stagnationlab.c8y.driver.platforms.simulated.SimulatedRelayActuator;
@@ -197,6 +198,7 @@ public class Gateway implements Driver, OperationExecutor {
         setupEtherioButtonSensor();
         setupEtherioMonitoringSensor();
         setupEtherioAnalogInputSensor();
+        setupEtherioMotionSensor();
 
         // simulated devices
         // setupSimulatedLightSensor();
@@ -246,6 +248,12 @@ public class Gateway implements Driver, OperationExecutor {
     private void setupEtherioAnalogInputSensor() {
         registerDriver(
                 new EtherioAnalogInputSensor("EtherIO analog input", commander, 6, "%")
+        );
+    }
+
+    private void setupEtherioMotionSensor() {
+        registerDriver(
+                new EtherioMotionSensor("EtherIO motion sensor", commander, 5)
         );
     }
 }

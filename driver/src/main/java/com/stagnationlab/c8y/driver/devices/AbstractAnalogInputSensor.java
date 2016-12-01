@@ -16,7 +16,7 @@ public class AbstractAnalogInputSensor extends AbstractDevice {
 
 	@Override
 	protected String getType() {
-		return "AnalogInputSensor";
+		return analogInputSensor.getClass().getSimpleName();
 	}
 
 	@Override

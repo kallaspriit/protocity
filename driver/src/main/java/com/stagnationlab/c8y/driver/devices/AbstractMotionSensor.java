@@ -1,107 +1,40 @@
 package com.stagnationlab.c8y.driver.devices;
 
-import java.util.Date;
-
-import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
-import com.cumulocity.rest.representation.measurement.MeasurementRepresentation;
-import com.cumulocity.sdk.client.Platform;
-import com.cumulocity.sdk.client.event.EventApi;
-import com.cumulocity.sdk.client.measurement.MeasurementApi;
 import com.stagnationlab.c8y.driver.events.MotionDetectedEvent;
 import com.stagnationlab.c8y.driver.events.MotionEndedEvent;
+import com.stagnationlab.c8y.driver.fragments.MotionSensor;
 import com.stagnationlab.c8y.driver.measurements.MotionStateMeasurement;
-import com.stagnationlab.c8y.driver.services.DeviceManager;
 
-import c8y.Hardware;
-import c8y.MotionSensor;
-import c8y.lx.driver.Driver;
-import c8y.lx.driver.OperationExecutor;
+public abstract class AbstractMotionSensor extends AbstractDevice {
 
-public abstract class AbstractMotionSensor implements Driver {
-
-    public enum State {
-        MOTION_ENDED,
-        MOTION_DETECTED
-    }
-
-    private static final String TYPE = "Motion";
-
-    private Platform platform;
-    private EventApi eventApi;
-    private MeasurementApi measurementApi;
-    private ManagedObjectRepresentation childDevice;
-    private final String id;
+	private final MotionSensor motionSensor = new MotionSensor();
 
     protected AbstractMotionSensor(String id) {
-        this.id = id;
+	    super(id);
     }
 
-    @Override
-    public void initialize(Platform platform) throws Exception {
-        this.platform = platform;
+	@Override
+	protected String getType() {
+		return motionSensor.getClass().getSimpleName();
+	}
 
-        eventApi = platform.getEventApi();
-        measurementApi = platform.getMeasurementApi();
+	protected void setIsMotionDetected(boolean isMotionDetected) {
+    	motionSensor.setMotionState(isMotionDetected ? MotionSensor.MotionState.MOTION_DETECTED : MotionSensor.MotionState.MOTION_NOT_DETECTED);
+
+        reportEvent(isMotionDetected ? new MotionDetectedEvent() : new MotionEndedEvent());
+        updateState(motionSensor);
+        sendMeasurement();
     }
 
-    @Override
-    public void discoverChildren(ManagedObjectRepresentation parent) {
-        childDevice = DeviceManager.createChild(
-                id,
-                TYPE,
-                platform,
-                parent,
-                getHardware(),
-                getSupportedOperations(),
-                new MotionSensor()
-        );
-    }
+	private void sendMeasurement() {
+		MotionStateMeasurement measurement = new MotionStateMeasurement();
 
-    @Override
-    public OperationExecutor[] getSupportedOperations() {
-        return new OperationExecutor[0];
-    }
+		// send inverse measurement first to get a square graph
+		measurement.setState(motionSensor.getMotionState() == MotionSensor.MotionState.MOTION_DETECTED ? MotionSensor.MotionState.MOTION_NOT_DETECTED : MotionSensor.MotionState.MOTION_DETECTED);
+		reportMeasurement(measurement);
 
-    protected abstract Hardware getHardware();
-
-    protected void triggerMotionDetected() {
-        MotionDetectedEvent event = new MotionDetectedEvent();
-        event.setSource(childDevice);
-
-        eventApi.create(event);
-
-        sendMotionMeasurement(true);
-    }
-
-    protected void triggerMotionEnded() {
-        MotionEndedEvent event = new MotionEndedEvent();
-        event.setSource(childDevice);
-
-        eventApi.create(event);
-
-        sendMotionMeasurement(false);
-    }
-
-    private void sendMotionMeasurement(boolean isMotionDetected) {
-        MeasurementRepresentation measurementRepresentation = new MeasurementRepresentation();
-
-        measurementRepresentation.setSource(childDevice);
-        measurementRepresentation.setType("c8y");
-
-        // send inverse measurement first to get a square graph
-        MotionStateMeasurement measurement = new MotionStateMeasurement();
-        measurement.setState(isMotionDetected ? State.MOTION_ENDED : State.MOTION_DETECTED);
-        measurementRepresentation.set(measurement);
-        measurementRepresentation.setTime(new Date());
-
-        measurementApi.create(measurementRepresentation);
-
-        // send the current state
-        measurement = new MotionStateMeasurement();
-        measurement.setState(isMotionDetected ? State.MOTION_DETECTED : State.MOTION_ENDED);
-        measurementRepresentation.set(measurement);
-        measurementRepresentation.setTime(new Date());
-
-        measurementApi.create(measurementRepresentation);
-    }
+		// send current state
+		measurement.setState(motionSensor.getMotionState());
+		reportMeasurement(measurement);
+	}
 }

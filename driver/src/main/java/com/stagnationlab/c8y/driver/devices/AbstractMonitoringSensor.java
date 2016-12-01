@@ -13,7 +13,7 @@ public abstract class AbstractMonitoringSensor extends AbstractDevice {
 
 	@Override
 	protected String getType() {
-		return "MonitoringSensor";
+		return monitoringSensor.getClass().getSimpleName();
 	}
 
 	@Override

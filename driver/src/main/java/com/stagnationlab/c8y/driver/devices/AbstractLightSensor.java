@@ -7,18 +7,20 @@ import java.math.BigDecimal;
 
 public abstract class AbstractLightSensor extends AbstractDevice {
 
+    private final LightSensor lightSensor = new LightSensor();
+
     protected AbstractLightSensor(String id) {
         super(id);
     }
 
     @Override
     protected String getType() {
-        return "LightSensor";
+        return lightSensor.getClass().getSimpleName();
     }
 
     @Override
     protected Object getSensorFragment() {
-        return new LightSensor();
+        return lightSensor;
     }
 
     protected void reportIlluminance(float illuminance) {

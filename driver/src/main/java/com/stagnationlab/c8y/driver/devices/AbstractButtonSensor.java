@@ -15,7 +15,7 @@ public abstract class AbstractButtonSensor extends AbstractDevice {
 
     @Override
     protected String getType() {
-        return "ButtonSensor";
+        return buttonSensor.getClass().getSimpleName();
     }
 
     @Override

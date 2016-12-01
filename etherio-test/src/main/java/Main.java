@@ -12,6 +12,7 @@ public class Main {
     private PortController analogOutPort;
     private PortController analogInPort;
     private PortController interruptPort;
+    private PortController motionPort;
 
     public static void main(String[] args) throws Exception {
         (new Main()).run();
@@ -124,6 +125,22 @@ public class Main {
                 System.out.printf("# port %d digital value became low%n", id);
             }
         });
+    }
+
+    private void testMotion() throws Exception {
+        motionPort = new PortController(5, commander);
+
+        motionPort.setPortMode(PortController.PortMode.INTERRUPT, new PortController.PortEventListener() {
+
+            @Override
+            public void onPortDigitalValueChange(int id, PortController.DigitalValue digitalValue) {
+                System.out.printf("# motion port %d digital value changed to %s%n", id, digitalValue);
+
+                digitalOutPort.setDigitalValue(digitalValue);
+            }
+        });
+
+        motionPort.setPullMode(PortController.PullMode.UP);
     }
 
     private static String askFor(String question, String defaultValue, BufferedReader consoleIn) throws IOException {

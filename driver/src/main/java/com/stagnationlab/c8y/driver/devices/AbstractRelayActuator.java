@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 public abstract class AbstractRelayActuator extends AbstractDevice {
 
+    // TODO Make our own fragment?
     private final Relay relay = new Relay();
 
     protected AbstractRelayActuator(String id) {
@@ -18,7 +19,7 @@ public abstract class AbstractRelayActuator extends AbstractDevice {
 
     @Override
     protected String getType() {
-        return "RelayActuator";
+        return relay.getClass().getSimpleName();
     }
 
     @Override
