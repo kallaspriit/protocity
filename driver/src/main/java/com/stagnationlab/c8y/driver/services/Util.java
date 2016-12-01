@@ -1,6 +1,12 @@
 package com.stagnationlab.c8y.driver.services;
 
+import java.math.BigDecimal;
+
 import org.svenson.JSON;
+
+import com.cumulocity.model.measurement.MeasurementValue;
+import com.cumulocity.model.measurement.StateType;
+import com.cumulocity.model.measurement.ValueType;
 
 public class Util {
 
@@ -15,5 +21,16 @@ public class Util {
     public static String stringify(Object obj) {
         return JSON.defaultJSON().forValue(obj);
     }
+
+	@SuppressWarnings("SameParameterValue")
+	public static MeasurementValue buildMeasurementValue(float value, String unit) {
+		return new MeasurementValue(
+				new BigDecimal(value),
+				unit,
+				ValueType.GAUGE,
+				"",
+				StateType.ORIGINAL
+		);
+	}
 
 }

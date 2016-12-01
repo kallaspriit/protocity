@@ -28,10 +28,10 @@ public abstract class AbstractButtonSensor extends AbstractDevice {
 
         reportEvent(isButtonPressed ? new ButtonPressedEvent() : new ButtonReleasedEvent());
         updateState(buttonSensor);
-        sendStateMeasurement();
+        sendMeasurement();
     }
 
-    private void sendStateMeasurement() {
+    private void sendMeasurement() {
         ButtonStateMeasurement measurement = new ButtonStateMeasurement();
 
         // send inverse measurement first to get a square graph

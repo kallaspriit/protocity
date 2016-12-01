@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import com.cumulocity.model.measurement.MeasurementValue;
 import com.cumulocity.model.measurement.StateType;
 import com.cumulocity.model.measurement.ValueType;
+import com.stagnationlab.c8y.driver.services.Util;
 
 @SuppressWarnings({ "WeakerAccess", "unused" })
 public class MonitoringMeasurement {
@@ -49,7 +50,7 @@ public class MonitoringMeasurement {
 	}
 
 	public MeasurementValue getTotalMemory() {
-		return buildMeasurementValue(totalMemory, UNIT);
+		return Util.buildMeasurementValue(totalMemory, UNIT);
 	}
 
 	public void setTotalMemory(MeasurementValue measurementValue) {
@@ -57,7 +58,7 @@ public class MonitoringMeasurement {
 	}
 
 	public MeasurementValue getUsedMemory() {
-		return buildMeasurementValue(usedMemory, UNIT);
+		return Util.buildMeasurementValue(usedMemory, UNIT);
 	}
 
 	public void setUsedMemory(MeasurementValue measurementValue) {
@@ -65,7 +66,7 @@ public class MonitoringMeasurement {
 	}
 
 	public MeasurementValue getFreeMemory() {
-		return buildMeasurementValue(freeMemory, UNIT);
+		return Util.buildMeasurementValue(freeMemory, UNIT);
 	}
 
 	public void setFreeMemory(MeasurementValue measurementValue) {
@@ -73,7 +74,7 @@ public class MonitoringMeasurement {
 	}
 
 	public MeasurementValue getSharedMemory() {
-		return buildMeasurementValue(sharedMemory, UNIT);
+		return Util.buildMeasurementValue(sharedMemory, UNIT);
 	}
 
 	public void setSharedMemory(MeasurementValue measurementValue) {
@@ -81,7 +82,7 @@ public class MonitoringMeasurement {
 	}
 
 	public MeasurementValue getBufferedMemory() {
-		return buildMeasurementValue(bufferedMemory, UNIT);
+		return Util.buildMeasurementValue(bufferedMemory, UNIT);
 	}
 
 	public void setBufferedMemory(MeasurementValue measurementValue) {
@@ -89,22 +90,11 @@ public class MonitoringMeasurement {
 	}
 
 	public MeasurementValue getCachedMemory() {
-		return buildMeasurementValue(cachedMemory, UNIT);
+		return Util.buildMeasurementValue(cachedMemory, UNIT);
 	}
 
 	public void setCachedMemory(MeasurementValue measurementValue) {
 		cachedMemory = measurementValue.getValue().floatValue();
-	}
-
-	@SuppressWarnings("SameParameterValue")
-	private MeasurementValue buildMeasurementValue(float value, String unit) {
-		return new MeasurementValue(
-				new BigDecimal(value),
-				unit,
-				ValueType.GAUGE,
-				"",
-				StateType.ORIGINAL
-		);
 	}
 
 }

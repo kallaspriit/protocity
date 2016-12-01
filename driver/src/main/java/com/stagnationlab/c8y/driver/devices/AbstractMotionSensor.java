@@ -17,7 +17,6 @@ import c8y.MotionSensor;
 import c8y.lx.driver.Driver;
 import c8y.lx.driver.OperationExecutor;
 
-// TODO Convert to use AbstractDevice
 public abstract class AbstractMotionSensor implements Driver {
 
     public enum State {

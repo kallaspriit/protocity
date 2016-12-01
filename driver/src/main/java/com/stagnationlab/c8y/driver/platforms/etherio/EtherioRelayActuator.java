@@ -8,8 +8,6 @@ import org.slf4j.LoggerFactory;
 
 public class EtherioRelayActuator extends AbstractRelayActuator {
 
-    private static final Logger log = LoggerFactory.getLogger(EtherioRelayActuator.class);
-
     private final Commander commander;
     private final int portNumber;
     private PortController portController;
@@ -25,16 +23,12 @@ public class EtherioRelayActuator extends AbstractRelayActuator {
     public void initialize() throws Exception {
         super.initialize();
 
-        log.info("initializing");
-
         portController = new PortController(portNumber, commander);
         portController.setPortMode(PortController.PortMode.DIGITAL_OUT);
     }
 
     @Override
     protected void applyRelayState(boolean isRelayClosed) {
-        log.info("turning relay '{}' {} on port {}", id, isRelayClosed ? "on" : "off", portNumber);
-
         PortController.DigitalValue digitalValue = isRelayClosed ? PortController.DigitalValue.HIGH : PortController.DigitalValue.LOW;
 
         portController.setDigitalValue(digitalValue);

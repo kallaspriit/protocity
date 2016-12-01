@@ -1,15 +1,10 @@
 package com.stagnationlab.c8y.driver.platforms.etherio;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.stagnationlab.c8y.driver.devices.AbstractButtonSensor;
 import com.stagnationlab.etherio.Commander;
 import com.stagnationlab.etherio.PortController;
 
 public class EtherioButtonSensor extends AbstractButtonSensor {
-
-	private static final Logger log = LoggerFactory.getLogger(EtherioButtonSensor.class);
 
 	private final Commander commander;
 	private final int portNumber;
@@ -25,8 +20,6 @@ public class EtherioButtonSensor extends AbstractButtonSensor {
 	@Override
 	public void initialize() throws Exception {
 		super.initialize();
-
-		log.info("initializing");
 
 		portController = new PortController(portNumber, commander);
 	}

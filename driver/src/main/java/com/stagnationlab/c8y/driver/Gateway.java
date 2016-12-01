@@ -7,6 +7,7 @@ import com.cumulocity.model.operation.OperationStatus;
 import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
 import com.cumulocity.rest.representation.operation.OperationRepresentation;
 import com.cumulocity.sdk.client.Platform;
+import com.stagnationlab.c8y.driver.platforms.etherio.EtherioAnalogInputSensor;
 import com.stagnationlab.c8y.driver.platforms.etherio.EtherioButtonSensor;
 import com.stagnationlab.c8y.driver.platforms.etherio.EtherioLightSensor;
 import com.stagnationlab.c8y.driver.platforms.etherio.EtherioMonitoringSensor;
@@ -133,6 +134,8 @@ public class Gateway implements Driver, OperationExecutor {
     }
 
     private void registerDriver(Driver driver) {
+        log.info("registering driver '{}'", driver.getClass().getSimpleName());
+
         drivers.add(driver);
     }
 
@@ -193,6 +196,7 @@ public class Gateway implements Driver, OperationExecutor {
         setupEtherioRelayActuator();
         setupEtherioButtonSensor();
         setupEtherioMonitoringSensor();
+        setupEtherioAnalogInputSensor();
 
         // simulated devices
         // setupSimulatedLightSensor();
@@ -201,24 +205,18 @@ public class Gateway implements Driver, OperationExecutor {
     }
 
     private void setupSimulatedLightSensor() {
-        log.info("setting up simulated light sensor");
-
         registerDriver(
                 new SimulatedLightSensor("Simulated light sensor")
         );
     }
 
     private void setupSimulatedRelayActuator() {
-        log.info("setting up simulated relay actuator");
-
         registerDriver(
                 new SimulatedRelayActuator("Simulated relay")
         );
     }
 
     private void setupEtherioLightSensor() {
-        log.info("setting up EtherIO light sensor");
-
         // TODO make port configurable
         registerDriver(
                 new EtherioLightSensor("EtherIO light sensor", commander, 6)
@@ -226,8 +224,6 @@ public class Gateway implements Driver, OperationExecutor {
     }
 
     private void setupEtherioRelayActuator() {
-        log.info("setting up EtherIO relay actuator");
-
         // TODO make port configurable
         registerDriver(
                 new EtherioRelayActuator("EtherIO relay", commander, 1)
@@ -235,8 +231,6 @@ public class Gateway implements Driver, OperationExecutor {
     }
 
     private void setupEtherioButtonSensor() {
-        log.info("setting up EtherIO button sensor");
-
         // TODO make port configurable
         registerDriver(
                 new EtherioButtonSensor("EtherIO button", commander, 4)
@@ -244,10 +238,14 @@ public class Gateway implements Driver, OperationExecutor {
     }
 
     private void setupEtherioMonitoringSensor() {
-        log.info("setting up EtherIO monitoring sensor");
-
         registerDriver(
                 new EtherioMonitoringSensor("EtherIO monitor", commander)
+        );
+    }
+
+    private void setupEtherioAnalogInputSensor() {
+        registerDriver(
+                new EtherioAnalogInputSensor("EtherIO analog input", commander, 6, "%")
         );
     }
 }
