@@ -86,6 +86,10 @@ The following commands are supported (using "1" as example request id)
   - responds with ERROR if invalid port is requested
 
 ## Changelog
+**05.12.2016**
+- Implemented port controller capabilities support.
+- Implemented TSL2561 capability.
+
 **28.11.2016**
 - Improved socket server disconnect handling.
 - Implemented heartbeat and closing socket connection if sending a message fails.

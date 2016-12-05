@@ -10,7 +10,7 @@
 #include "EthernetManager.hpp"
 #include "SocketServer.hpp"
 #include "AbstractController.hpp"
-#include "controllers/PortController.hpp"
+#include "PortController.hpp"
 
 #include <map>
 #include <queue>
@@ -69,16 +69,17 @@ private:
 	CommandManager::Command::Response handleMemoryCommand(CommandManager::Command *command);
 	CommandManager::Command::Response handleSumCommand(CommandManager::Command *command);
 	CommandManager::Command::Response handleLedCommand(CommandManager::Command *command);
+	CommandManager::Command::Response handlePortCommand(CommandManager::Command *command);
 
 	// digital port command handlers
-	CommandManager::Command::Response handlePortCommand(CommandManager::Command *command);
-	CommandManager::Command::Response handlePortModeCommand(CommandManager::Command *command);
-	CommandManager::Command::Response handlePortPullCommand(CommandManager::Command *command);
-	CommandManager::Command::Response handlePortValueCommand(CommandManager::Command *command);
-	CommandManager::Command::Response handlePortReadCommand(CommandManager::Command *command);
-	CommandManager::Command::Response handlePortListenCommand(CommandManager::Command *command);
+	CommandManager::Command::Response handlePortModeCommand(PortController *portController, CommandManager::Command *command);
+	CommandManager::Command::Response handlePortPullCommand(PortController *portController, CommandManager::Command *command);
+	CommandManager::Command::Response handlePortValueCommand(PortController *portController, CommandManager::Command *command);
+	CommandManager::Command::Response handlePortReadCommand(PortController *portController, CommandManager::Command *command);
+	CommandManager::Command::Response handlePortListenCommand(PortController *portController, CommandManager::Command *command);
 
 	// port helpers
+	void setupPort(PortController *portController);
 	PortController *getPortControllerByPortNumber(int portNumber);
 
 	// socket server listeners
@@ -91,6 +92,7 @@ private:
 	void onPortAnalogValueChange(int id, float value);
 	void onPortValueRise(int id);
 	void onPortValueFall(int id);
+	void onPortCapabilityUpdate(int id, std::string capabilityName, std::string message);
 
 	// custom type definitions
 	typedef std::map<std::string, Callback<CommandManager::Command::Response(CommandManager::Command*)>> CommandHandlerMap;

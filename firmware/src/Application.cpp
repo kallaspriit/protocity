@@ -1,5 +1,6 @@
 #include "Application.hpp"
 #include "Config.hpp"
+#include "capabilities/TSL2561/TSL2561Capability.hpp"
 
 Application::Application(Config *config) :
 	config(config),
@@ -72,8 +73,14 @@ void Application::setupPorts() {
 
 	// register port event listeners
 	for (DigitalPortNumberToControllerMap::iterator it = portNumberToControllerMap.begin(); it != portNumberToControllerMap.end(); it++) {
-		it->second->addEventListener(this);
+		setupPort(it->second);
 	}
+}
+
+void Application::setupPort(PortController *portController) {
+	portController->addEventListener(this);
+
+	portController->addCapability(new TSL2561Capability(portController));
 }
 
 void Application::setupDebug() {
@@ -256,6 +263,12 @@ void Application::onPortValueFall(int id) {
 	enqueueMessage(std::string(sendBuffer));
 }
 
+void Application::onPortCapabilityUpdate(int id, std::string capabilityName, std::string message) {
+	snprintf(sendBuffer, SEND_BUFFER_SIZE, "0:CAPABILITY:%d:%s:%s\n", id, capabilityName.c_str(), message.c_str());
+
+	enqueueMessage(std::string(sendBuffer));
+}
+
 void Application::handleSerialRx() {
 	char receivedChar = serial.getc();
 
@@ -344,30 +357,6 @@ CommandManager::Command::Response Application::handlePortCommand(CommandManager:
 		return command->createFailureResponse("expected at least two parameters");
 	}
 
-	std::string action = command->getString(1);
-
-	if (action == "mode") {
-		return handlePortModeCommand(command);
-	} else if (action == "pull") {
-		return handlePortPullCommand(command);
-	} else if (action == "value") {
-		return handlePortValueCommand(command);
-	} else if (action == "read") {
-		return handlePortReadCommand(command);
-	} else if (action == "listen") {
-		return handlePortListenCommand(command);
-	} else {
-		return command->createFailureResponse("invalid action requested");
-	}
-
-	return command->createSuccessResponse();
-}
-
-CommandManager::Command::Response Application::handlePortModeCommand(CommandManager::Command *command) {
-	if (!validateCommandArgumentCount(command, 3)) {
-		return command->createFailureResponse("expected three parameters");
-	}
-
 	int portNumber = command->getInt(0);
 
 	PortController *portController = getPortControllerByPortNumber(portNumber);
@@ -376,6 +365,37 @@ CommandManager::Command::Response Application::handlePortModeCommand(CommandMana
 		return command->createFailureResponse("invalid port number requested");
 	}
 
+	std::string action = command->getString(1);
+
+	if (action == "mode") {
+		return handlePortModeCommand(portController, command);
+	} else if (action == "pull") {
+		return handlePortPullCommand(portController, command);
+	} else if (action == "value") {
+		return handlePortValueCommand(portController, command);
+	} else if (action == "read") {
+		return handlePortReadCommand(portController, command);
+	} else if (action == "listen") {
+		return handlePortListenCommand(portController, command);
+	} else {
+		AbstractCapability *capability = portController->getCapabilityByName(action);
+
+		if (capability == NULL) {
+			return command->createFailureResponse("invalid action requested");
+		}
+
+		return capability->execute(command);
+	}
+
+	return command->createSuccessResponse();
+}
+
+CommandManager::Command::Response Application::handlePortModeCommand(PortController *portController, CommandManager::Command *command) {
+	if (!validateCommandArgumentCount(command, 3)) {
+		return command->createFailureResponse("expected three parameters");
+	}
+
+	int portNumber = command->getInt(0);
 	std::string modeName = command->getString(2);
 	PortController::PortMode portMode = PortController::getPortModeByName(modeName);
 
@@ -390,16 +410,9 @@ CommandManager::Command::Response Application::handlePortModeCommand(CommandMana
 	return command->createSuccessResponse();
 }
 
-CommandManager::Command::Response Application::handlePortPullCommand(CommandManager::Command *command) {
+CommandManager::Command::Response Application::handlePortPullCommand(PortController *portController, CommandManager::Command *command) {
 	if (!validateCommandArgumentCount(command, 3)) {
 		return command->createFailureResponse("expected three parameters");
-	}
-
-	int portNumber = command->getInt(0);
-	PortController *portController = getPortControllerByPortNumber(portNumber);
-
-	if (portController == NULL) {
-		return command->createFailureResponse("invalid port number requested");
 	}
 
 	PortController::PortMode portMode = portController->getPortMode();
@@ -408,6 +421,7 @@ CommandManager::Command::Response Application::handlePortPullCommand(CommandMana
 		return command->createFailureResponse("setting pull mode is only applicable for DIGITAL_IN and INTERRUPT ports");
 	}
 
+	int portNumber = command->getInt(0);
 	std::string modeName = command->getString(2);
 	PinMode pinMode = PinMode::PullNone;
 
@@ -428,19 +442,13 @@ CommandManager::Command::Response Application::handlePortPullCommand(CommandMana
 	return command->createSuccessResponse();
 }
 
-CommandManager::Command::Response Application::handlePortValueCommand(CommandManager::Command *command) {
+CommandManager::Command::Response Application::handlePortValueCommand(PortController *portController, CommandManager::Command *command) {
 	if (!validateCommandArgumentCount(command, 3)) {
 		return command->createFailureResponse("expected three parameters");
 	}
 
 	int portNumber = command->getInt(0);
 	float value = command->getFloat(2);
-
-	PortController *portController = getPortControllerByPortNumber(portNumber);
-
-	if (portController == NULL) {
-		return command->createFailureResponse("invalid port number requested");
-	}
 
 	PortController::PortMode portMode = portController->getPortMode();
 
@@ -490,17 +498,9 @@ CommandManager::Command::Response Application::handlePortValueCommand(CommandMan
 	return command->createSuccessResponse();
 }
 
-CommandManager::Command::Response Application::handlePortReadCommand(CommandManager::Command *command) {
+CommandManager::Command::Response Application::handlePortReadCommand(PortController *portController, CommandManager::Command *command) {
 	if (!validateCommandArgumentCount(command, 2)) {
 		return command->createFailureResponse("expected two parameters");
-	}
-
-	int portNumber = command->getInt(0);
-
-	PortController *portController = getPortControllerByPortNumber(portNumber);
-
-	if (portController == NULL) {
-		return command->createFailureResponse("invalid port number requested");
 	}
 
 	PortController::PortMode portMode = portController->getPortMode();
@@ -518,17 +518,9 @@ CommandManager::Command::Response Application::handlePortReadCommand(CommandMana
 	}
 }
 
-CommandManager::Command::Response Application::handlePortListenCommand(CommandManager::Command *command) {
+CommandManager::Command::Response Application::handlePortListenCommand(PortController *portController, CommandManager::Command *command) {
 	if (command->argumentCount < 2 || command->argumentCount > 4) {
 		return command->createFailureResponse("expected at least two and no more than four parameters");
-	}
-
-	int portNumber = command->getInt(0);
-
-	PortController *portController = getPortControllerByPortNumber(portNumber);
-
-	if (portController == NULL) {
-		return command->createFailureResponse("invalid port number requested");
 	}
 
 	PortController::PortMode portMode = portController->getPortMode();
@@ -537,6 +529,7 @@ CommandManager::Command::Response Application::handlePortListenCommand(CommandMa
 		return command->createFailureResponse("listening for port events is only valid for analog inputs");
 	}
 
+	int portNumber = command->getInt(0);
 	float changeThreshold = 0.01f;
 	int intervalMs = 0;
 
@@ -580,14 +573,32 @@ void Application::testSetup() {
 }
 
 void Application::testLoop() {
-	while (true) {
-		// printf("# test loop %d!\n", testFlipFlop);
+	/*
+	TSL2561 lum(p9, p10, TSL2561_ADDR_FLOAT);
 
-		// test digital port
-		// port1.setDigitalValuetestFlipFlop == 1 ? PortController::DigitalValue::HIGH : PortController::DigitalValue::LOW);
+	if (lum.begin()) {
+        printf("# TSL2561 Sensor Found\n");
+    } else {
+        printf("# TSL2561 Sensor not Found\n");
+    }
+
+	lum.setGain(TSL2561_GAIN_0X);
+	lum.setTiming(TSL2561_INTEGRATIONTIME_402MS);
+
+	while (true) {
+		// test TSL2561
+		// printf("# illuminance: %f lux\n", lum.lux());
+
+		uint16_t x,y,z;
+		x = lum.getLuminosity(TSL2561_VISIBLE);
+        y = lum.getLuminosity(TSL2561_FULLSPECTRUM);
+        z = lum.getLuminosity(TSL2561_INFRARED);
+
+		printf("# illuminance: %d, %d, %d lux\n", x, y, z);
 
 		// update loop
 		testFlipFlop = testFlipFlop == 1 ? 0 : 1;
 		Thread::wait(1000);
 	}
+	*/
 }

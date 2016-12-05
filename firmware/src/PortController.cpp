@@ -200,6 +200,12 @@ void PortController::addEventListener(PortController::PortEventListener *listene
 	listeners.push_back(listener);
 }
 
+void PortController::emitCapabilityUpdate(std::string capabilityName, std::string message) {
+	for (ListenerList::iterator it = listeners.begin(); it != listeners.end(); ++it) {
+		(*it)->onPortCapabilityUpdate(id, capabilityName, message);
+	}
+}
+
 void PortController::listenAnalogValueChange(float changeThreshold, int intervalMs) {
 	analogChangeEventThreshold = changeThreshold;
 	analogChangeEventIntervalUs = intervalMs * 1000;
@@ -208,6 +214,24 @@ void PortController::listenAnalogValueChange(float changeThreshold, int interval
 
 void PortController::stopAnalogValueListener() {
 	isAnalogChangeEventEnabled = false;
+}
+
+void PortController::addCapability(AbstractCapability *capability) {
+	printf("# registering capability %s for port %d\n", capability->getName().c_str(), id);
+
+	capabilities.push_back(capability);
+}
+
+AbstractCapability *PortController::getCapabilityByName(std::string name) {
+	for (CapabilityList::iterator it = capabilities.begin(); it != capabilities.end(); ++it) {
+		AbstractCapability *capability = *it;
+
+		if (capability->getName() == name) {
+			return capability;
+		}
+	}
+
+	return NULL;
 }
 
 void PortController::handleInterruptRise() {
@@ -229,24 +253,27 @@ void PortController::handleInterruptFall() {
 }
 
 void PortController::update(int deltaUs) {
+	// update capabilities
+	for (CapabilityList::iterator it = capabilities.begin(); it != capabilities.end(); ++it) {
+		(*it)->update(deltaUs);
+	}
+
 	// the value change events is valid only for analog ports
-	if (portMode != PortMode::ANALOG_IN) {
-		return;
-	}
+	if (portMode == PortMode::ANALOG_IN) {
+		int listenerCount = listeners.size();
 
-	int listenerCount = listeners.size();
+		// quit early if there are no listeners registered
+		if (listenerCount == 0) {
+			return;
+		}
 
-	// quit early if there are no listeners registered
-	if (listenerCount == 0) {
-		return;
-	}
+		if (isAnalogChangeEventEnabled) {
+			analogChangeEventUsSinceLastUpdate += deltaUs;
+		}
 
-	if (isAnalogChangeEventEnabled) {
-		analogChangeEventUsSinceLastUpdate += deltaUs;
-	}
-
-	for (ListenerList::iterator it = listeners.begin(); it != listeners.end(); ++it) {
-		updateValueChange(*it);
+		for (ListenerList::iterator it = listeners.begin(); it != listeners.end(); ++it) {
+			updateValueChange(*it);
+		}
 	}
 }
 

@@ -3,7 +3,8 @@
 
 #include "mbed.h"
 
-#include "../AbstractController.hpp"
+#include "AbstractController.hpp"
+#include "AbstractCapability.hpp"
 
 #include <string>
 #include <vector>
@@ -33,6 +34,7 @@ public:
 		virtual void onPortAnalogValueChange(int id, float value) {};
 		virtual void onPortValueRise(int id) {};
 		virtual void onPortValueFall(int id) {};
+		virtual void onPortCapabilityUpdate(int id, std::string capabilityName, std::string message) {};
 	};
 
 	PortController(int id, PinName pinName);
@@ -53,8 +55,13 @@ public:
 
 	void addEventListener(PortEventListener *listener);
 	void addEventListener(PortEventListener *listener, float changeThreshold, int intervalMs);
+	void emitCapabilityUpdate(std::string capabilityName, std::string message);
+
 	void listenAnalogValueChange(float changeThreshold, int intervalMs);
 	void stopAnalogValueListener();
+
+	void addCapability(AbstractCapability *capability);
+	AbstractCapability *getCapabilityByName(std::string name);
 
 	void update(int deltaUs);
 
@@ -73,6 +80,10 @@ private:
 	// listeners
 	typedef std::vector<PortEventListener*> ListenerList;
 	ListenerList listeners;
+
+	// capabilities
+	typedef std::vector<AbstractCapability*> CapabilityList;
+	CapabilityList capabilities;
 
 	// pin modes
 	DigitalOut *digitalOut = NULL;
