@@ -62,7 +62,7 @@ public:
 	CommandManager::Command *getNextCommand();
 
 private:
-	static const int COMMAND_QUEUE_SIZE = 8;
+	static const int COMMAND_QUEUE_SIZE = 16;
 
 	Command commandQueue[COMMAND_QUEUE_SIZE];
 	int commandQueueTail = 0;

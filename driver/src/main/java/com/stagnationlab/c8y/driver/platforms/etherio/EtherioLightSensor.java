@@ -1,5 +1,7 @@
 package com.stagnationlab.c8y.driver.platforms.etherio;
 
+import java.util.List;
+
 import com.stagnationlab.c8y.driver.devices.AbstractLightSensor;
 import com.stagnationlab.etherio.Commander;
 import com.stagnationlab.etherio.PortController;
@@ -22,12 +24,22 @@ public class EtherioLightSensor extends AbstractLightSensor {
         super.initialize();
 
         portController = new PortController(portNumber, commander);
-        portController.setPortMode(PortController.PortMode.ANALOG_IN);
     }
 
     @Override
     public void start() {
         super.start();
+
+        portController.sendPortCommand("TSL2561", "enable", 5000);
+
+        portController.addEventListener(new PortController.PortEventListener() {
+            @Override
+            public void onPortCapabilityUpdate(int id, String capabilityName, List<String> arguments) {
+                int illuminanceLux = Integer.valueOf(arguments.get(0));
+
+                reportIlluminance(illuminanceLux);
+            }
+        });
 
         portController.listenAnalogValueChange(0.01f, 5000, new PortController.PortEventListener() {
 

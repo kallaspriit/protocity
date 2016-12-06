@@ -3,6 +3,7 @@ import com.stagnationlab.etherio.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.List;
 
 public class Main {
 
@@ -13,6 +14,7 @@ public class Main {
     private PortController analogInPort;
     private PortController interruptPort;
     private PortController motionPort;
+    private PortController luminosityPort;
 
     public static void main(String[] args) throws Exception {
         (new Main()).run();
@@ -38,11 +40,13 @@ public class Main {
 
         // run various tests
         testCustomCommand();
-        testDigitalOut();
+        /*testDigitalOut();
         testDigitalIn();
         testAnalogOut();
         testAnalogIn();
         testInterrupt();
+        testMotion();*/
+	    testLuminosity();
 
         // give some time to respond
         Thread.sleep(10000);
@@ -142,6 +146,18 @@ public class Main {
 
         motionPort.setPullMode(PortController.PullMode.UP);
     }
+
+	private void testLuminosity() throws Exception {
+		luminosityPort = new PortController(1, commander);
+
+		luminosityPort.sendPortCommand("TSL2561", "enable", 1000);
+		luminosityPort.addEventListener(new PortController.PortEventListener() {
+			@Override
+			public void onPortCapabilityUpdate(int id, String capabilityName, List<String> arguments) {
+				System.out.printf("# port %d capability '%s' measurement: %s %s%n", id, capabilityName, arguments.get(0), arguments.get(1));
+			}
+		});
+	}
 
     private static String askFor(String question, String defaultValue, BufferedReader consoleIn) throws IOException {
         System.out.printf("@ %s (%s): ", question, defaultValue);

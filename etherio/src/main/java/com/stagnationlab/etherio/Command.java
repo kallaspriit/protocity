@@ -42,6 +42,14 @@ public class Command {
         return Double.parseDouble(getString(argumentIndex));
     }
 
+    public List<String> getArguments(int startIndex) {
+        return arguments.subList(startIndex, arguments.size());
+    }
+
+    public List<String> getArguments() {
+        return arguments;
+    }
+
     @Override
     public String toString() {
         String command = Integer.toString(id) + ":" + name;

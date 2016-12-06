@@ -193,12 +193,12 @@ public class Gateway implements Driver, OperationExecutor {
         log.info("setting up sensors");
 
         // EtherIO devices
-        // setupEtherioLightSensor();
         setupEtherioRelayActuator();
         setupEtherioButtonSensor();
         setupEtherioMonitoringSensor();
         setupEtherioAnalogInputSensor();
         setupEtherioMotionSensor();
+        setupEtherioLightSensor();
 
         // simulated devices
         // setupSimulatedLightSensor();

@@ -14,12 +14,13 @@ CommandManager::Command::Response TSL2561Capability::execute(CommandManager::Com
 	std::string action = command->getString(2);
 
 	if (action == "enable") {
-		if (isEnabled) {
-			return command->createFailureResponse("sensor is already enabled");
-		}
-
+		// one can update the interval even if alrady enabled
 		if (command->argumentCount == 4) {
 			measurementIntervalMs = command->getInt(3);
+		}
+
+		if (isEnabled) {
+			return command->createSuccessResponse();
 		}
 
 		enable();
@@ -27,7 +28,7 @@ CommandManager::Command::Response TSL2561Capability::execute(CommandManager::Com
 		return command->createSuccessResponse();
 	} else if (action == "disable") {
 		if (!isEnabled) {
-			return command->createFailureResponse("sensor is already disabled");
+			return command->createSuccessResponse();
 		}
 
 		disable();

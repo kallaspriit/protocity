@@ -32,6 +32,7 @@ public class PortController implements Commander.SpecialCommandListener {
         default void onPortAnalogValueChange(int id, float value) {}
         default void onPortValueRise(int id) {}
         default void onPortValueFall(int id) {}
+        default void onPortCapabilityUpdate(int id, String capabilityName, List<String> arguments) {}
     }
 
     private enum Action {
@@ -53,6 +54,7 @@ public class PortController implements Commander.SpecialCommandListener {
     private static final String EVENT_INTERRUPT_RISE = "INTERRUPT_RISE";
     private static final String EVENT_INTERRUPT_FALL = "INTERRUPT_FALL";
     private static final String EVENT_ANALOG = "ANALOG_IN";
+    private static final String EVENT_CAPABILITY = "CAPABILITY";
 
     private Commander commander;
     private final List<PortEventListener> portEventListeners;
@@ -176,7 +178,8 @@ public class PortController implements Commander.SpecialCommandListener {
                 EVENT_INTERRUPT_CHANGE,
                 EVENT_INTERRUPT_RISE,
                 EVENT_INTERRUPT_FALL,
-                EVENT_ANALOG
+                EVENT_ANALOG,
+                EVENT_CAPABILITY,
         };
 
         boolean isHandledCommand = Arrays.asList(handledCommands).contains(command.name);
@@ -210,6 +213,10 @@ public class PortController implements Commander.SpecialCommandListener {
 
                 case EVENT_ANALOG:
                     listener.onPortAnalogValueChange(id, command.getFloat(1));
+                    break;
+
+                case EVENT_CAPABILITY:
+                    listener.onPortCapabilityUpdate(id, command.getString(1), command.getArguments(2));
                     break;
             }
         }
