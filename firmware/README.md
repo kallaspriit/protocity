@@ -86,9 +86,12 @@ The following commands are supported (using "1" as example request id)
   - responds with ERROR if invalid port is requested
 
 ## Changelog
+**06.12.2016**
+- Implemented TMP102 temperature sensor capability.
+
 **05.12.2016**
 - Implemented port controller capabilities support.
-- Implemented TSL2561 capability.
+- Implemented TSL2561 luminosity sensor capability.
 
 **28.11.2016**
 - Improved socket server disconnect handling.

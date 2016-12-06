@@ -1,15 +1,15 @@
-#ifndef TSL2561CAPABILITY_HPP
-#define TSL2561CAPABILITY_HPP
+#ifndef TMP102CAPABILITY_HPP
+#define TMP102CAPABILITY_HPP
 
 #include "../../AbstractCapability.hpp"
 
-#include <TSL2561.hpp>
+#include <TMP102.hpp>
 
-// https://www.sparkfun.com/products/12055
-class TSL2561Capability : public AbstractCapability {
+// https://www.sparkfun.com/products/11931
+class TMP102Capability : public AbstractCapability {
 
 public:
-	TSL2561Capability(PortController *portController);
+	TMP102Capability(PortController *portController);
 
 	std::string getName();
 	CommandManager::Command::Response execute(CommandManager::Command *command);
@@ -21,7 +21,7 @@ private:
 	void sendMeasurement();
 
 	Timer timer;
-	TSL2561 *sensor = NULL;
+	TMP102 *sensor = NULL;
 	bool isEnabled = false;
 	int measurementIntervalMs = 5000;
 

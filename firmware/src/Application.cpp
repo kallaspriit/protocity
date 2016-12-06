@@ -1,6 +1,8 @@
 #include "Application.hpp"
 #include "Config.hpp"
+
 #include "capabilities/TSL2561/TSL2561Capability.hpp"
+#include "capabilities/TMP102/TMP102Capability.hpp"
 
 Application::Application(Config *config) :
 	config(config),
@@ -81,6 +83,7 @@ void Application::setupPort(PortController *portController) {
 	portController->addEventListener(this);
 
 	portController->addCapability(new TSL2561Capability(portController));
+	portController->addCapability(new TMP102Capability(portController));
 }
 
 void Application::setupDebug() {

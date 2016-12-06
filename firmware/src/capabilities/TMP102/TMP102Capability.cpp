@@ -1,16 +1,16 @@
-#include "TSL2561Capability.hpp"
+#include "TMP102Capability.hpp"
 
 #include "../../PortController.hpp"
 
-TSL2561Capability::TSL2561Capability(PortController *portController) :
+TMP102Capability::TMP102Capability(PortController *portController) :
 	AbstractCapability(portController)
 {}
 
-std::string TSL2561Capability::getName() {
-	return "TSL2561";
+std::string TMP102Capability::getName() {
+	return "TMP102";
 }
 
-CommandManager::Command::Response TSL2561Capability::execute(CommandManager::Command *command) {
+CommandManager::Command::Response TMP102Capability::execute(CommandManager::Command *command) {
 	std::string action = command->getString(2);
 
 	if (action == "enable") {
@@ -39,28 +39,26 @@ CommandManager::Command::Response TSL2561Capability::execute(CommandManager::Com
 	}
 }
 
-void TSL2561Capability::enable() {
+void TMP102Capability::enable() {
 	if (isEnabled) {
 		return;
 	}
 
-	printf("# enabling TSL2561 luminosity measurement every %d milliseconds\n", measurementIntervalMs);
+	printf("# enabling TMP102 temperature measurement every %d milliseconds\n", measurementIntervalMs);
 
-	sensor = new TSL2561(p9, p10, TSL2561_ADDR_FLOAT);
-	sensor->setGain(TSL2561_GAIN_0X);
-	sensor->setTiming(TSL2561_INTEGRATIONTIME_402MS);
+	sensor = new TMP102(p9, p10, 0x90);
 
 	timer.start();
 
 	isEnabled = true;
 }
 
-void TSL2561Capability::disable() {
+void TMP102Capability::disable() {
 	if (!isEnabled || sensor == NULL) {
 		return;
 	}
 
-	printf("# disabling TSL2561 luminosity measurement\n");
+	printf("# disabling TMP102 temperature measurement\n");
 
 	delete sensor;
 	sensor = NULL;
@@ -69,7 +67,7 @@ void TSL2561Capability::disable() {
 	isEnabled = false;
 }
 
-void TSL2561Capability::update(int deltaUs) {
+void TMP102Capability::update(int deltaUs) {
 	if (!isEnabled) {
 		return;
 	}
@@ -83,11 +81,10 @@ void TSL2561Capability::update(int deltaUs) {
 	}
 }
 
-void TSL2561Capability::sendMeasurement() {
-	// TODO this is a blocking command, consider a thread?
-	int value = sensor->getLuminosity(TSL2561_VISIBLE);
+void TMP102Capability::sendMeasurement() {
+	float value = sensor->read();
 
-	snprintf(sendBuffer, SEND_BUFFER_SIZE, "%d:lux", value);
+	snprintf(sendBuffer, SEND_BUFFER_SIZE, "%f", value);
 
 	portController->emitCapabilityUpdate(getName(), std::string(sendBuffer));
 }
