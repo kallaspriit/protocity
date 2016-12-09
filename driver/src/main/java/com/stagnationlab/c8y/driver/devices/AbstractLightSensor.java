@@ -1,9 +1,7 @@
 package com.stagnationlab.c8y.driver.devices;
 
-import c8y.LightMeasurement;
 import com.stagnationlab.c8y.driver.fragments.LightSensor;
-
-import java.math.BigDecimal;
+import com.stagnationlab.c8y.driver.measurements.LightMeasurement;
 
 public abstract class AbstractLightSensor extends AbstractDevice {
 
@@ -24,8 +22,7 @@ public abstract class AbstractLightSensor extends AbstractDevice {
     }
 
     protected void reportIlluminance(float illuminance) {
-        LightMeasurement lightMeasurement = new LightMeasurement();
-        lightMeasurement.setIlluminance(new BigDecimal(illuminance));
+        LightMeasurement lightMeasurement = new LightMeasurement(illuminance);
 
         reportMeasurement(lightMeasurement);
     }

@@ -21,7 +21,7 @@ class TCPSocketConnection;
 class Application : SocketServer::SocketServerListener, PortController::PortEventListener {
 
 public:
-	Application(Config *config);
+	Application(Config *config, Serial *serial);
 
 	void run();
 
@@ -109,7 +109,7 @@ private:
 
 	// services
 	Config *config = NULL;
-	Serial serial;
+	Serial *serial = NULL;
 	Debug debug;
 	CommandManager commandManager;
 	EthernetManager ethernetManager;

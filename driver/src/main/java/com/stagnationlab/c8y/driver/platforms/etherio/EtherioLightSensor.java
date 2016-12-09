@@ -12,6 +12,8 @@ public class EtherioLightSensor extends AbstractLightSensor {
     private final int portNumber;
     private PortController portController;
 
+    private static final String CAPABILITY = "TSL2561";
+
     public EtherioLightSensor(String id, Commander commander, int portNumber) {
         super(id);
 
@@ -30,22 +32,18 @@ public class EtherioLightSensor extends AbstractLightSensor {
     public void start() {
         super.start();
 
-        portController.sendPortCommand("TSL2561", "enable", 5000);
+        portController.sendPortCommand(CAPABILITY, "enable", 5000);
 
         portController.addEventListener(new PortController.PortEventListener() {
             @Override
             public void onPortCapabilityUpdate(int id, String capabilityName, List<String> arguments) {
-                int illuminanceLux = Integer.valueOf(arguments.get(0));
+	            if (!capabilityName.equals(CAPABILITY)) {
+		            return;
+	            }
 
-                reportIlluminance(illuminanceLux);
-            }
-        });
+                int illuminance = Integer.valueOf(arguments.get(0));
 
-        portController.listenAnalogValueChange(0.01f, 5000, new PortController.PortEventListener() {
-
-            @Override
-            public void onPortAnalogValueChange(int id, float value) {
-                reportIlluminance(value);
+                reportIlluminance(illuminance);
             }
         });
     }

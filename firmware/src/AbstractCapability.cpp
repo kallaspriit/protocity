@@ -1,5 +1,6 @@
 #include "AbstractCapability.hpp"
 
-AbstractCapability::AbstractCapability(PortController *portController) :
+AbstractCapability::AbstractCapability(Serial *serial, PortController *portController) :
+	serial(serial),
 	portController(portController)
 {}

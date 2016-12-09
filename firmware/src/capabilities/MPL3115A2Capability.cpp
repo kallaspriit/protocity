@@ -1,16 +1,16 @@
-#include "TMP102Capability.hpp"
+#include "MPL3115A2Capability.hpp"
 
-#include "../../PortController.hpp"
+#include "../PortController.hpp"
 
-TMP102Capability::TMP102Capability(PortController *portController) :
-	AbstractCapability(portController)
+MPL3115A2Capability::MPL3115A2Capability(Serial *serial, PortController *portController) :
+	AbstractCapability(serial, portController)
 {}
 
-std::string TMP102Capability::getName() {
-	return "TMP102";
+std::string MPL3115A2Capability::getName() {
+	return "MPL3115A2";
 }
 
-CommandManager::Command::Response TMP102Capability::execute(CommandManager::Command *command) {
+CommandManager::Command::Response MPL3115A2Capability::execute(CommandManager::Command *command) {
 	std::string action = command->getString(2);
 
 	if (action == "enable") {
@@ -39,21 +39,24 @@ CommandManager::Command::Response TMP102Capability::execute(CommandManager::Comm
 	}
 }
 
-void TMP102Capability::enable() {
+void MPL3115A2Capability::enable() {
 	if (isEnabled) {
 		return;
 	}
 
 	printf("# enabling TMP102 temperature measurement every %d milliseconds\n", measurementIntervalMs);
 
-	sensor = new TMP102(p9, p10, 0x90);
+	sensor = new MPL3115A2(p9, p10, 0x60 << 1);
+
+	sensor->Oversample_Ratio( OVERSAMPLE_RATIO_32);
+	sensor->Altimeter_Mode();
 
 	timer.start();
 
 	isEnabled = true;
 }
 
-void TMP102Capability::disable() {
+void MPL3115A2Capability::disable() {
 	if (!isEnabled || sensor == NULL) {
 		return;
 	}
@@ -67,7 +70,7 @@ void TMP102Capability::disable() {
 	isEnabled = false;
 }
 
-void TMP102Capability::update(int deltaUs) {
+void MPL3115A2Capability::update(int deltaUs) {
 	if (!isEnabled) {
 		return;
 	}
@@ -81,10 +84,15 @@ void TMP102Capability::update(int deltaUs) {
 	}
 }
 
-void TMP102Capability::sendMeasurement() {
-	float value = sensor->read();
+void MPL3115A2Capability::sendMeasurement() {
+	//float altitude = sensor->getAltimeter();
+	//float temperature = sensor->getTemperature();
 
-	snprintf(sendBuffer, SEND_BUFFER_SIZE, "%f", value);
+	float values[2];
+
+	sensor->getAllData(&values[0]);
+
+	snprintf(sendBuffer, SEND_BUFFER_SIZE, "%f:%f", values[0], values[1]);
 
 	portController->emitCapabilityUpdate(getName(), std::string(sendBuffer));
 }

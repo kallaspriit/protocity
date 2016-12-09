@@ -37,7 +37,7 @@ private:
 	bool blickOncePerformed = true;
 
 	static const int LED_COUNT = 4;
-	static const int FREE_MEMORY_CELL_SIZE = 8;
+	static const int FREE_MEMORY_CELL_SIZE = 100 * 1000; // 100kb accuracy
 	const float BREATHE_PERIOD = 2.0f;
 	const int UPDATE_FPS = 60;
 	const int FAST_BLINK_INTERVAL_MS = 200;
@@ -45,7 +45,8 @@ private:
 	const int BLINK_ONCE_DURATION_MS = 100;
 
 	LedMode ledMode[LED_COUNT] = { LedMode::OFF };
-	PwmOut ledState[LED_COUNT] = { LED1, LED2, LED3, LED4 };
+	// PwmOut ledState[LED_COUNT] = { LED1, LED2, LED3, LED4 };
+	DigitalOut ledState[LED_COUNT] = { LED1, LED2, LED3, LED4 };
 
 	struct FreeMemoryTestElement {
 	    struct FreeMemoryTestElement *next;

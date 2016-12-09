@@ -1,57 +1,30 @@
 package com.stagnationlab.c8y.driver.devices;
 
-import java.math.BigDecimal;
+import com.stagnationlab.c8y.driver.fragments.TemperatureSensor;
+import com.stagnationlab.c8y.driver.measurements.TemperatureMeasurement;
 
-import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
-import com.stagnationlab.c8y.driver.services.DeviceManager;
+public abstract class AbstractTemperatureSensor extends AbstractDevice {
 
-import c8y.Hardware;
-import c8y.TemperatureMeasurement;
-import c8y.TemperatureSensor;
-import c8y.lx.driver.MeasurementPollingDriver;
+    private final TemperatureSensor temperatureSensor = new TemperatureSensor();
 
-// TODO Convert to use AbstractDevice
-public abstract class AbstractTemperatureSensor extends MeasurementPollingDriver {
+	protected AbstractTemperatureSensor(String id) {
+		super(id);
+	}
 
-    private static final String TYPE = "TemperatureSensor";
+	@Override
+	protected String getType() {
+		return temperatureSensor.getClass().getSimpleName();
+	}
 
-    private final String id;
+	@Override
+	protected Object getSensorFragment() {
+		return temperatureSensor;
+	}
 
-    protected AbstractTemperatureSensor(String id) {
-        super("c8y_" + TYPE + "Sensor", "c8y." + TYPE.toLowerCase(), 5000);
+	protected void reportTemperature(float temperature) {
+		TemperatureMeasurement temperatureMeasurement = new TemperatureMeasurement(temperature);
 
-        this.id = id;
-    }
-
-    @Override
-    public void discoverChildren(ManagedObjectRepresentation parent) {
-        ManagedObjectRepresentation childDevice = DeviceManager.createChild(
-                id,
-                TYPE,
-                getPlatform(),
-                parent,
-                getHardware(),
-                getSupportedOperations(),
-                new TemperatureSensor()
-        );
-
-        setSource(childDevice);
-    }
-
-    @Override
-    public void run() {
-        double temperature = getTemperature();
-
-        TemperatureMeasurement temperatureMeasurement = new TemperatureMeasurement();
-        temperatureMeasurement.setTemperature(new BigDecimal(temperature));
-
-        sendMeasurement(temperatureMeasurement);
-
-        //log.info("sending temperature measurement: " + temperature);
-    }
-
-    protected abstract Hardware getHardware();
-
-    protected abstract double getTemperature();
+		reportMeasurement(temperatureMeasurement);
+	}
 
 }

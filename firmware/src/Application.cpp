@@ -1,12 +1,13 @@
 #include "Application.hpp"
 #include "Config.hpp"
 
-#include "capabilities/TSL2561/TSL2561Capability.hpp"
-#include "capabilities/TMP102/TMP102Capability.hpp"
+#include "capabilities/TSL2561Capability.hpp"
+#include "capabilities/TMP102Capability.hpp"
+#include "capabilities/MPL3115A2Capability.hpp"
 
-Application::Application(Config *config) :
+Application::Application(Config *config, Serial *serial) :
 	config(config),
-	serial(config->serialTxPin, config->serialRxPin),
+	serial(serial),
 	port1(1, config->port1Pin),
 	port2(2, config->port2Pin),
 	port3(3, config->port3Pin),
@@ -46,8 +47,7 @@ void Application::loop() {
 
 void Application::setupSerial() {
 	// configure serial
-	serial.baud(config->serialBaudRate);
-	serial.attach(this, &Application::handleSerialRx, Serial::RxIrq);
+	serial->attach(this, &Application::handleSerialRx, Serial::RxIrq);
 
 	printf("\n\n### initializing ###\n");
 }
@@ -82,8 +82,9 @@ void Application::setupPorts() {
 void Application::setupPort(PortController *portController) {
 	portController->addEventListener(this);
 
-	portController->addCapability(new TSL2561Capability(portController));
-	portController->addCapability(new TMP102Capability(portController));
+	portController->addCapability(new TSL2561Capability(serial, portController));
+	portController->addCapability(new TMP102Capability(serial, portController));
+	portController->addCapability(new MPL3115A2Capability(serial, portController));
 }
 
 void Application::setupDebug() {
@@ -273,7 +274,7 @@ void Application::onPortCapabilityUpdate(int id, std::string capabilityName, std
 }
 
 void Application::handleSerialRx() {
-	char receivedChar = serial.getc();
+	char receivedChar = serial->getc();
 
 	if (receivedChar == '\n') {
 		commandManager.handleCommand(CommandSource::SERIAL, commandBuffer, commandLength);

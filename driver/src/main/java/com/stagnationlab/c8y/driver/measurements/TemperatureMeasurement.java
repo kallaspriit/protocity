@@ -3,26 +3,31 @@ package com.stagnationlab.c8y.driver.measurements;
 import com.cumulocity.model.measurement.MeasurementValue;
 import com.stagnationlab.c8y.driver.services.Util;
 
-public class AnalogMeasurement {
+@SuppressWarnings({ "WeakerAccess", "unused" })
+public class TemperatureMeasurement {
 
 	private float value;
 	private String unit;
 
-	public AnalogMeasurement() {
+	public TemperatureMeasurement() {
 		value = 0.0f;
-		unit = "";
+		unit = "C";
 	}
 
-	public AnalogMeasurement(float value, String unit) {
+	public TemperatureMeasurement(float value, String unit) {
 		this.value = value;
 		this.unit = unit;
 	}
 
-	public MeasurementValue getValue() {
+	public TemperatureMeasurement(float value) {
+		this(value, "C");
+	}
+
+	public MeasurementValue getTemperature() {
 		return Util.buildMeasurementValue(value, unit);
 	}
 
-	public void setValue(MeasurementValue measurementValue) {
+	public void setTemperature(MeasurementValue measurementValue) {
 		value = measurementValue.getValue().floatValue();
 	}
 
