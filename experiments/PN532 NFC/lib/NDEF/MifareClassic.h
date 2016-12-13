@@ -12,6 +12,8 @@ class MifareClassic
         ~MifareClassic();
         NfcTag read(uint8_t *uid, unsigned int uidLength);
         bool write(NdefMessage& ndefMessage, uint8_t *uid, unsigned int uidLength);
+        bool formatNDEF(uint8_t * uid, unsigned int uidLength);
+        bool formatMifare(uint8_t * uid, unsigned int uidLength);
     private:
         PN532* _nfcShield;
         int getBufferSize(int messageLength);

@@ -1,8 +1,9 @@
 #ifndef NdefRecord_h
 #define NdefRecord_h
 
-#include <string>
 #include <Ndef.h>
+
+#include <string>
 
 using namespace std;
 
@@ -40,20 +41,20 @@ class NdefRecord
         string getId();
 
         void setTnf(uint8_t tnf);
-        void setType(const uint8_t *type, const unsigned int numuint8_ts);
-        void setPayload(const uint8_t *payload, const int numuint8_ts);
-        void setId(const uint8_t *id, const unsigned int numuint8_ts);
+        void setType(const uint8_t *type, const unsigned int numBytes);
+        void setPayload(const uint8_t *payload, const int numBytes);
+        void setId(const uint8_t *id, const unsigned int numBytes);
 
         void print();
     private:
-        uint8_t getTnfuint8_t(bool firstRecord, bool lastRecord);
+        uint8_t getTnfByte(bool firstRecord, bool lastRecord);
         uint8_t _tnf; // 3 bit
         unsigned int _typeLength;
         int _payloadLength;
         unsigned int _idLength;
         uint8_t *_type;
         uint8_t *_payload;
-        uint8_t *_id;
+        uint8_t * _id;
 };
 
 #endif

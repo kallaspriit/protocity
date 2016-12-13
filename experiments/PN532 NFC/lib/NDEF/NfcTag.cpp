@@ -1,6 +1,7 @@
 #include <NfcTag.h>
-#include <string.h>
 #include <PN532_debug.h>
+
+#include <string.h>
 
 NfcTag::NfcTag()
 {
@@ -69,13 +70,12 @@ uint8_t NfcTag::getUidLength()
 
 void NfcTag::getUid(uint8_t *uid, unsigned int uidLength)
 {
-    memcpy(_uid, uid, uidLength);
+    memcpy(uid, _uid, _uidLength < uidLength ? _uidLength : uidLength);
 }
 
 string NfcTag::getUidString()
 {
     string uidString = "";
-#if 0
     for (int i = 0; i < _uidLength; i++)
     {
         if (i > 0)
@@ -88,10 +88,11 @@ string NfcTag::getUidString()
             uidString += "0";
         }
 
-        uidString += string((unsigned int)_uid[i], 16);
+		// TODO better way to append hex?
+        //uidstring += String((unsigned int)_uid[i], (unsigned char)HEX);
+        //uidString +=_uid[i];
     }
-    uidString.toUpperCase();
-#endif
+    //uidString.toUpperCase();
     return uidString;
 }
 
@@ -112,13 +113,11 @@ NdefMessage NfcTag::getNdefMessage()
 
 void NfcTag::print()
 {
-    DMSG("NFC Tag - ");
-    DMSG_STR(_tagType);
-    DMSG("UID - ");
-    DMSG(getUidString().c_str());
+    DMSG("NFC Tag - ");DMSG_STR(_tagType);
+    DMSG("UID ");DMSG_STR(getUidString());
     if (_ndefMessage == NULL)
     {
-        DMSG("\nNo NDEF Message");
+        DMSG("\nNo NDEF Message\n");
     }
     else
     {

@@ -1,4 +1,4 @@
-#include "NdefMessage.h"
+#include <NdefMessage.h>
 #include "PN532_debug.h"
 
 NdefMessage::NdefMessage(void)
@@ -6,30 +6,30 @@ NdefMessage::NdefMessage(void)
     _recordCount = 0;
 }
 
-NdefMessage::NdefMessage(const uint8_t * data, const int numuint8_ts)
+NdefMessage::NdefMessage(const uint8_t * data, const int numBytes)
 {
     #ifdef NDEF_DEBUG
-    DMSG("Decoding "));Serial.print(numuint8_ts);DMSG(F(" uint8_ts");
-    PrintHexChar(data, numuint8_ts);
-    //DumpHex(data, numuint8_ts, 16);
+    DMSG("Decoding ");DMSG_INT(numBytes);DMSG(" bytes\n");
+    PrintHexChar(data, numBytes);
+    //DumpHex(data, numBytes, 16);
     #endif
 
     _recordCount = 0;
 
     int index = 0;
 
-    while (index <= numuint8_ts)
+    while (index <= numBytes)
     {
 
         // decode tnf - first uint8_t is tnf with bit flags
         // see the NFDEF spec for more info
-        uint8_t tnf_uint8_t = data[index];
-        bool mb = (tnf_uint8_t & 0x80) != 0;
-        bool me = (tnf_uint8_t & 0x40) != 0;
-        bool cf = (tnf_uint8_t & 0x20) != 0;
-        bool sr = (tnf_uint8_t & 0x10) != 0;
-        bool il = (tnf_uint8_t & 0x8) != 0;
-        uint8_t tnf = (tnf_uint8_t & 0x7);
+        uint8_t tnf_byte = data[index];
+        bool mb = (tnf_byte & 0x80) != 0;
+        bool me = (tnf_byte & 0x40) != 0;
+        bool cf = (tnf_byte & 0x20) != 0;
+        bool sr = (tnf_byte & 0x10) != 0;
+        bool il = (tnf_byte & 0x8) != 0;
+        uint8_t tnf = (tnf_byte & 0x7);
 
         NdefRecord record = NdefRecord();
         record.setTnf(tnf);
@@ -45,8 +45,11 @@ NdefMessage::NdefMessage(const uint8_t * data, const int numuint8_ts)
         }
         else
         {
-            payloadLength = ((0xFF & data[++index]) << 24) | ((0xFF & data[++index]) << 26) |
-            ((0xFF & data[++index]) << 8) | (0xFF & data[++index]);
+            payloadLength =
+		((0xFF & data[++index]) << 24)
+		| ((0xFF & data[++index]) << 16)
+		| ((0xFF & data[++index]) << 8)
+		| (0xFF & data[++index]);
         }
 
         int idLength = 0;
@@ -128,11 +131,11 @@ int NdefMessage::getEncodedSize()
     return size;
 }
 
-// TODO change this to return uint8_t*
-void NdefMessage::encode(uint8_t* data)
+// TODO change this to return uint8_t *
+void NdefMessage::encode(uint8_t * data)
 {
     // assert sizeof(data) >= getEncodedSize()
-    uint8_t* data_ptr = &data[0];
+    uint8_t * data_ptr = &data[0];
 
     for (int i = 0; i < _recordCount; i++)
     {
@@ -154,7 +157,7 @@ bool NdefMessage::addRecord(NdefRecord& record)
     }
     else
     {
-        DMSG("WARNING: Too many records. Increase MAX_NDEF_RECORDS.");
+        DMSG("WARNING: Too many records. Increase MAX_NDEF_RECORDS.\n");
         return false;
     }
 }
@@ -162,19 +165,20 @@ bool NdefMessage::addRecord(NdefRecord& record)
 void NdefMessage::addMimeMediaRecord(string mimeType, string payload)
 {
 
-    uint8_t payloaduint8_ts[payload.length() + 1];
-    payload.copy((char*)payloaduint8_ts, sizeof(payloaduint8_ts));
+    uint8_t payloadBytes[payload.length() + 1];
+	payload.copy((char*)payloadBytes, sizeof(payloadBytes));
 
-    addMimeMediaRecord(mimeType, payloaduint8_ts, payload.length());
+    addMimeMediaRecord(mimeType, payloadBytes, payload.length());
 }
 
-void NdefMessage::addMimeMediaRecord(string mimeType, uint8_t* payload, int payloadLength)
+void NdefMessage::addMimeMediaRecord(string mimeType, uint8_t * payload, int payloadLength)
 {
     NdefRecord r = NdefRecord();
     r.setTnf(TNF_MIME_MEDIA);
 
     uint8_t type[mimeType.length() + 1];
-    mimeType.copy((char*)type, sizeof(type));
+    //mimeType.getBytes(type, sizeof(type));
+	mimeType.copy((char*)type, sizeof(type));
     r.setType(type, mimeType.length());
 
     r.setPayload(payload, payloadLength);
@@ -200,7 +204,8 @@ void NdefMessage::addTextRecord(string text, string encoding)
     string payloadString = "X" + encoding + text;
 
     uint8_t payload[payloadString.length() + 1];
-    payloadString.copy((char*)payload, sizeof(payload));
+    //payloadString.getBytes(payload, sizeof(payload));
+	payloadString.copy((char*)payload, sizeof(payload));
 
     // replace X with the real encoding length
     payload[0] = encoding.length();
@@ -222,7 +227,8 @@ void NdefMessage::addUriRecord(string uri)
     string payloadString = "X" + uri;
 
     uint8_t payload[payloadString.length() + 1];
-    payloadString.copy((char*)payload, sizeof(payload));
+    //payloadString.getBytes(payload, sizeof(payload));
+	payloadString.copy((char*)payload, sizeof(payload));
 
     // add identifier code 0x0, meaning no prefix substitution
     payload[0] = 0x0;
@@ -260,15 +266,9 @@ NdefRecord NdefMessage::operator[](int index)
 
 void NdefMessage::print()
 {
-    DMSG("\nNDEF Message ");
-    DMSG_INT(_recordCount);
-    DMSG(" record");
-    if (_recordCount == 1) {
-        DMSG(", ");
-    } else {
-        DMSG("s, ");
-    }
-    DMSG_INT(getEncodedSize());
+    DMSG("\nNDEF Message ");DMSG_INT(_recordCount);DMSG(" record");
+    if (_recordCount == 1) { DMSG(", "); } else { DMSG("s, "); }
+    DMSG_INT(getEncodedSize());DMSG(" bytes");
 
     int i;
     for (i = 0; i < _recordCount; i++)

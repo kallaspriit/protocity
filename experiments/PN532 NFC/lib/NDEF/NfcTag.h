@@ -1,7 +1,7 @@
 #ifndef NfcTag_h
 #define NfcTag_h
 
-#include <stdint.h>
+#include <inttypes.h>
 #include <NdefMessage.h>
 
 class NfcTag

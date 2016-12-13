@@ -10,7 +10,7 @@ class NdefMessage
 {
     public:
         NdefMessage(void);
-        NdefMessage(const uint8_t *data, const int numuint8_ts);
+        NdefMessage(const uint8_t *data, const int numBytes);
         NdefMessage(const NdefMessage& rhs);
         ~NdefMessage();
         NdefMessage& operator=(const NdefMessage& rhs);

@@ -10,10 +10,6 @@
 #include "PN532_debug.h"
 #include <string.h>
 
-#ifndef ARDUINO
-#include <stdio.h>
-#endif
-
 #define HAL(func)   (_interface->func)
 
 PN532::PN532(PN532Interface &interface)
@@ -45,18 +41,18 @@ void PN532::PrintHex(const uint8_t *data, const uint32_t numBytes)
 #ifdef ARDUINO
     for (uint8_t i = 0; i < numBytes; i++) {
         if (data[i] < 0x10) {
-            Serial.print(" 0");
+            DMSG(" 0");
         } else {
-            Serial.print(' ');
+            DMSG(" ")
         }
-        Serial.print(data[i], HEX);
+        DMSG_HEX(data[i]);
     }
-    Serial.println("");
+    DMSG("\n");
 #else
     for (uint8_t i = 0; i < numBytes; i++) {
-        printf(" %2X", data[i]);
+        DMSG(" %2X", data[i]);
     }
-    printf("\n");
+    DMSG("\n");
 #endif
 }
 
@@ -76,35 +72,35 @@ void PN532::PrintHexChar(const uint8_t *data, const uint32_t numBytes)
 #ifdef ARDUINO
     for (uint8_t i = 0; i < numBytes; i++) {
         if (data[i] < 0x10) {
-            Serial.print(" 0");
+            DMSG(" 0");
         } else {
-            Serial.print(' ');
+            DMSG(" ")
         }
-        Serial.print(data[i], HEX);
+        DMSG_HEX(data[i]);
     }
-    Serial.print("    ");
+    DMSG("    ");
     for (uint8_t i = 0; i < numBytes; i++) {
         char c = data[i];
         if (c <= 0x1f || c > 0x7f) {
-            Serial.print('.');
+            DMSG(".")
         } else {
-            Serial.print(c);
+            DMSG_INT(c);
         }
     }
-    Serial.println("");
+    DMSG("\n");
 #else
     for (uint8_t i = 0; i < numBytes; i++) {
-        printf(" %2X", data[i]);
+        DMSG(" %2X", data[i]);
     }
-    printf("    ");
+    DMSG("    ");
     for (uint8_t i = 0; i < numBytes; i++) {
         char c = data[i];
         if (c <= 0x1f || c > 0x7f) {
-            printf(".");
+            DMSG(".");
         } else {
-            printf("%c", c);
+            DMSG("%c", c);
         }
-        printf("\n");
+        DMSG("\n");
     }
 #endif
 }
@@ -212,7 +208,7 @@ uint8_t PN532::readGPIO(void)
 
     /* READGPIO response without prefix and suffix should be in the following format:
 
-      byte            Description
+      uint8_t           Description
       -------------   ------------------------------------------
       b0              P3 GPIO Pins
       b1              P7 GPIO Pins (not used ... taken by I2C)
@@ -283,11 +279,13 @@ bool PN532::setPassiveActivationRetries(uint8_t maxRetries)
                           with the card's UID (up to 7 bytes)
     @param  uidLength     Pointer to the variable that will hold the
                           length of the card's UID.
+    @param  timeout       The number of tries before timing out
+    @param  inlist        If set to true, the card will be inlisted
 
     @returns 1 if everything executed properly, 0 for an error
 */
 /**************************************************************************/
-bool PN532::readPassiveTargetID(uint8_t cardbaudrate, uint8_t *uid, uint8_t *uidLength, uint16_t timeout)
+bool PN532::readPassiveTargetID(uint8_t cardbaudrate, uint8_t *uid, uint8_t *uidLength, uint16_t timeout, bool inlist)
 {
     pn532_packetbuffer[0] = PN532_COMMAND_INLISTPASSIVETARGET;
     pn532_packetbuffer[1] = 1;  // max 1 cards at once (we can set this to 2 later)
@@ -305,7 +303,7 @@ bool PN532::readPassiveTargetID(uint8_t cardbaudrate, uint8_t *uid, uint8_t *uid
     // check some basic stuff
     /* ISO14443A card response should be in the following format:
 
-      byte            Description
+      uint8_t           Description
       -------------   ------------------------------------------
       b0              Tags Found
       b1              Tag Number (only one used in this example)
@@ -331,6 +329,10 @@ bool PN532::readPassiveTargetID(uint8_t cardbaudrate, uint8_t *uid, uint8_t *uid
 
     for (uint8_t i = 0; i < pn532_packetbuffer[5]; i++) {
         uid[i] = pn532_packetbuffer[6 + i];
+    }
+
+    if (inlist) {
+        inListedTag = pn532_packetbuffer[1];
     }
 
     return 1;
@@ -374,14 +376,14 @@ bool PN532::mifareclassic_IsTrailerBlock (uint32_t uiBlock)
     INDATAEXCHANGE command.  See section 7.3.8 of the PN532 User Manual
     for more information on sending MIFARE and other commands.
 
-    @param  uid           Pointer to a byte array containing the card UID
+    @param  uid           Pointer to a uint8_t array containing the card UID
     @param  uidLen        The length (in bytes) of the card's UID (Should
                           be 4 for MIFARE Classic)
     @param  blockNumber   The block number to authenticate.  (0..63 for
                           1KB cards, and 0..255 for 4KB cards).
     @param  keyNumber     Which key type to use during authentication
                           (0 = MIFARE_CMD_AUTH_A, 1 = MIFARE_CMD_AUTH_B)
-    @param  keyData       Pointer to a byte array containing the 6 bytes
+    @param  keyData       Pointer to a uint8_t array containing the 6 bytes
                           key value
 
     @returns 1 if everything executed properly, 0 for an error
@@ -414,7 +416,7 @@ uint8_t PN532::mifareclassic_AuthenticateBlock (uint8_t *uid, uint8_t uidLen, ui
 
     // Check if the response is valid and we are authenticated???
     // for an auth success it should be bytes 5-7: 0xD5 0x41 0x00
-    // Mifare auth error is technically byte 7: 0x14 but anything other and 0x00 is not good
+    // Mifare auth error is technically uint8_t 7: 0x14 but anything other and 0x00 is not good
     if (pn532_packetbuffer[0] != 0x00) {
         DMSG("Authentification failed\n");
         return 0;
@@ -430,7 +432,7 @@ uint8_t PN532::mifareclassic_AuthenticateBlock (uint8_t *uid, uint8_t uidLen, ui
 
     @param  blockNumber   The block number to authenticate.  (0..63 for
                           1KB cards, and 0..255 for 4KB cards).
-    @param  data          Pointer to the byte array that will hold the
+    @param  data          Pointer to the uint8_t array that will hold the
                           retrieved data (if any)
 
     @returns 1 if everything executed properly, 0 for an error
@@ -455,13 +457,13 @@ uint8_t PN532::mifareclassic_ReadDataBlock (uint8_t blockNumber, uint8_t *data)
     /* Read the response packet */
     HAL(readResponse)(pn532_packetbuffer, sizeof(pn532_packetbuffer));
 
-    /* If byte 8 isn't 0x00 we probably have an error */
+    /* If uint8_t 8 isn't 0x00 we probably have an error */
     if (pn532_packetbuffer[0] != 0x00) {
         return 0;
     }
 
     /* Copy the 16 data bytes to the output buffer        */
-    /* Block content starts at byte 9 of a valid response */
+    /* Block content starts at uint8_t 9 of a valid response */
     memcpy (data, pn532_packetbuffer + 1, 16);
 
     return 1;
@@ -474,7 +476,7 @@ uint8_t PN532::mifareclassic_ReadDataBlock (uint8_t blockNumber, uint8_t *data)
 
     @param  blockNumber   The block number to authenticate.  (0..63 for
                           1KB cards, and 0..255 for 4KB cards).
-    @param  data          The byte array that contains the data to write.
+    @param  data          The uint8_t array that contains the data to write.
 
     @returns 1 if everything executed properly, 0 for an error
 */
@@ -612,7 +614,7 @@ uint8_t PN532::mifareclassic_WriteNDEFURI (uint8_t sectorNumber, uint8_t uriIden
     Tries to read an entire 4-bytes page at the specified address.
 
     @param  page        The page number (0..63 in most cases)
-    @param  buffer      Pointer to the byte array that will hold the
+    @param  buffer      Pointer to the uint8_t array that will hold the
                         retrieved data (if any)
 */
 /**************************************************************************/
@@ -637,10 +639,10 @@ uint8_t PN532::mifareultralight_ReadPage (uint8_t page, uint8_t *buffer)
     /* Read the response packet */
     HAL(readResponse)(pn532_packetbuffer, sizeof(pn532_packetbuffer));
 
-    /* If byte 8 isn't 0x00 we probably have an error */
+    /* If uint8_t 8 isn't 0x00 we probably have an error */
     if (pn532_packetbuffer[0] == 0x00) {
         /* Copy the 4 data bytes to the output buffer         */
-        /* Block content starts at byte 9 of a valid response */
+        /* Block content starts at uint8_t 9 of a valid response */
         /* Note that the command actually reads 16 bytes or 4  */
         /* pages at a time ... we simply discard the last 12  */
         /* bytes                                              */
@@ -651,6 +653,35 @@ uint8_t PN532::mifareultralight_ReadPage (uint8_t page, uint8_t *buffer)
 
     // Return OK signal
     return 1;
+}
+
+/**************************************************************************/
+/*!
+    Tries to write an entire 4-bytes data buffer at the specified page
+    address.
+
+    @param  page     The page number to write into.  (0..63).
+    @param  buffer   The uint8_t array that contains the data to write.
+
+    @returns 1 if everything executed properly, 0 for an error
+*/
+/**************************************************************************/
+uint8_t PN532::mifareultralight_WritePage (uint8_t page, uint8_t *buffer)
+{
+    /* Prepare the first command */
+    pn532_packetbuffer[0] = PN532_COMMAND_INDATAEXCHANGE;
+    pn532_packetbuffer[1] = 1;                           /* Card number */
+    pn532_packetbuffer[2] = MIFARE_CMD_WRITE_ULTRALIGHT; /* Mifare UL Write cmd = 0xA2 */
+    pn532_packetbuffer[3] = page;                        /* page Number (0..63) */
+    memcpy (pn532_packetbuffer + 4, buffer, 4);          /* Data Payload */
+
+    /* Send the command */
+    if (HAL(writeCommand)(pn532_packetbuffer, 8)) {
+        return 0;
+    }
+
+    /* Read the response packet */
+    return (0 < HAL(readResponse)(pn532_packetbuffer, sizeof(pn532_packetbuffer)));
 }
 
 /**************************************************************************/
@@ -731,8 +762,8 @@ bool PN532::inListPassiveTarget()
     return true;
 }
 
-int8_t PN532::tgInitAsTarget(const uint8_t* command, const uint8_t len, const uint16_t timeout){
-  
+int8_t PN532::tgInitAsTarget(const uint8_t * command, const uint8_t len, const uint16_t timeout){
+
   int8_t status = HAL(writeCommand)(command, len);
     if (status < 0) {
         return -1;
@@ -766,7 +797,8 @@ int8_t PN532::tgInitAsTarget(uint16_t timeout)
 
         0x01, 0xFE, 0x0F, 0xBB, 0xBA, 0xA6, 0xC9, 0x89, 0x00, 0x00, //NFCID3t: Change this to desired value
 
-        0x06, 0x46,  0x66, 0x6D, 0x01, 0x01, 0x10, 0x00// LLCP magic number and version parameter
+        0x0a, 0x46,  0x66, 0x6D, 0x01, 0x01, 0x10, 0x02, 0x02, 0x00, 0x80, // LLCP magic number, version parameter and MIUX
+        0x00
     };
     return tgInitAsTarget(command, sizeof(command), timeout);
 }
@@ -802,16 +834,24 @@ int16_t PN532::tgGetData(uint8_t *buf, uint8_t len)
 bool PN532::tgSetData(const uint8_t *header, uint8_t hlen, const uint8_t *body, uint8_t blen)
 {
     if (hlen > (sizeof(pn532_packetbuffer) - 1)) {
-        return false;
-    }
+        if ((body != 0) || (header == pn532_packetbuffer)) {
+            DMSG("tgSetData:buffer too small\n");
+            return false;
+        }
 
-    for (int8_t i = hlen - 1; i >= 0; i--){
-        pn532_packetbuffer[i + 1] = header[i];
-    }
-    pn532_packetbuffer[0] = PN532_COMMAND_TGSETDATA;
+        pn532_packetbuffer[0] = PN532_COMMAND_TGSETDATA;
+        if (HAL(writeCommand)(pn532_packetbuffer, 1, header, hlen)) {
+            return false;
+        }
+    } else {
+        for (int8_t i = hlen - 1; i >= 0; i--){
+            pn532_packetbuffer[i + 1] = header[i];
+        }
+        pn532_packetbuffer[0] = PN532_COMMAND_TGSETDATA;
 
-    if (HAL(writeCommand)(pn532_packetbuffer, hlen + 1, body, blen)) {
-        return false;
+        if (HAL(writeCommand)(pn532_packetbuffer, hlen + 1, body, blen)) {
+            return false;
+        }
     }
 
     if (0 > HAL(readResponse)(pn532_packetbuffer, sizeof(pn532_packetbuffer), 3000)) {
@@ -837,5 +877,3 @@ int16_t PN532::inRelease(const uint8_t relevantTarget){
     // read data packet
     return HAL(readResponse)(pn532_packetbuffer, sizeof(pn532_packetbuffer));
 }
-
-

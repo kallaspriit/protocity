@@ -1,34 +1,32 @@
-
-#include <string>
-#include <string.h>
-#include <stdlib.h>
-
 #include "NdefRecord.h"
 #include "PN532_debug.h"
 
+#include <stdlib.h>
+#include <string.h>
+
 NdefRecord::NdefRecord()
 {
-    //DMSG("NdefRecord Constructor 1");
+    //DMSG("NdefRecord Constructor 1\n");
     _tnf = 0;
     _typeLength = 0;
     _payloadLength = 0;
     _idLength = 0;
-    _type = (uint8_t *)NULL;
-    _payload = (uint8_t *)NULL;
-    _id = (uint8_t *)NULL;
+    _type = (uint8_t*)NULL;
+    _payload = (uint8_t*)NULL;
+    _id = (uint8_t*)NULL;
 }
 
 NdefRecord::NdefRecord(const NdefRecord& rhs)
 {
-    //DMSG("NdefRecord Constructor 2 (copy)");
+    //DMSG("NdefRecord Constructor 2 (copy)\n");
 
     _tnf = rhs._tnf;
     _typeLength = rhs._typeLength;
     _payloadLength = rhs._payloadLength;
     _idLength = rhs._idLength;
-    _type = (uint8_t *)NULL;
-    _payload = (uint8_t *)NULL;
-    _id = (uint8_t *)NULL;
+    _type = (uint8_t*)NULL;
+    _payload = (uint8_t*)NULL;
+    _id = (uint8_t*)NULL;
 
     if (_typeLength)
     {
@@ -54,7 +52,7 @@ NdefRecord::NdefRecord(const NdefRecord& rhs)
 
 NdefRecord::~NdefRecord()
 {
-    //DMSG("NdefRecord Destructor");
+    //DMSG("NdefRecord Destructor\n");
     if (_typeLength)
     {
         free(_type);
@@ -73,7 +71,7 @@ NdefRecord::~NdefRecord()
 
 NdefRecord& NdefRecord::operator=(const NdefRecord& rhs)
 {
-    //DMSG("NdefRecord ASSIGN");
+    //DMSG("NdefRecord ASSIGN\n");
 
     if (this != &rhs)
     {
@@ -119,7 +117,7 @@ NdefRecord& NdefRecord::operator=(const NdefRecord& rhs)
     return *this;
 }
 
-// size of records in uint8_ts
+// size of records in bytes
 int NdefRecord::getEncodedSize()
 {
     int size = 2; // tnf + typeLength
@@ -146,9 +144,9 @@ void NdefRecord::encode(uint8_t *data, bool firstRecord, bool lastRecord)
 {
     // assert data > getEncodedSize()
 
-    uint8_t* data_ptr = &data[0];
+    uint8_t * data_ptr = &data[0];
 
-    *data_ptr = getTnfuint8_t(firstRecord, lastRecord);
+    *data_ptr = getTnfByte(firstRecord, lastRecord);
     data_ptr += 1;
 
     *data_ptr = _typeLength;
@@ -158,7 +156,7 @@ void NdefRecord::encode(uint8_t *data, bool firstRecord, bool lastRecord)
         *data_ptr = _payloadLength;
         data_ptr += 1;
     } else { // long format
-        // 4 uint8_ts but we store length as an int
+        // 4 bytes but we store length as an int
         data_ptr[0] = 0x0; // (_payloadLength >> 24) & 0xFF;
         data_ptr[1] = 0x0; // (_payloadLength >> 16) & 0xFF;
         data_ptr[2] = (_payloadLength >> 8) & 0xFF;
@@ -172,21 +170,21 @@ void NdefRecord::encode(uint8_t *data, bool firstRecord, bool lastRecord)
         data_ptr += 1;
     }
 
-    //DMSG(2);
+    //DMSG_INT(2);
     memcpy(data_ptr, _type, _typeLength);
     data_ptr += _typeLength;
-
-    memcpy(data_ptr, _payload, _payloadLength);
-    data_ptr += _payloadLength;
 
     if (_idLength)
     {
         memcpy(data_ptr, _id, _idLength);
         data_ptr += _idLength;
     }
+
+    memcpy(data_ptr, _payload, _payloadLength);
+    data_ptr += _payloadLength;
 }
 
-uint8_t NdefRecord::getTnfuint8_t(bool firstRecord, bool lastRecord)
+uint8_t NdefRecord::getTnfByte(bool firstRecord, bool lastRecord)
 {
     int value = _tnf;
 
@@ -248,21 +246,21 @@ string NdefRecord::getType()
 }
 
 // this assumes the caller created type correctly
-void NdefRecord::getType(uint8_t* type)
+void NdefRecord::getType(uint8_t * type)
 {
     memcpy(type, _type, _typeLength);
 }
 
-void NdefRecord::setType(const uint8_t * type, const unsigned int numuint8_ts)
+void NdefRecord::setType(const uint8_t * type, const unsigned int numBytes)
 {
     if(_typeLength)
     {
         free(_type);
     }
 
-    _type = (uint8_t*)malloc(numuint8_ts);
-    memcpy(_type, type, numuint8_ts);
-    _typeLength = numuint8_ts;
+    _type = (uint8_t*)malloc(numBytes);
+    memcpy(_type, type, numBytes);
+    _typeLength = numBytes;
 }
 
 // assumes the caller sized payload properly
@@ -271,16 +269,16 @@ void NdefRecord::getPayload(uint8_t *payload)
     memcpy(payload, _payload, _payloadLength);
 }
 
-void NdefRecord::setPayload(const uint8_t * payload, const int numuint8_ts)
+void NdefRecord::setPayload(const uint8_t * payload, const int numBytes)
 {
     if (_payloadLength)
     {
         free(_payload);
     }
 
-    _payload = (uint8_t*)malloc(numuint8_ts);
-    memcpy(_payload, payload, numuint8_ts);
-    _payloadLength = numuint8_ts;
+    _payload = (uint8_t*)malloc(numBytes);
+    memcpy(_payload, payload, numBytes);
+    _payloadLength = numBytes;
 }
 
 string NdefRecord::getId()
@@ -296,60 +294,55 @@ void NdefRecord::getId(uint8_t *id)
     memcpy(id, _id, _idLength);
 }
 
-void NdefRecord::setId(const uint8_t * id, const unsigned int numuint8_ts)
+void NdefRecord::setId(const uint8_t * id, const unsigned int numBytes)
 {
     if (_idLength)
     {
         free(_id);
     }
 
-    _id = (uint8_t*)malloc(numuint8_ts);
-    memcpy(_id, id, numuint8_ts);
-    _idLength = numuint8_ts;
+    _id = (uint8_t*)malloc(numBytes);
+    memcpy(_id, id, numBytes);
+    _idLength = numBytes;
 }
 
 void NdefRecord::print()
 {
-    DMSG("  NDEF Record");
-    DMSG("    TNF 0x");
-    DMSG_HEX(_tnf);
-    DMSG(" ");
+    DMSG("  NDEF Record\n");
+    DMSG("    TNF 0x");DMSG_HEX(_tnf);DMSG(" ");
     switch (_tnf) {
     case TNF_EMPTY:
-        DMSG("Empty");
+        DMSG("Empty\n");
         break;
     case TNF_WELL_KNOWN:
-        DMSG("Well Known");
+        DMSG("Well Known\n");
         break;
     case TNF_MIME_MEDIA:
-        DMSG("Mime Media");
+        DMSG("Mime Media\n");
         break;
     case TNF_ABSOLUTE_URI:
-        DMSG("Absolute URI");
+        DMSG("Absolute URI\n");
         break;
     case TNF_EXTERNAL_TYPE:
-        DMSG("External");
+        DMSG("External\n");
         break;
     case TNF_UNKNOWN:
-        DMSG("Unknown");
+        DMSG("Unknown\n");
         break;
     case TNF_UNCHANGED:
-        DMSG("Unchanged");
+        DMSG("Unchanged\n");
         break;
     case TNF_RESERVED:
-        DMSG("Reserved");
+        DMSG("Reserved\n");
         break;
     default:
         DMSG("\n");
     }
-    DMSG("    Type Length 0x");
-    DMSG_HEX(_typeLength);
-    DMSG("    Payload Length 0x");
-    DMSG_HEX(_payloadLength);
+    DMSG("    Type Length 0x");DMSG_HEX(_typeLength);DMSG(" ");DMSG_INT(_typeLength);
+    DMSG("    Payload Length 0x");DMSG_HEX(_payloadLength);;DMSG(" ");DMSG_INT(_payloadLength);
     if (_idLength)
     {
-        DMSG("    Id Length 0x");
-        DMSG_HEX(_idLength);
+        DMSG("    Id Length 0x");DMSG_INT(_idLength);
     }
     DMSG("    Type ");PrintHexChar(_type, _typeLength);
     // TODO chunk large payloads so this is readable
@@ -358,6 +351,6 @@ void NdefRecord::print()
     {
         DMSG("    Id ");PrintHexChar(_id, _idLength);
     }
-    DMSG("    Record is ");
-    DMSG_INT(getEncodedSize());
+    DMSG("    Record is ");DMSG_INT(getEncodedSize());DMSG(" bytes\n");
+
 }

@@ -1,6 +1,7 @@
-
 #include "PN532_SPI.h"
 #include "PN532_debug.h"
+
+#include "rtos.h"
 
 #define STATUS_READ     2
 #define DATA_WRITE      1
@@ -45,7 +46,7 @@ int8_t PN532_SPI::writeCommand(const uint8_t *header, uint8_t hlen, const uint8_
 
     uint8_t timeout = PN532_ACK_WAIT_TIME;
     while (!isReady()) {
-        wait_ms(1);
+        Thread::wait(1);
         timeout--;
         if (0 == timeout) {
             DMSG("Time out when waiting for ACK\n");
@@ -63,7 +64,7 @@ int16_t PN532_SPI::readResponse(uint8_t buf[], uint8_t len, uint16_t timeout)
 {
     uint16_t time = 0;
     while (!isReady()) {
-        wait_ms(1);
+        Thread::wait(1);
         time++;
         if (timeout > 0 && time > timeout) {
             return PN532_TIMEOUT;
@@ -71,7 +72,7 @@ int16_t PN532_SPI::readResponse(uint8_t buf[], uint8_t len, uint16_t timeout)
     }
 
     _ss = 0;
-    wait_ms(1);
+    Thread::wait(1);
 
     int16_t result;
     do {
@@ -98,8 +99,7 @@ int16_t PN532_SPI::readResponse(uint8_t buf[], uint8_t len, uint16_t timeout)
             break;
         }
 
-        DMSG("read:  ");
-        DMSG_HEX(cmd);
+        DMSG("read A: 0x%X (buffer size: %d)\n", cmd, len);
 
         length -= 2;
         if (length > len) {
@@ -118,9 +118,11 @@ int16_t PN532_SPI::readResponse(uint8_t buf[], uint8_t len, uint16_t timeout)
             buf[i] = read();
             sum += buf[i];
 
-            DMSG_HEX(buf[i]);
+			DMSG("read B: 0x%X (buffer size: %d)\n", buf[i], len);
+
+            //DMSG_HEX(buf[i]);
         }
-        DMSG("\n");
+        //DMSG("\n");
 
         uint8_t checksum = read();
         if (0 != (uint8_t)(sum + checksum)) {
@@ -151,7 +153,7 @@ bool PN532_SPI::isReady()
 void PN532_SPI::writeFrame(const uint8_t *header, uint8_t hlen, const uint8_t *body, uint8_t blen)
 {
     _ss = 0;
-    wait_ms(2);               // wake up PN532
+    Thread::wait(2);               // wake up PN532
 
     write(DATA_WRITE);
     write(PN532_PREAMBLE);
@@ -176,8 +178,8 @@ void PN532_SPI::writeFrame(const uint8_t *header, uint8_t hlen, const uint8_t *b
     for (uint8_t i = 0; i < blen; i++) {
         write(body[i]);
         sum += body[i];
-        
-        DMSG_HEX(header[i]);
+
+        DMSG_HEX(body[i]);
     }
 
     uint8_t checksum = ~sum + 1;        // checksum of TFI + DATA
@@ -196,7 +198,7 @@ int8_t PN532_SPI::readAckFrame()
     uint8_t ackBuf[sizeof(PN532_ACK)];
 
     _ss = 0;
-    wait_ms(1);
+    Thread::wait(1);
     write(DATA_READ);
 
     for (uint8_t i = 0; i < sizeof(PN532_ACK); i++) {

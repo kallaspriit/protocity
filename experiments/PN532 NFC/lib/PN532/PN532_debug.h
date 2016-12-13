@@ -1,7 +1,7 @@
-#ifndef __DEBUG_H__
-#define __DEBUG_H__
+#ifndef __PN532_DEBUG_H__
+#define __PN532_DEBUG_H__
 
-#define DEBUG
+//#define DEBUG
 //#define MIFARE_ULTRALIGHT_DEBUG
 //#define MIFARE_CLASSIC_DEBUG
 
@@ -9,18 +9,18 @@
 
 #include <stdio.h>
 
-#define DMSG(args...)   printf(args)
-#define DMSG_STR(str)   printf("%s\n", str.c_str())
-#define DMSG_INT(num)   printf("%d\n", num)
-#define DMSG_HEX(num)   printf("%2X ", num)
+#define DMSG(args...)       printf(args)
+#define DMSG_STR(str)       printf("%s\n", str.c_str())
+#define DMSG_HEX(num)       printf(" '0x%X'\n", num)
+#define DMSG_INT(num)       printf(" '%d'\n", num)
 
 #else
 
 #define DMSG(args...)
 #define DMSG_STR(str)
-#define DMSG_INT(num)
 #define DMSG_HEX(num)
+#define DMSG_INT(num)
 
-#endif  // DEBUG
+#endif
 
-#endif  // __DEBUG_H__
+#endif
