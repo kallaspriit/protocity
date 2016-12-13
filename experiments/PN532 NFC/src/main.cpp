@@ -78,6 +78,8 @@ void loop() {
         } else {
 			pc.printf("found tag but it does not contain a message\n");
 		}
+
+		Thread::wait(500);
     } else {
 		pc.printf("no tag was detected\n");
 	}

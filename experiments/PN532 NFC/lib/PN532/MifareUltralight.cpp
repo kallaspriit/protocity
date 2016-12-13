@@ -52,13 +52,13 @@ NfcTag MifareUltralight::read(uint8_t * uid, unsigned int uidLength)
         if (success)
         {
             #ifdef MIFARE_ULTRALIGHT_DEBUG
-            DMSG("Page ");Serial.print(page);DMSG(" ");
+            DMSG("Page ");DMSG_INT(page);DMSG(" ");
             nfc->PrintHexChar(&buffer[index], ULTRALIGHT_PAGE_SIZE);
             #endif
         }
         else
         {
-            DMSG("Read failed ");DMSG_INT(page);
+            DMSG("# Read failed ");DMSG_INT(page);
             // TODO error handling
             messageLength = 0;
             break;
@@ -66,11 +66,19 @@ NfcTag MifareUltralight::read(uint8_t * uid, unsigned int uidLength)
 
         if (index >= (messageLength + ndefStartIndex))
         {
+			DMSG("# Invalid index %d > %d\n", index, messageLength + ndefStartIndex);
+            // TODO error handling
+			messageLength = 0;
+
             break;
         }
 
         index += ULTRALIGHT_PAGE_SIZE;
     }
+
+	DMSG("# Returning tag with message length: %d, uid: %s(%d)\n", messageLength, uid, uidLength);
+
+	buffer[messageLength] = '\0';
 
     NdefMessage ndefMessage = NdefMessage(&buffer[ndefStartIndex], messageLength);
     return NfcTag(uid, uidLength, NFC_FORUM_TAG_TYPE_2, ndefMessage);
@@ -103,7 +111,7 @@ void MifareUltralight::readCapabilityContainer()
         // See AN1303 - different rules for Mifare Family uint8_t2 = (additional data + 48)/8
         tagCapacity = data[2] * 8;
         #ifdef MIFARE_ULTRALIGHT_DEBUG
-        DMSG("Tag capacity "));Serial.print(tagCapacity);DMSG(F(" uint8_ts");
+        DMSG("Tag capacity ");DMSG_INT(tagCapacity);DMSG(" uint8_ts");
         #endif
 
         // TODO future versions should get lock information
@@ -123,7 +131,7 @@ void MifareUltralight::findNdefMessage()
     {
         success = success && nfc->mifareultralight_ReadPage(page, data_ptr);
         #ifdef MIFARE_ULTRALIGHT_DEBUG
-        DMSG("Page "));Serial.print(page);Serial.print(F(" - ");
+        DMSG("Page ");DMSG_INT(page);DMSG(" - ");
         nfc->PrintHexChar(data_ptr, 4);
         #endif
         data_ptr += ULTRALIGHT_PAGE_SIZE;
@@ -145,8 +153,8 @@ void MifareUltralight::findNdefMessage()
     }
 
     #ifdef MIFARE_ULTRALIGHT_DEBUG
-    DMSG("messageLength ");DMSG(messageLength);
-    DMSG("ndefStartIndex ");DMSG(ndefStartIndex);
+    DMSG("messageLength ");DMSG_INT(messageLength);
+    DMSG("ndefStartIndex ");DMSG_INT(ndefStartIndex);
     #endif
 }
 

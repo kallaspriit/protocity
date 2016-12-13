@@ -1,7 +1,9 @@
 #ifndef __DEBUG_H__
 #define __DEBUG_H__
 
-// #define DEBUG
+#define DEBUG
+//#define MIFARE_ULTRALIGHT_DEBUG
+//#define MIFARE_CLASSIC_DEBUG
 
 #ifdef DEBUG
 
