@@ -113,14 +113,16 @@ NdefMessage NfcTag::getNdefMessage()
 
 void NfcTag::print()
 {
-    DMSG("NFC Tag - ");DMSG_STR(_tagType);
-    DMSG("UID ");DMSG_STR(getUidString());
+    DMSG("NFC Tag type: %s, UID: %s\n", _tagType.c_str(), getUidString().c_str());
+
     if (_ndefMessage == NULL)
     {
-        DMSG("\nNo NDEF Message\n");
+        DMSG("Does not contain a NDEF message\n");
     }
     else
     {
+		DMSG("Contains a NDEF message\n");
+
         _ndefMessage->print();
     }
 }

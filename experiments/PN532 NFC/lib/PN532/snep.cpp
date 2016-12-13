@@ -32,11 +32,7 @@ int8_t SNEP::write(const uint8_t *buf, uint8_t len, uint16_t timeout)
 
 	// check SNEP version
 	if (SNEP_DEFAULT_VERSION != rbuf[0]) {
-		DMSG("The received SNEP message's major version is different, me: ");
-		DMSG_HEX(SNEP_DEFAULT_VERSION);
-		DMSG(", their: ");
-		DMSG_INT(rbuf[0]);
-		DMSG("\n");
+		DMSG("The received SNEP message's major version is different, mine: 0x%X, their: 0x%X\n", SNEP_DEFAULT_VERSION, rbuf[0]);
 		// To-do: send Unsupported Version response
 		return -4;
 	}
@@ -80,11 +76,7 @@ int16_t SNEP::read(uint8_t *buf, uint8_t len, uint16_t timeout)
 	}
 
 	if (SNEP_DEFAULT_VERSION != buf[0]) {
-		DMSG("SNEP->read: The received SNEP message's major version is different, me: ");
-		DMSG_INT(SNEP_DEFAULT_VERSION);
-		DMSG(", their: ");
-		DMSG_INT(buf[0]);
-		DMSG("\n");
+		DMSG("SNEP->read: The received SNEP message's major version is different, mine: %d, theirs: %d\n", SNEP_DEFAULT_VERSION, buf[0]);
 		// To-do: send Unsupported Version response
 		return -4;
 	}
@@ -99,10 +91,7 @@ int16_t SNEP::read(uint8_t *buf, uint8_t len, uint16_t timeout)
 	uint32_t length = (buf[2] << 24) + (buf[3] << 16) + (buf[4] << 8) + buf[5];
 	// length should not be more than 244 (header + body < 255, header = 6 + 3 + 2)
 	if (length > (status - 6)) {
-		DMSG("The SNEP message is too large: ");
-		DMSG_INT(length);
-		DMSG_INT(status - 6);
-		DMSG("\n");
+		DMSG("The SNEP message is too large: %d, %d\n", length, status - 6);
 		return -4;
 	}
 	for (uint8_t i = 0; i < length; i++) {

@@ -35,9 +35,15 @@ void setup() {
 	pc.printf("# setting up nfc module.. ");
 
 
-	nfc.begin();
+	if (!nfc.begin()) {
+		error("module not found!");
+	}
 
 	pc.printf("done!\n");
+
+	uint32_t versiondata = nfc.getVersionInfo();
+
+	printf("# found chip PN50x%X, firmware version: %d.%d\n", versiondata>>24, (versiondata>>16) & 0xFF, (versiondata>>8) & 0xFF);
 
 	/*
 	uint32_t versiondata = nfc.getFirmwareVersion();

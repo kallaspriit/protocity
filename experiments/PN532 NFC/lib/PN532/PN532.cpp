@@ -40,12 +40,7 @@ void PN532::PrintHex(const uint8_t *data, const uint32_t numBytes)
 {
 #ifdef ARDUINO
     for (uint8_t i = 0; i < numBytes; i++) {
-        if (data[i] < 0x10) {
-            DMSG(" 0");
-        } else {
-            DMSG(" ")
-        }
-        DMSG_HEX(data[i]);
+		DMSG("0x%X", data[i]);
     }
     DMSG("\n");
 #else
@@ -71,12 +66,7 @@ void PN532::PrintHexChar(const uint8_t *data, const uint32_t numBytes)
 {
 #ifdef ARDUINO
     for (uint8_t i = 0; i < numBytes; i++) {
-        if (data[i] < 0x10) {
-            DMSG(" 0");
-        } else {
-            DMSG(" ")
-        }
-        DMSG_HEX(data[i]);
+		DMSG("0x%X", data[i]);
     }
     DMSG("    ");
     for (uint8_t i = 0; i < numBytes; i++) {
@@ -84,7 +74,7 @@ void PN532::PrintHexChar(const uint8_t *data, const uint32_t numBytes)
         if (c <= 0x1f || c > 0x7f) {
             DMSG(".")
         } else {
-            DMSG_INT(c);
+            DMSG("%d", c);
         }
     }
     DMSG("\n");
@@ -171,9 +161,7 @@ bool PN532::writeGPIO(uint8_t pinstate)
     pn532_packetbuffer[1] = PN532_GPIO_VALIDATIONBIT | pinstate;  // P3 Pins
     pn532_packetbuffer[2] = 0x00;    // P7 GPIO Pins (not used ... taken by I2C)
 
-    DMSG("Writing P3 GPIO: ");
-    DMSG_HEX(pn532_packetbuffer[1]);
-    DMSG("\n");
+    DMSG("Writing P3 GPIO: 0x%X\n", pn532_packetbuffer[1]);
 
     // Send the WRITEGPIO command (0x0E)
     if (HAL(writeCommand)(pn532_packetbuffer, 3))
@@ -216,10 +204,7 @@ uint8_t PN532::readGPIO(void)
     */
 
 
-    DMSG("P3 GPIO: "); DMSG_HEX(pn532_packetbuffer[7]);
-    DMSG("P7 GPIO: "); DMSG_HEX(pn532_packetbuffer[8]);
-    DMSG("I0I1 GPIO: "); DMSG_HEX(pn532_packetbuffer[9]);
-    DMSG("\n");
+    DMSG("P3 GPIO: 0x%X, P7 GPIO: 0x%X, I0I1 GPIO: 0x%X\n", pn532_packetbuffer[7], pn532_packetbuffer[8], pn532_packetbuffer[9]);
 
     return pn532_packetbuffer[0];
 }
@@ -320,9 +305,7 @@ bool PN532::readPassiveTargetID(uint8_t cardbaudrate, uint8_t *uid, uint8_t *uid
     sens_res <<= 8;
     sens_res |= pn532_packetbuffer[3];
 
-    DMSG("ATQA: 0x");  DMSG_HEX(sens_res);
-    DMSG("SAK: 0x");  DMSG_HEX(pn532_packetbuffer[4]);
-    DMSG("\n");
+    DMSG("ATQA: 0x%X, SAK: 0x%X\n", sens_res, pn532_packetbuffer[4]);
 
     /* Card appears to be Mifare Classic */
     *uidLength = pn532_packetbuffer[5];
@@ -440,8 +423,7 @@ uint8_t PN532::mifareclassic_AuthenticateBlock (uint8_t *uid, uint8_t uidLen, ui
 /**************************************************************************/
 uint8_t PN532::mifareclassic_ReadDataBlock (uint8_t blockNumber, uint8_t *data)
 {
-    DMSG("Trying to read 16 bytes from block ");
-    DMSG_INT(blockNumber);
+    DMSG("Trying to read 16 bytes from block %d\n", blockNumber);
 
     /* Prepare the command */
     pn532_packetbuffer[0] = PN532_COMMAND_INDATAEXCHANGE;

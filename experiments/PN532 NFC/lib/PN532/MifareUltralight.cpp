@@ -112,7 +112,7 @@ bool MifareUltralight::isUnformatted()
     }
     else
     {
-        DMSG("Error. Failed read page ");DMSG_INT(page);
+        DMSG("Error. Failed reading page %d\n", page);
         return false;
     }
 }
@@ -127,7 +127,7 @@ void MifareUltralight::readCapabilityContainer()
         // See AN1303 - different rules for Mifare Family byte2 = (additional data + 48)/8
         tagCapacity = data[2] * 8;
         #ifdef MIFARE_ULTRALIGHT_DEBUG
-        DMSG("Tag capacity ");DMSG_INT(tagCapacity);DMSG(" bytes\n");
+        DMSG("Tag capacity: %d bytes\n", tagCapacity);
         #endif
 
         // TODO future versions should get lock information
@@ -147,7 +147,7 @@ void MifareUltralight::findNdefMessage()
     {
         success = success && nfc->mifareultralight_ReadPage(page, data_ptr);
         #ifdef MIFARE_ULTRALIGHT_DEBUG
-        DMSG("Page ");DMSG_INT(page);DMSG(" - ");
+        DMSG("Page %d - ", page);
         nfc->PrintHexChar(data_ptr, 4);
         #endif
         data_ptr += ULTRALIGHT_PAGE_SIZE;
@@ -169,8 +169,7 @@ void MifareUltralight::findNdefMessage()
     }
 
     #ifdef MIFARE_ULTRALIGHT_DEBUG
-    DMSG("messageLength ");DMSG_INT(messageLength);
-    DMSG("ndefStartIndex ");DMSG_INT(ndefStartIndex);
+    DMSG("messageLength: %d, ndefStartIndex: %d\n", messageLength, ndefStartIndex);
     #endif
 }
 
@@ -203,7 +202,7 @@ bool MifareUltralight::write(NdefMessage& m, uint8_t * uid, unsigned int uidLeng
 
     if(bufferSize>tagCapacity) {
 	    #ifdef MIFARE_ULTRALIGHT_DEBUG
-    	DMSG("Encoded Message length exceeded tag Capacity ");DMSG_INT(tagCapacity);
+    	DMSG("Encoded Message length exceeded tag Capacity: %d\n", tagCapacity);
     	#endif
     	return false;
     }
@@ -233,8 +232,7 @@ bool MifareUltralight::write(NdefMessage& m, uint8_t * uid, unsigned int uidLeng
     encoded[ndefStartIndex+messageLength] = 0xFE; // terminator
 
     #ifdef MIFARE_ULTRALIGHT_DEBUG
-    DMSG("messageLength ");DMSG_INT(messageLength);
-    DMSG("Tag Capacity ");DMSG_INT(tagCapacity);
+    DMSG("messageLength: %d, capacity: %d\n", messageLength, tagCapacity);
     nfc->PrintHex(encoded,bufferSize);
     #endif
 
@@ -243,7 +241,7 @@ bool MifareUltralight::write(NdefMessage& m, uint8_t * uid, unsigned int uidLeng
         if (!nfc->mifareultralight_WritePage(page, src))
             return false;
 		#ifdef MIFARE_ULTRALIGHT_DEBUG
-        DMSG("Wrote page ");DMSG_INT(page);DMSG(" - ");
+        DMSG("Wrote page %d - ", page);
     	nfc->PrintHex(src,ULTRALIGHT_PAGE_SIZE);
     	#endif
         page++;
@@ -266,7 +264,7 @@ bool MifareUltralight::clean()
 
     for (int i = ULTRALIGHT_DATA_START_PAGE; i < pages; i++) {
         #ifdef MIFARE_ULTRALIGHT_DEBUG
-        DMSG("Wrote page ");DMSG_INT(i);DMSG(" - ");
+        DMSG("Wrote page %d - ", i);
         nfc->PrintHex(data, ULTRALIGHT_PAGE_SIZE);
         #endif
         if (!nfc->mifareultralight_WritePage(i, data)) {

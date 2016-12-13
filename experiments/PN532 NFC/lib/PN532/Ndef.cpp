@@ -11,7 +11,7 @@ void PrintHex(const uint8_t * data, const long numBytes)
     // Append leading 0 for small values
     if (data[szPos] <= 0xF)
       DMSG("0");
-    DMSG_HEX(data[szPos]&0xff);
+    DMSG("%0x%X", data[szPos]&0xff);
     if ((numBytes > 1) && (szPos != numBytes - 1))
     {
       DMSG(" ");
@@ -24,25 +24,29 @@ void PrintHex(const uint8_t * data, const long numBytes)
 void PrintHexChar(const uint8_t * data, const long numBytes)
 {
   uint32_t szPos;
+
   for (szPos=0; szPos < numBytes; szPos++)
   {
     // Append leading 0 for small values
     if (data[szPos] <= 0xF)
-      DMSG("0");
-    DMSG_HEX(data[szPos]);
-    if ((numBytes > 1) && (szPos != numBytes - 1))
-    {
-      DMSG(" ");
-    }
+      DMSG("0x%X", data[szPos]);
+
+      if ((numBytes > 1) && (szPos != numBytes - 1))
+      {
+        DMSG(" ");
+      }
   }
-  DMSG("  ");
+
+  DMSG(" ");
+
   for (szPos=0; szPos < numBytes; szPos++)
   {
     if (data[szPos] <= 0x1F)
       DMSG(".");
     else
-      DMSG_INT((char)data[szPos]);
+      DMSG("%c", (char)data[szPos]);
   }
+
   DMSG("\n");
 }
 

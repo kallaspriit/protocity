@@ -25,7 +25,7 @@ class NfcAdapter {
         NfcAdapter(PN532Interface &interface);
 
         ~NfcAdapter(void);
-        void begin(bool verbose=true);
+        bool begin();
         bool tagPresent(unsigned long timeout=0); // tagAvailable
         NfcTag read();
         bool write(NdefMessage& ndefMessage);
@@ -35,6 +35,8 @@ class NfcAdapter {
         bool format();
         // reset tag back to factory state
         bool clean();
+
+		uint32_t getVersionInfo();
     private:
         PN532* shield;
         uint8_t uid[7];  // Buffer to store the returned UID

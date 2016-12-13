@@ -160,7 +160,8 @@ int MifareClassic::getNdefStartIndex(uint8_t *data)
         }
         else
         {
-            DMSG("Unknown TLV ");DMSG_HEX(data[i]);
+            DMSG("Unknown TLV: 0x%X\n", data[i]);
+
             return -2;
         }
     }
@@ -232,31 +233,31 @@ bool MifareClassic::formatNDEF(uint8_t * uid, unsigned int uidLength)
                 {
                     if (!(_nfcShield->mifareclassic_WriteDataBlock (i, emptyNdefMesg)))
                     {
-                        DMSG("Unable to write block ");DMSG_INT(i);
+                        DMSG("Unable to write block %d\n", i);
                     }
                 }
                 else
                 {
                     if (!(_nfcShield->mifareclassic_WriteDataBlock (i, sectorbuffer0)))
                     {
-                        DMSG("Unable to write block ");DMSG_INT(i);
+                        DMSG("Unable to write block %d\n", i);
                     }
                 }
                 if (!(_nfcShield->mifareclassic_WriteDataBlock (i+1, sectorbuffer0)))
                 {
-                    DMSG("Unable to write block ");DMSG_INT(i+1);
+                    DMSG("Unable to write block %d\n", i+1);
                 }
                 if (!(_nfcShield->mifareclassic_WriteDataBlock (i+2, sectorbuffer0)))
                 {
-                    DMSG("Unable to write block ");DMSG_INT(i+2);
+                    DMSG("Unable to write block %d\n", i+2);
                 }
                 if (!(_nfcShield->mifareclassic_WriteDataBlock (i+3, sectorbuffer4)))
                 {
-                    DMSG("Unable to write block ");DMSG_INT(i+3);
+                    DMSG("Unable to write block %d\n", i+3);
                 }
             } else {
                 unsigned int iii=uidLength;
-                DMSG("Unable to authenticate block ");DMSG_INT(i);
+                DMSG("Unable to authenticate block %d\n", i);
                 _nfcShield->readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, (uint8_t*)&iii);
             }
         }
@@ -292,7 +293,7 @@ bool MifareClassic::formatMifare(uint8_t * uid, unsigned int uidLength)
         success = _nfcShield->mifareclassic_AuthenticateBlock (uid, uidLength, BLOCK_NUMBER_OF_SECTOR_TRAILER(idx), 1, (uint8_t*)KEY_DEFAULT_KEYAB);
         if (!success)
         {
-            DMSG("Authentication failed for sector "); DMSG_INT(idx);
+            DMSG("Authentication failed for sector %d\n", idx);
             return false;
         }
 
@@ -302,7 +303,7 @@ bool MifareClassic::formatMifare(uint8_t * uid, unsigned int uidLength)
             memset(blockBuffer, 0, sizeof(blockBuffer));
             if (!(_nfcShield->mifareclassic_WriteDataBlock((BLOCK_NUMBER_OF_SECTOR_TRAILER(idx)) - 2, blockBuffer)))
             {
-                DMSG("Unable to write to sector "); DMSG_INT(idx);
+                DMSG("Unable to write to sector %d\n", idx);
             }
         }
         else
@@ -311,11 +312,11 @@ bool MifareClassic::formatMifare(uint8_t * uid, unsigned int uidLength)
             // this block has not to be overwritten for block 0. It contains Tag id and other unique data.
             if (!(_nfcShield->mifareclassic_WriteDataBlock((BLOCK_NUMBER_OF_SECTOR_TRAILER(idx)) - 3, blockBuffer)))
             {
-                DMSG("Unable to write to sector "); DMSG_INT(idx);
+                DMSG("Unable to write to sector %d\n", idx);
             }
             if (!(_nfcShield->mifareclassic_WriteDataBlock((BLOCK_NUMBER_OF_SECTOR_TRAILER(idx)) - 2, blockBuffer)))
             {
-                DMSG("Unable to write to sector "); DMSG_INT(idx);
+                DMSG("Unable to write to sector %d\n", idx);
             }
         }
 
@@ -323,7 +324,7 @@ bool MifareClassic::formatMifare(uint8_t * uid, unsigned int uidLength)
 
         if (!(_nfcShield->mifareclassic_WriteDataBlock((BLOCK_NUMBER_OF_SECTOR_TRAILER(idx)) - 1, blockBuffer)))
         {
-            DMSG("Unable to write to sector "); DMSG_INT(idx);
+            DMSG("Unable to write to sector %d\n", idx);
         }
 
         // Step 3: Reset both keys to 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
@@ -335,7 +336,7 @@ bool MifareClassic::formatMifare(uint8_t * uid, unsigned int uidLength)
         // Step 4: Write the trailer block
         if (!(_nfcShield->mifareclassic_WriteDataBlock((BLOCK_NUMBER_OF_SECTOR_TRAILER(idx)), blockBuffer)))
         {
-            DMSG("Unable to write trailer block of sector "); DMSG_INT(idx);
+            DMSG("Unable to write trailer block of sector %d\n", idx);
         }
     }
     return true;
@@ -351,8 +352,7 @@ bool MifareClassic::write(NdefMessage& m, uint8_t * uid, unsigned int uidLength)
     memset(buffer, 0, sizeof(buffer));
 
     #ifdef MIFARE_CLASSIC_DEBUG
-    DMSG("sizeof(encoded) ");DMSG_INT(sizeof(encoded));
-    DMSG("sizeof(buffer) ");DMSG_INT(sizeof(buffer));
+    DMSG("sizeof(encoded):%d, sizeof(buffer): %d\n", sizeof(encoded), sizeof(buffer));
     #endif
 
     if (sizeof(encoded) < 0xFF)
@@ -385,7 +385,7 @@ bool MifareClassic::write(NdefMessage& m, uint8_t * uid, unsigned int uidLength)
             int success = _nfcShield->mifareclassic_AuthenticateBlock(uid, uidLength, currentBlock, 0, key);
             if (!success)
             {
-                DMSG("Error. Block Authentication failed for ");DMSG_INT(currentBlock);
+                DMSG("Error. Block Authentication failed for %d\n", currentBlock);
                 return false;
             }
         }
@@ -394,13 +394,13 @@ bool MifareClassic::write(NdefMessage& m, uint8_t * uid, unsigned int uidLength)
         if (write_success)
         {
             #ifdef MIFARE_CLASSIC_DEBUG
-            DMSG("Wrote block ");DMSG_INT(currentBlock);DMSG(" - ");
+            DMSG("Wrote block %d - ", currentBlock);
             _nfcShield->PrintHexChar(&buffer[index], BLOCK_SIZE);
             #endif
         }
         else
         {
-            DMSG("Write failed ");DMSG_INT(currentBlock);
+            DMSG("Writing block %d failed\n", currentBlock);
             return false;
         }
         index += BLOCK_SIZE;
@@ -410,7 +410,7 @@ bool MifareClassic::write(NdefMessage& m, uint8_t * uid, unsigned int uidLength)
         {
             // can't write to trailer block
             #ifdef MIFARE_CLASSIC_DEBUG
-            DMSG("Skipping block ");DMSG_INT(currentBlock);
+            DMSG("Skipping block %d\n", currentBlock);
             #endif
             currentBlock++;
         }

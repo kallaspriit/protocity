@@ -104,7 +104,7 @@ int16_t PN532_SPI::readResponse(uint8_t buf[], uint8_t len, uint16_t timeout)
         length -= 2;
         if (length > len) {
             for (uint8_t i = 0; i < length; i++) {
-                DMSG_HEX(read());                 // dump message
+                DMSG("%d - 0x%X", i, read());                 // dump message
             }
             DMSG("\nNot enough space\n");
             read();
@@ -114,15 +114,13 @@ int16_t PN532_SPI::readResponse(uint8_t buf[], uint8_t len, uint16_t timeout)
         }
 
         uint8_t sum = PN532_PN532TOHOST + cmd;
+
         for (uint8_t i = 0; i < length; i++) {
             buf[i] = read();
             sum += buf[i];
 
 			DMSG("read B: 0x%X (buffer size: %d)\n", buf[i], len);
-
-            //DMSG_HEX(buf[i]);
         }
-        //DMSG("\n");
 
         uint8_t checksum = read();
         if (0 != (uint8_t)(sum + checksum)) {
@@ -167,19 +165,19 @@ void PN532_SPI::writeFrame(const uint8_t *header, uint8_t hlen, const uint8_t *b
     write(PN532_HOSTTOPN532);
     uint8_t sum = PN532_HOSTTOPN532;    // sum of TFI + DATA
 
-    DMSG("write: ");
+    DMSG("Writing (header length: %d, body length: %d):\n", hlen, blen);
 
     for (uint8_t i = 0; i < hlen; i++) {
         write(header[i]);
         sum += header[i];
 
-        DMSG_HEX(header[i]);
+        DMSG("HEADER %d - 0x%X\n", i, header[i]);
     }
     for (uint8_t i = 0; i < blen; i++) {
         write(body[i]);
         sum += body[i];
 
-        DMSG_HEX(body[i]);
+		DMSG("BODY %d - 0x%X\n", i, body[i]);
     }
 
     uint8_t checksum = ~sum + 1;        // checksum of TFI + DATA

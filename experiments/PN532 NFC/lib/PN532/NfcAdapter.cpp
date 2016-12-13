@@ -11,26 +11,29 @@ NfcAdapter::~NfcAdapter(void)
     delete shield;
 }
 
-void NfcAdapter::begin(bool verbose)
+bool NfcAdapter::begin()
 {
     shield->begin();
 
     uint32_t versiondata = shield->getFirmwareVersion();
 
-    if (! versiondata)
+    if (!versiondata)
     {
-        DMSG("Didn't find PN53x board");
-        while (1); // halt
+        DMSG("Didn't find PN53x board\n");
+
+        return false;
     }
 
-    if (verbose)
-    {
-        DMSG("Found chip PN5"); DMSG_HEX((versiondata>>24) & 0xFF);
-        DMSG("Firmware ver. "); DMSG_INT((versiondata>>16) & 0xFF);
-        DMSG("."); DMSG_INT((versiondata>>8) & 0xFF);
-    }
-    // configure board to read RFID tags
+    DMSG("Found chip PN5%X, firmare: %d.%d\n", (versiondata>>24) & 0xFF, (versiondata>>16) & 0xFF, (versiondata>>8) & 0xFF);
+
+    // configure board to read RFID tags (returns false for some reason?)
     shield->SAMConfig();
+
+	return true;
+}
+
+uint32_t NfcAdapter::getVersionInfo() {
+	return shield->getFirmwareVersion();
 }
 
 bool NfcAdapter::tagPresent(unsigned long timeout)
@@ -80,8 +83,7 @@ bool NfcAdapter::clean()
     if (type == TAG_TYPE_MIFARE_CLASSIC)
     {
         #ifdef NDEF_DEBUG
-        DMSG("Cleaning Mifare Classic
-");
+        DMSG("Cleaning Mifare Classic");
         #endif
         MifareClassic mifareClassic = MifareClassic(*shield);
         return mifareClassic.formatMifare(uid, uidLength);
@@ -89,15 +91,14 @@ bool NfcAdapter::clean()
     else if (type == TAG_TYPE_2)
     {
         #ifdef NDEF_DEBUG
-        DMSG("Cleaning Mifare Ultralight
-");
+        DMSG("Cleaning Mifare Ultralight");
         #endif
         MifareUltralight ultralight = MifareUltralight(*shield);
         return ultralight.clean();
     }
     else
     {
-        DMSG("No driver for card type ");DMSG_INT(type);
+        DMSG("No driver for card type %d\n", type);
         return false;
     }
 
@@ -111,8 +112,7 @@ NfcTag NfcAdapter::read()
     if (type == TAG_TYPE_MIFARE_CLASSIC)
     {
         #ifdef NDEF_DEBUG
-        DMSG("Reading Mifare Classic
-");
+        DMSG("Reading Mifare Classic");
         #endif
         MifareClassic mifareClassic = MifareClassic(*shield);
         return mifareClassic.read(uid, uidLength);
@@ -120,8 +120,7 @@ NfcTag NfcAdapter::read()
     else if (type == TAG_TYPE_2)
     {
         #ifdef NDEF_DEBUG
-        DMSG("Reading Mifare Ultralight
-");
+        DMSG("Reading Mifare Ultralight");
         #endif
         MifareUltralight ultralight = MifareUltralight(*shield);
         return ultralight.read(uid, uidLength);
@@ -133,7 +132,7 @@ NfcTag NfcAdapter::read()
     }
     else
     {
-        DMSG("No driver for card type ");DMSG_INT(type);
+        DMSG("No driver for card type %d\n", type);
         // TODO should set type here
         return NfcTag(uid, uidLength);
     }
@@ -148,8 +147,7 @@ bool NfcAdapter::write(NdefMessage& ndefMessage)
     if (type == TAG_TYPE_MIFARE_CLASSIC)
     {
         #ifdef NDEF_DEBUG
-        DMSG("Writing Mifare Classic
-");
+        DMSG("Writing Mifare Classic");
         #endif
         MifareClassic mifareClassic = MifareClassic(*shield);
         success = mifareClassic.write(ndefMessage, uid, uidLength);
@@ -157,8 +155,7 @@ bool NfcAdapter::write(NdefMessage& ndefMessage)
     else if (type == TAG_TYPE_2)
     {
         #ifdef NDEF_DEBUG
-        DMSG("Writing Mifare Ultralight
-");
+        DMSG("Writing Mifare Ultralight");
         #endif
         MifareUltralight mifareUltralight = MifareUltralight(*shield);
         success = mifareUltralight.write(ndefMessage, uid, uidLength);
@@ -170,7 +167,7 @@ bool NfcAdapter::write(NdefMessage& ndefMessage)
     }
     else
     {
-        DMSG("No driver for card type ");DMSG_INT(type);
+        DMSG("No driver for card type %d\n", type);
         success = false;
     }
 

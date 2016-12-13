@@ -9,7 +9,7 @@ NdefMessage::NdefMessage(void)
 NdefMessage::NdefMessage(const uint8_t * data, const int numBytes)
 {
     #ifdef NDEF_DEBUG
-    DMSG("Decoding ");DMSG_INT(numBytes);DMSG(" bytes\n");
+    DMSG("Decoding %d bytes\n", numBytes);
     PrintHexChar(data, numBytes);
     //DumpHex(data, numBytes, 16);
     #endif
@@ -266,11 +266,10 @@ NdefRecord NdefMessage::operator[](int index)
 
 void NdefMessage::print()
 {
-    DMSG("\nNDEF Message ");DMSG_INT(_recordCount);DMSG(" record");
-    if (_recordCount == 1) { DMSG(", "); } else { DMSG("s, "); }
-    DMSG_INT(getEncodedSize());DMSG(" bytes");
+    DMSG("\nNDEF Message record count: %d, encoded size: %d bytes\n", _recordCount, getEncodedSize());
 
     int i;
+
     for (i = 0; i < _recordCount; i++)
     {
          _records[i].print();

@@ -170,7 +170,6 @@ void NdefRecord::encode(uint8_t *data, bool firstRecord, bool lastRecord)
         data_ptr += 1;
     }
 
-    //DMSG_INT(2);
     memcpy(data_ptr, _type, _typeLength);
     data_ptr += _typeLength;
 
@@ -308,8 +307,7 @@ void NdefRecord::setId(const uint8_t * id, const unsigned int numBytes)
 
 void NdefRecord::print()
 {
-    DMSG("  NDEF Record\n");
-    DMSG("    TNF 0x");DMSG_HEX(_tnf);DMSG(" ");
+    DMSG("  NDEF Record TNF: 0x%X - ", _tnf);
     switch (_tnf) {
     case TNF_EMPTY:
         DMSG("Empty\n");
@@ -338,19 +336,24 @@ void NdefRecord::print()
     default:
         DMSG("\n");
     }
-    DMSG("    Type Length 0x");DMSG_HEX(_typeLength);DMSG(" ");DMSG_INT(_typeLength);
-    DMSG("    Payload Length 0x");DMSG_HEX(_payloadLength);;DMSG(" ");DMSG_INT(_payloadLength);
+
+    DMSG("    Type Length: %d\n", _typeLength);
+    DMSG("    Payload Length: %d\n", _payloadLength);
+
     if (_idLength)
     {
-        DMSG("    Id Length 0x");DMSG_INT(_idLength);
+        DMSG("    Id Length: %d\n", _idLength);
     }
+
     DMSG("    Type ");PrintHexChar(_type, _typeLength);
+
     // TODO chunk large payloads so this is readable
     DMSG("    Payload ");PrintHexChar(_payload, _payloadLength);
+
     if (_idLength)
     {
         DMSG("    Id ");PrintHexChar(_id, _idLength);
     }
-    DMSG("    Record is ");DMSG_INT(getEncodedSize());DMSG(" bytes\n");
 
+    DMSG("    Record is %d bytes\n", getEncodedSize());
 }
