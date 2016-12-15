@@ -16,6 +16,7 @@ const PinName PN532_SPI_SCK = p7;
 const PinName PN532_SPI_CHIP_SELECT = p26;
 const PinName SERIAL_TX = USBTX;
 const PinName SERIAL_RX = USBRX;
+const int MAX_PAYLOAD_SIZE = 128;
 
 // constants
 const char RECORD_TYPE_TEXT[] = "T";
@@ -30,10 +31,10 @@ PN532_SPI interface(spi, PN532_SPI_CHIP_SELECT);
 NfcAdapter nfc = NfcAdapter(interface);
 DigitalOut led(LED1);
 int counter = 0;
+uint8_t payload[MAX_PAYLOAD_SIZE];
 
 void setup() {
 	pc.printf("# setting up nfc module.. ");
-
 
 	if (!nfc.begin()) {
 		error("module not found!");
@@ -43,7 +44,7 @@ void setup() {
 
 	uint32_t versiondata = nfc.getVersionInfo();
 
-	printf("# found chip PN50x%X, firmware version: %d.%d\n", versiondata>>24, (versiondata>>16) & 0xFF, (versiondata>>8) & 0xFF);
+	printf("# found chip PN50%X, firmware version: %X.%X\n", (unsigned int)(versiondata>>24), (unsigned int)((versiondata>>16) & 0xFF), (unsigned int)((versiondata>>8) & 0xFF));
 
 	/*
 	uint32_t versiondata = nfc.getFirmwareVersion();
@@ -63,7 +64,7 @@ void setup() {
 void loop() {
 	led = !led;
 
-	// pc.printf("\n# checking for tag\n");
+	pc.printf("# checking for tag\n");
 
 	std::string tagName = "";
 
@@ -80,13 +81,17 @@ void loop() {
 
 			for (int i = 0; i < recordCount; i++) {
 				NdefRecord record = message.getRecord(i);
-				int idLength = record.getIdLength();
 				string recordId = record.getId();
 				string recordType = record.getType();
-				int tnf = record.getTnf();
 
 				int payloadLength = record.getPayloadLength();
-				uint8_t payload[payloadLength];
+
+				if (payloadLength > MAX_PAYLOAD_SIZE) {
+					pc.printf("# payload is too large (%d > %d)", payloadLength, MAX_PAYLOAD_SIZE);
+
+					continue;
+				}
+
 				record.getPayload(payload);
 				string payloadAsString = "";
 				int payloadStartIndex = 0;
