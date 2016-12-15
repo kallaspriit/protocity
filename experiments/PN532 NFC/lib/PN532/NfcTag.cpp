@@ -2,6 +2,8 @@
 #include <PN532_debug.h>
 
 #include <string.h>
+#include <sstream>
+#include <iomanip>
 
 NfcTag::NfcTag()
 {
@@ -75,25 +77,18 @@ void NfcTag::getUid(uint8_t *uid, unsigned int uidLength)
 
 string NfcTag::getUidString()
 {
-    string uidString = "";
+	std::stringstream ss;
+
     for (int i = 0; i < _uidLength; i++)
     {
-        if (i > 0)
-        {
-            uidString += " ";
-        }
+		if (i > 0) {
+			ss << ":";
+		}
 
-        if (_uid[i] < 0xF)
-        {
-            uidString += "0";
-        }
-
-		// TODO better way to append hex?
-        //uidstring += String((unsigned int)_uid[i], (unsigned char)HEX);
-        //uidString +=_uid[i];
+		ss << std::uppercase << std::setfill('0') << std::setw(2) << std::hex << (unsigned int)_uid[i];
     }
-    //uidString.toUpperCase();
-    return uidString;
+	
+    return ss.str();
 }
 
 string NfcTag::getTagType()
