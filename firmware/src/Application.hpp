@@ -129,8 +129,9 @@ private:
 	PortController port5;
 	PortController port6;
 
-	// update timer
+	// updates
 	Timer timer;
+	DigitalOut mainLoopLed;
 
 	// controller mapping
 	DigitalPortNumberToControllerMap portNumberToControllerMap;

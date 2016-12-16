@@ -46,7 +46,8 @@ void TSL2561Capability::enable() {
 
 	printf("# enabling TSL2561 luminosity measurement every %d milliseconds\n", measurementIntervalMs);
 
-	sensor = new TSL2561(p9, p10, TSL2561_ADDR_FLOAT);
+	// TODO make I2C pins configurable
+	sensor = new TSL2561(p32, p31, TSL2561_ADDR_FLOAT);
 	sensor->setGain(TSL2561_GAIN_0X);
 	sensor->setTiming(TSL2561_INTEGRATIONTIME_402MS);
 

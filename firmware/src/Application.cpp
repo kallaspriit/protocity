@@ -13,7 +13,8 @@ Application::Application(Config *config, Serial *serial) :
 	port3(3, config->port3Pin),
 	port4(4, config->port4Pin),
 	port5(5, config->port5Pin),
-	port6(6, config->port6Pin)
+	port6(6, config->port6Pin),
+	mainLoopLed(config->mainLoopLedPin)
 {}
 
 void Application::run() {
@@ -43,6 +44,8 @@ void Application::loop() {
 	sendQueuedMessages();
 	updateControllers(deltaUs);
 	updateHeartbeat(deltaUs);
+
+	mainLoopLed = !mainLoopLed;
 }
 
 void Application::setupSerial() {

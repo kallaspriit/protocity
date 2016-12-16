@@ -4,6 +4,8 @@
 #include "CommandManager.hpp"
 
 #include "mbed.h"
+#include "rtos.h"
+
 #include <string>
 
 class PortController;
@@ -18,6 +20,12 @@ public:
 	virtual void update(int deltaUs) {};
 
 protected:
+	//void startStepThread();
+	//virtual void runThread();
+	//virtual void step(int deltaUs);
+	//Thread thread;
+	//Timer timer;
+
 	Serial *serial;
 	PortController *portController;
 

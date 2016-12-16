@@ -26,6 +26,9 @@ public:
 	// analog-in capable ports
 	PinName port6Pin = p15;
 
+	// this led toggles on every main loop run
+	PinName mainLoopLedPin = p33;
+
 	/* frdm_k64f ###
 
 	// digital pwm-capable ports
