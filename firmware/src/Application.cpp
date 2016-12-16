@@ -4,6 +4,7 @@
 #include "capabilities/TSL2561Capability.hpp"
 #include "capabilities/TMP102Capability.hpp"
 #include "capabilities/MPL3115A2Capability.hpp"
+#include "capabilities/PN532Capability.hpp"
 
 Application::Application(Config *config, Serial *serial) :
 	config(config),
@@ -88,6 +89,7 @@ void Application::setupPort(PortController *portController) {
 	portController->addCapability(new TSL2561Capability(serial, portController));
 	portController->addCapability(new TMP102Capability(serial, portController));
 	portController->addCapability(new MPL3115A2Capability(serial, portController));
+	portController->addCapability(new PN532Capability(serial, portController, p26));
 }
 
 void Application::setupDebug() {
