@@ -33,8 +33,4 @@ public class ButtonSensor {
         }
     }
 
-    public String toString() {
-        return "ButtonSensor{buttonState=" + buttonState + '}';
-    }
-
 }

@@ -32,9 +32,4 @@ public class MotionSensor {
 			return motionState == motionSensor.motionState;
 		}
 	}
-
-	public String toString() {
-		return "MotionSensor{motionState=" + motionState + '}';
-	}
-
 }

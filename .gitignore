@@ -9,3 +9,4 @@
 /etherio-test/build
 ~$*
 .pioenvs
+/dashboard/elm-stuff

@@ -14,6 +14,7 @@ import com.stagnationlab.c8y.driver.platforms.etherio.EtherioLightSensor;
 import com.stagnationlab.c8y.driver.platforms.etherio.EtherioMonitoringSensor;
 import com.stagnationlab.c8y.driver.platforms.etherio.EtherioMotionSensor;
 import com.stagnationlab.c8y.driver.platforms.etherio.EtherioRelayActuator;
+import com.stagnationlab.c8y.driver.platforms.etherio.EtherioTagSensor;
 import com.stagnationlab.c8y.driver.platforms.etherio.EtherioTemperatureSensor;
 import com.stagnationlab.c8y.driver.platforms.simulated.SimulatedLightSensor;
 import com.stagnationlab.c8y.driver.platforms.simulated.SimulatedRelayActuator;
@@ -182,7 +183,7 @@ public class Gateway implements Driver, OperationExecutor {
 
 	private void setupEtherio() throws IOException {
 		// TODO make host and port configurable, support multiple
-		String hostName = "10.220.20.131";
+		String hostName = "10.220.20.125";
 		int portNumber = 8080;
 
 		SocketClient socketClient = new SocketClient(hostName, portNumber);
@@ -195,13 +196,14 @@ public class Gateway implements Driver, OperationExecutor {
 		log.info("setting up sensors");
 
 		// EtherIO devices
-	    setupEtherioRelayActuator();
-//      setupEtherioButtonSensor();
-//      setupEtherioMonitoringSensor();
-//      setupEtherioAnalogInputSensor();
-//      setupEtherioMotionSensor();
-//		setupEtherioLightSensor();
+//	    setupEtherioRelayActuator();
+//		setupEtherioButtonSensor();
+//		setupEtherioMonitoringSensor();
+//		setupEtherioAnalogInputSensor();
+//		setupEtherioMotionSensor();
+		setupEtherioLightSensor();
 //		setupEtherioTemperatureSensor();
+		setupEtherioTagSensor();
 
 		// simulated devices
 		// setupSimulatedLightSensor();
@@ -266,6 +268,13 @@ public class Gateway implements Driver, OperationExecutor {
 		// TODO make port configurable
 		registerDriver(
 				new EtherioTemperatureSensor("EtherIO temperature sensor", commander, 6)
+		);
+	}
+
+	private void setupEtherioTagSensor() {
+		// TODO make port configurable
+		registerDriver(
+				new EtherioTagSensor("EtherIO tag sensor", commander, 1)
 		);
 	}
 }
