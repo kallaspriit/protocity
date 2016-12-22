@@ -10,3 +10,4 @@
 ~$*
 .pioenvs
 /dashboard/elm-stuff
+/dashboard/node_modules

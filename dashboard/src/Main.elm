@@ -7,42 +7,26 @@ import Http
 import Json.Decode exposing (Decoder, float, int, string)
 import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required, requiredAt)
 import Task
-
-
--- application models
-
-
-type alias Model =
-    { user : Maybe User
-    , userId : Int
-    , isLoading : Bool
-    , error : Maybe Http.Error
-    }
-
-
-type alias User =
-    { id : Int
-    , firstName : String
-    , lastName : String
-    , avatar : String
-    }
-
+import Model exposing (..)
+import User
 
 
 -- initial model and commands generator
 
 
-init : ( Model, Cmd Msg )
-init =
+init : Flags -> ( Model, Cmd Msg )
+init flags =
     let
         initialModel =
             { user = Nothing
             , userId = 0
             , isLoading = False
             , error = Nothing
+            , swapCount = flags.swapCount
             }
     in
-        ( initialModel, loadFirstUser )
+        Debug.log "init"
+            ( initialModel, Cmd.none )
 
 
 
@@ -96,9 +80,11 @@ userDecoder =
 view : Model -> Html Msg
 view model =
     div []
-        [ h1 [] [ text "Elm HTTP request playground" ]
-        , button [ onClick LoadUser ] [ text "Load user" ]
+        [ img [ src "assets/logo.png" ] []
+        , h1 [] [ text "Elm HTTP request playground" ]
+        , button [ onClick LoadUser ] [ text "Load next user" ]
         , viewUser model
+        , em [] [ text ("parts of this application have been reloaded " ++ (toString model.swapCount) ++ " times") ]
         , p [] [ text (toString model) ]
         ]
 
@@ -113,7 +99,7 @@ viewUser model =
             if model.isLoading then
                 viewLoading model
             else
-                viewUserInfo model
+                User.viewUserInfo model.user
 
 
 viewLoading : Model -> Html Msg
@@ -122,20 +108,6 @@ viewLoading model =
         [ h2 [] [ text "Loading user" ]
         , div [] [ text ("Loading user #" ++ (toString model.userId) ++ " info") ]
         ]
-
-
-viewUserInfo : Model -> Html Msg
-viewUserInfo model =
-    case model.user of
-        Just user ->
-            div [ class "user" ]
-                [ h2 [] [ text "User info" ]
-                , div [ class "name" ] [ text (user.firstName ++ " " ++ user.lastName) ]
-                , div [ class "avatar" ] [ img [ src user.avatar ] [] ]
-                ]
-
-        Nothing ->
-            div [] [ text ("User not loaded") ]
 
 
 viewError : Http.Error -> Html Msg
@@ -200,9 +172,9 @@ subscriptions model =
 -- main program
 
 
-main : Program Never Model Msg
+main : Program Flags Model Msg
 main =
-    Html.program
+    Html.programWithFlags
         { init = init
         , view = view
         , update = update
