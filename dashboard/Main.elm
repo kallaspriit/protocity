@@ -129,7 +129,7 @@ viewUserInfo model =
     case model.user of
         Just user ->
             div [ class "user" ]
-                [ h2 [] [ text "User loaded" ]
+                [ h2 [] [ text "User info" ]
                 , div [ class "name" ] [ text (user.firstName ++ " " ++ user.lastName) ]
                 , div [ class "avatar" ] [ img [ src user.avatar ] [] ]
                 ]
