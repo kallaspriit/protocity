@@ -2,7 +2,7 @@
 **Displays information from the Cumulocity IoT platform about the protocity.**
 
 ## Development environment setup
-See [this guide](https://github.com/knowthen/elm/blob/master/DEVSETUP.md) for original guide, copied here below.
+See [this guide](https://github.com/knowthen/elm/blob/master/DEVSETUP.md) for original guide, copied here below. Or the [official atom installation guide](https://atom.io/packages/language-elm).
 
 1. Install Recent Version of **Nodejs** by downloading and running the installer found at https://nodejs.org/en/ or use the Node Version Manager found at https://github.com/creationix/nvm
 2. Install **Elm** by keying the command `npm install -g elm`
@@ -19,9 +19,33 @@ See [this guide](https://github.com/knowthen/elm/blob/master/DEVSETUP.md) for or
 15. Install the elm linter by keying `apm install linter-elm-make`
 16. Locate and copy the path and file for the `elm-make` command by keying the command `which elm-make` for mac or `where.exe elm-make` on windows.
 17. Open the `linter-elm-make` settings page in atom as you did in steps 7 and 13, then click the settings button next to `linter-elm-make` and then set the `elm-make` setting to the copied value from the prior step.
+18. Add `elmjuutsu` package, enable its autocomplete, disable `language-elm` autocomplete, configure keymap
 
+```
+'atom-text-editor:not([mini])[data-grammar^="source elm"]':
+  'f12': 'elmjutsu:go-to-definition'
+  'ctrl-r': 'elmjutsu:go-to-symbol'
+  'shift-f12': 'elmjutsu:find-usages'
+  'f8': 'elmjutsu:go-to-next-usage'
+  'shift-f8': 'elmjutsu:go-to-previous-usage'
+  'ctrl-f12': 'elmjutsu:go-back'
+  'f2': 'elmjutsu:rename-symbol'
+  'alt-insert': 'elmjutsu:add-import'
+
+'atom-workspace':
+  'f1': 'elmjutsu:toggle-sidekick'
+  'ctrl-shift-f12': 'elmjutsu:hide-usages-panel'
+```
 Your atom / elm dev environment should be good to go!
 
 ## Links
 - [reference application](https://github.com/knowthen/elm/blob/master/scorekeeper-plays-section/Main.elm)
 - [mock api](https://reqres.in/)
+- [Elm architecture](https://guide.elm-lang.org/architecture/)
+- [Online editor](http://elm-lang.org/examples/hello-html)
+- [Elm examples](http://elm-lang.org/examples)
+- [Elm performance](http://elm-lang.org/blog/blazing-fast-html-round-two)
+- [Elm decode pipeline](http://package.elm-lang.org/packages/NoRedInk/elm-decode-pipeline/latest)
+- [elm-lang.org source code](https://github.com/elm-lang/package.elm-lang.org/)
+- [Elm-decode-pipeline tests](https://github.com/NoRedInk/elm-decode-pipeline/blob/master/tests/Tests.elm)
+- [Elm tutorial](https://www.elm-tutorial.org/en/)
