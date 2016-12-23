@@ -58,7 +58,7 @@ loadFirstUser =
 view : Model -> Html Msg
 view model =
     div []
-        [ img [ src "assets/logo.png" ] []
+        [ img [ src "Asset/logo.png" ] []
         , h1 [] [ text "Elm HTTP request playground" ]
         , button [ onClick LoadUser ] [ text "Load next user" ]
         , viewUser model
