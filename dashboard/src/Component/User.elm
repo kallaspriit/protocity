@@ -1,8 +1,8 @@
-module User exposing (..)
+module Component.User exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Model exposing (User)
+import Model.User exposing (..)
 
 
 viewUserInfo : Maybe User -> Html msg

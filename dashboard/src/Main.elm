@@ -7,22 +7,35 @@ import Http
 import Json.Decode exposing (Decoder, float, int, string)
 import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required, requiredAt)
 import Task
-import Model exposing (..)
-import User
+import Model.User exposing (..)
+import Component.User exposing (..)
 
 
--- initial model and commands generator
+-- main application model
 
 
-init : Flags -> ( Model, Cmd Msg )
-init flags =
+type alias Model =
+    { user : Maybe User
+    , userId : Int
+    , isLoading : Bool
+    , error : Maybe Http.Error
+    , swapCount : Int
+    }
+
+
+
+-- initializes the model and provides initial commands
+
+
+init : ( Model, Cmd Msg )
+init =
     let
         initialModel =
             { user = Nothing
             , userId = 0
             , isLoading = False
             , error = Nothing
-            , swapCount = flags.swapCount
+            , swapCount = 0
             }
     in
         Debug.log "init"
@@ -30,7 +43,7 @@ init flags =
 
 
 
--- list of possible actions
+-- enumeration of possible actions
 
 
 type Msg
@@ -84,7 +97,7 @@ view model =
         , h1 [] [ text "Elm HTTP request playground" ]
         , button [ onClick LoadUser ] [ text "Load next user" ]
         , viewUser model
-        , em [] [ text ("parts of this application have been reloaded " ++ (toString model.swapCount) ++ " times") ]
+        , em [] [ text ("parts of this application have been hot-swapped " ++ (toString model.swapCount) ++ " times") ]
         , p [] [ text (toString model) ]
         ]
 
@@ -99,7 +112,7 @@ viewUser model =
             if model.isLoading then
                 viewLoading model
             else
-                User.viewUserInfo model.user
+                viewUserInfo model.user
 
 
 viewLoading : Model -> Html Msg
@@ -172,9 +185,9 @@ subscriptions model =
 -- main program
 
 
-main : Program Flags Model Msg
+main : Program Never Model Msg
 main =
-    Html.programWithFlags
+    Html.program
         { init = init
         , view = view
         , update = update

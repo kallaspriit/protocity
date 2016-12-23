@@ -38,6 +38,11 @@ See [this guide](https://github.com/knowthen/elm/blob/master/DEVSETUP.md) for or
 ```
 Your atom / elm dev environment should be good to go!
 
+## Running the application
+1. Run `elm-reactor` to start the application on port 8000, provides time-travelling debugger but no hot-swapping.
+2. Run `npm run dev` to start the application on port 3000, provides hot-swapping.
+3. Run `npm run build` to build a production application in **dist** directory.
+
 ## Links
 - [reference application](https://github.com/knowthen/elm/blob/master/scorekeeper-plays-section/Main.elm)
 - [mock api](https://reqres.in/)
@@ -49,3 +54,5 @@ Your atom / elm dev environment should be good to go!
 - [elm-lang.org source code](https://github.com/elm-lang/package.elm-lang.org/)
 - [Elm-decode-pipeline tests](https://github.com/NoRedInk/elm-decode-pipeline/blob/master/tests/Tests.elm)
 - [Elm tutorial](https://www.elm-tutorial.org/en/)
+- [Sortable table stateful view component example](https://github.com/evancz/elm-sortable-table)
+- [Elm cheat-sheet](https://github.com/izdi/elm-cheat-sheet)

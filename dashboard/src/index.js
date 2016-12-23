@@ -3,9 +3,7 @@
 require('./index.html');
 var Elm = require('./Main');
 
-var elm = Elm.Main.fullscreen({
-  swapCount: 0
-});
+var elm = Elm.Main.fullscreen();
 
 elm.hot.subscribe(function(event, context) {
   context.state.swapCount ++
