@@ -6,8 +6,10 @@ import Html.Events exposing (..)
 import Http
 import Task
 import Model.User exposing (..)
+import Model.NfcTag exposing (..)
 import Model.Msg exposing (..)
 import Api.User exposing (..)
+import Api.NfcTag exposing (..)
 import Component.User exposing (..)
 
 
@@ -16,6 +18,7 @@ import Component.User exposing (..)
 
 type alias Model =
     { user : Maybe User
+    , nfcTag : Maybe NfcTag
     , userId : Int
     , isLoading : Bool
     , error : Maybe Http.Error
@@ -32,6 +35,7 @@ init =
     let
         initialModel =
             { user = Nothing
+            , nfcTag = Nothing
             , userId = 0
             , isLoading = False
             , error = Nothing
@@ -61,6 +65,7 @@ view model =
         [ img [ src "Asset/logo.png" ] []
         , h1 [] [ text "Elm HTTP request playground" ]
         , button [ onClick LoadUser ] [ text "Load next user" ]
+        , button [ onClick LoadNfcTag ] [ text "Load nfc tag" ]
         , viewUser model
         , em [] [ text ("parts of this application have been hot-swapped " ++ (toString model.swapCount) ++ " times") ]
         , p [] [ text (toString model) ]
@@ -133,6 +138,16 @@ update msg model =
             ( { model | user = Just loadedUser, isLoading = False, error = Nothing }, Cmd.none )
 
         UserResult (Err error) ->
+            -- todo: handle error
+            ( { model | error = Just error, isLoading = False }, Cmd.none )
+
+        LoadNfcTag ->
+            ( { model | isLoading = True, error = Nothing }, loadNfcTag 10341859 )
+
+        NfcTagResult (Ok loadedNfcTag) ->
+            ( { model | nfcTag = Just loadedNfcTag, isLoading = False, error = Nothing }, Cmd.none )
+
+        NfcTagResult (Err error) ->
             -- todo: handle error
             ( { model | error = Just error, isLoading = False }, Cmd.none )
 

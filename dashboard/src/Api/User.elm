@@ -1,8 +1,6 @@
 module Api.User exposing (..)
 
-import Html exposing (..)
 import Http
-import Task
 import Json.Decode exposing (Decoder, float, int, string)
 import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required, requiredAt)
 import Model.Msg exposing (..)
