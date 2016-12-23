@@ -4,10 +4,10 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
-import Json.Decode exposing (Decoder, float, int, string)
-import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required, requiredAt)
 import Task
 import Model.User exposing (..)
+import Model.Msg exposing (..)
+import Api.User exposing (..)
 import Component.User exposing (..)
 
 
@@ -43,47 +43,12 @@ init =
 
 
 
--- enumeration of possible actions
-
-
-type Msg
-    = LoadUser
-    | UserResult (Result Http.Error User)
-
-
-
--- http actions
-
-
-loadUser : Int -> Cmd Msg
-loadUser id =
-    let
-        url =
-            "https://reqres.in/api/users/" ++ (toString id) ++ "?delay=1"
-
-        request =
-            Http.get url userDecoder
-    in
-        Http.send UserResult request
+-- action helpers
 
 
 loadFirstUser : Cmd Msg
 loadFirstUser =
     Task.perform identity (Task.succeed LoadUser)
-
-
-
--- http json response decoders for a response like
--- {"data":{"id":1,"first_name":"george","last_name":"bluth","avatar":"https://s3.amazonaws.com/uifaces/faces/twitter/calebogden/128.jpg"}}
-
-
-userDecoder : Decoder User
-userDecoder =
-    decode User
-        |> requiredAt [ "data", "id" ] int
-        |> requiredAt [ "data", "first_name" ] string
-        |> requiredAt [ "data", "last_name" ] string
-        |> requiredAt [ "data", "avatar" ] string
 
 
 
