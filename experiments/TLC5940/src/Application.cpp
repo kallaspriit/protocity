@@ -45,12 +45,16 @@ void Application::loop(int deltaUs) {
     unsigned short GSData[16] = { 0x0000 };
     unsigned short value = (unsigned short)(breatheDutyCycle * 4095.0f);
 
-    serial->printf("power: %f - %d\n", breatheDutyCycle, value);
+    // serial->printf("power: %f - %d\n", breatheDutyCycle, value);
 
     for (int i = 0; i < BREATHE_LED_COUNT; i++) {
         //ledDriver.setValue(i, breatheDutyCycle);
 
-        GSData[i] = value;
+        if (i % 2 == 0) {
+            GSData[i] = value;
+        } else {
+            GSData[i] = 4095 - value;
+        }
     }
 
     // Enable the first LED

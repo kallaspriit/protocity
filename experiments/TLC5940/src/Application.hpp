@@ -27,7 +27,7 @@ private:
 
 	// breathe configuration
 	const int BREATHE_UPDATE_FPS = 60;
-	const float BREATHE_PERIOD = 5.0f;
+	const float BREATHE_PERIOD = 2.0f;
 	const int BREATHE_FRAME_DURATION = 1000 / BREATHE_UPDATE_FPS;
 	const float BREATHE_FRAME_STEP = ((1.0f / BREATHE_PERIOD) / (float)BREATHE_UPDATE_FPS) * 2.0f;
 	const int BREATHE_LED_COUNT = 16;

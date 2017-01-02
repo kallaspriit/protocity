@@ -2,6 +2,7 @@
 #define TLC5940_H
 
 #include "mbed.h"
+//#include <FastPWM.h>
 
  /*
 
