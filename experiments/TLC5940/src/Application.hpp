@@ -18,10 +18,11 @@ public:
 private:
 	// pin configuration
 	static const PinName TLC5940_SPI_MOSI = p11;	// SPI data output
-	static const PinName TLC5940_SPI_MISO = p12;	// SPI data input (not actually used)
-	static const PinName TLC5940_SPI_SCK = p13;		// SPI clock
+	static const PinName TLC5940_SPI_SCLK = p13;	// SPI clock
 	static const PinName TLC5940_XLAT = p14;		// digital out
 	static const PinName TLC5940_BLANK = p15;		// digital out
+	static const PinName TLC5940_VPRG = p16;		// digital out
+	static const PinName TLC5940_DCPRG = p17;		// digital out (not available on the sparkfun board)
 	static const PinName TLC5940_GSCLK = p25;		// pwm out
 
 	// breathe configuration

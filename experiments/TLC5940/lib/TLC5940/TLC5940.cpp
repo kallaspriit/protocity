@@ -1,68 +1,119 @@
 #include "TLC5940.hpp"
 
-#include <algorithm>
-
-TLC5940::TLC5940(PinName mosi, PinName miso, PinName sck, PinName xlat, PinName blank, PinName gsclk)
+TLC5940::TLC5940(PinName SCLK, PinName MOSI, PinName GSCLK, PinName BLANK,
+                 PinName XLAT, PinName DCPRG, PinName VPRG, const int number) : number(number),
+                                                                                spi(MOSI, NC, SCLK),
+                                                                                gsclk(GSCLK),
+                                                                                blank(BLANK),
+                                                                                xlat(XLAT),
+                                                                                dcprg(DCPRG),
+                                                                                vprg(VPRG),
+                                                                                newGSData(false),
+                                                                                newDCData(false),
+                                                                                need_xlat(false)
 {
-    _spi = new SPI(mosi, miso, sck);
-    _xlat = new DigitalOut(xlat);
-    _blank = new DigitalOut(blank);
-    _gsclk = new PwmOut(gsclk);
-    _t = new Ticker();
+    // Configure SPI to 12 bits and SPI_SPEED
+    spi.format(12, 0);
+    spi.frequency(SPI_SPEED);
 
-    // Setup SPI
-    _spi->format(12,0);
-    //_spi->frequency(5000000);
-    _spi->frequency(30000000);
+    // Set output pin states
+    dcprg = 0;
+    vprg = 0;
+    xlat = 0;
+    blank = 1;
 
-    //Turn off GSCLK
-    _gsclk->write(0.0f);
-    _gsclk->period_us(5);
+    // Call the reset function every 4096 PWM outputs
+    reset_ticker.attach_us(this, &TLC5940::reset, (1000000.0/GSCLK_SPEED) * 4096.0);
 
-    // Reset to 0
-    for(int i = 0; i < 16; i++)
+    // Configure FastPWM output for GSCLK frequency at 50% duty cycle
+    //gsclk.period_us(1000000.0/(GSCLK_SPEED * 1.05));
+    gsclk.period_us(1);
+    gsclk.write(.5);
+}
+
+void TLC5940::setNewGSData(unsigned short* data)
+{
+    gsBuffer = data;
+
+    // Tell reset function that new GS data has been given
+    newGSData = true;
+}
+
+void TLC5940::setNewDCData(unsigned char* data)
+{
+    dcBuffer = data;
+
+    // Tell reset function that new DC data has been given
+    newDCData = true;
+}
+
+void TLC5940::reset()
+{
+    gsclk.write(0);
+    // Turn off LEDs
+    blank = 1;
+
+    // Virtual function that allows the next data chunk to be set after every GSCLK cycle
+    // Useful for setting the next frame when multiplexing (e.g. LED matrices)
+    setNextData();
+
+    // Latch in data from previous cycle if needed
+    if (need_xlat)
     {
-           gs_data[i] = 4095;
-           int whoami = _spi->write(4095);
+        // Latch
+        xlat = 1;
+        xlat = 0;
+
+        // Don't need to latch again
+        need_xlat = false;
     }
 
-    _xlat->write(1);
-    _xlat->write(0);
-}
+    // Reset the screen so that it is updating while data is being sent
+    blank = 0;
+    gsclk.write(.5);
 
-void TLC5940::setValue(int channel, float value)
-{
-    int exactValue = min(max((int)(value * 4095.0f), 0), 4095);
+    // Do we have new DC data to send?
+    if (newDCData)
+    {
+        // Set TLC5940 to accpet DC data
+        vprg = 1;
 
-    setExactValue(channel, exactValue);
-}
+        // Get DC data from registers instead of EEPROM (since we are sending data to the registers now)
+        dcprg = 1;
 
-void TLC5940::setExactValue(int channel, int value)
-{
-    gs_data[15-channel] = value;
-}
+        // Send DC data backwards - this makes the DC_buffer[0] index correspond to OUT0
+        for (int i = (16 * number) - 1; i >= 0; i--)
+        {
+            // Assemble a 12 bit packet from two 6 bit chunks
+            spi.write(((dcBuffer[i] & 0x3F) << 6) | (dcBuffer[i-1] & 0x3F));
+            i--;
+        }
 
-void TLC5940::flush()
-{
-    for(int i = 0; i < 16; i++){
-        _spi->write(gs_data[i]);
+        // Latch
+        xlat = 1;
+        xlat = 0;
+
+        // No new data to send (we just sent it!)
+        newDCData = false;
     }
 
-    _xlat->write(1);
-    _xlat->write(0);
-}
+    // Do we have new GS data to send?
+    if (newGSData)
+    {
+        // Set TLC5940 to accept GS data
+        vprg = 0;
 
-void TLC5940::run()
-{
-    const double GSCLK_SPEED = 2500000.0;
+        // Send GS data backwards - this makes the GS_buffer[0] index correspond to OUT0
+        for (int i = (16 * number) - 1; i >= 0; i--)
+        {
+            // Get the lower 12 bits of the buffer and send
+            spi.write(gsBuffer[i] & 0xFFF);
+        }
 
-    _gsclk->write(0.5f);
-    //_t->attach_us(this, &TLC5940::refresh, 5*4096);
-    _t->attach_us(this, &TLC5940::refresh, (1000000.0/GSCLK_SPEED) * 4096.0);
-}
+        // Latch after current GS data is done being displayed
+        need_xlat = true;
 
-void TLC5940::refresh()
-{
-    _blank->write(1);
-    _blank->write(0);
+        // No new data to send (we just sent it!)
+        newGSData = false;
+    }
 }
