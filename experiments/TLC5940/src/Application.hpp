@@ -23,7 +23,7 @@ private:
 	static const PinName TLC5940_BLANK = p15;		// digital out
 	static const PinName TLC5940_VPRG = p16;		// digital out
 	static const PinName TLC5940_DCPRG = p17;		// digital out (not available on the sparkfun board)
-	static const PinName TLC5940_GSCLK = p25;		// pwm out
+	static const PinName TLC5940_GSCLK = p30;		// pwm out
 
 	// breathe configuration
 	const int BREATHE_UPDATE_FPS = 60;

@@ -7,6 +7,10 @@ PortController::PortController(int id, PinName pinName) :
 {
 }
 
+PinName PortController::getPinName() {
+	return pinName;
+}
+
 int PortController::getId() {
 	return id;
 }

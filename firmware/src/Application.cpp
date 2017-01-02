@@ -5,6 +5,7 @@
 #include "capabilities/TMP102Capability.hpp"
 #include "capabilities/MPL3115A2Capability.hpp"
 #include "capabilities/PN532Capability.hpp"
+#include "capabilities/TLC5940Capability.hpp"
 
 Application::Application(Config *config, Serial *serial) :
 	config(config),
@@ -89,7 +90,8 @@ void Application::setupPort(PortController *portController) {
 	portController->addCapability(new TSL2561Capability(serial, portController));
 	portController->addCapability(new TMP102Capability(serial, portController));
 	portController->addCapability(new MPL3115A2Capability(serial, portController));
-	portController->addCapability(new PN532Capability(serial, portController, p26));
+	portController->addCapability(new PN532Capability(serial, portController, config->nfcMosiPin, config->nfcMisoPin, config->nfcSclkPin));
+	portController->addCapability(new TLC5940Capability(serial, portController, config->ledMosiPin, config->ledSclkPin, config->ledBlankPin, config->ledVprgPin, config->ledGsclkPin, config->ledChainLength));
 }
 
 void Application::setupDebug() {

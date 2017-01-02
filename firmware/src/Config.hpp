@@ -29,18 +29,18 @@ public:
 	// this led toggles on every main loop run
 	PinName mainLoopLedPin = p33;
 
-	/* frdm_k64f ###
+	// NFC SPI configuration
+	PinName nfcMosiPin = p5;
+	PinName nfcMisoPin = p6;
+	PinName nfcSclkPin = p7;
 
-	// digital pwm-capable ports
-	PinName port1Pin = D3;
-	PinName port2Pin = D5;
-	PinName port3Pin = D6;
-	PinName port4Pin = D7;
-	PinName port5Pin = D8;
-
-	// analog-in capable ports
-	PinName port6Pin = A0;
-	*/
+	// Led driver configuration
+	PinName ledMosiPin = p11;
+	PinName ledSclkPin = p13;
+	PinName ledBlankPin = p15;
+	PinName ledVprgPin = p16;
+	PinName ledGsclkPin = p30;
+	int ledChainLength = 1;
 };
 
 #endif

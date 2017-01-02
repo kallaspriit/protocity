@@ -86,6 +86,9 @@ The following commands are supported (using "1" as example request id)
   - responds with ERROR if invalid port is requested
 
 ## Changelog
+**02.01.2017**
+- Implemented TLC5940 multi-led driver capability.
+
 **06.12.2016**
 - Implemented TMP102 temperature sensor capability.
 

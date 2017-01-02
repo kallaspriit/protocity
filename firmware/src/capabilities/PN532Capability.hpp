@@ -10,7 +10,7 @@
 class PN532Capability : public AbstractCapability, public NFC::NfcEventListener {
 
 public:
-	PN532Capability(Serial *serial, PortController *portController, PinName slaveSelectPin);
+	PN532Capability(Serial *serial, PortController *portController, PinName mosiPin, PinName misoPin, PinName sclkPin);
 
 	std::string getName();
 	CommandManager::Command::Response execute(CommandManager::Command *command);
@@ -24,7 +24,10 @@ private:
 	bool enable();
 	void disable();
 
-	PinName slaveSelectPin;
+	const PinName mosiPin;
+	const PinName misoPin;
+	const PinName sclkPin;
+
 	SPI *spi = NULL;
 	NFC *nfc = NULL;
 	bool isEnabled = false;

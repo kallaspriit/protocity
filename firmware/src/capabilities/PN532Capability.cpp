@@ -2,9 +2,11 @@
 
 #include "../PortController.hpp"
 
-PN532Capability::PN532Capability(Serial *serial, PortController *portController, PinName slaveSelectPin) :
+PN532Capability::PN532Capability(Serial *serial, PortController *portController, PinName mosiPin, PinName misoPin, PinName sclkPin) :
 	AbstractCapability(serial, portController),
-	slaveSelectPin(slaveSelectPin)
+	mosiPin(mosiPin),
+	misoPin(misoPin),
+	sclkPin(sclkPin)
 {}
 
 std::string PN532Capability::getName() {
@@ -36,9 +38,8 @@ bool PN532Capability::enable() {
 
 	printf("# enabling PN532 NFC tag reader\n");
 
-	// TODO make SPI pins configurable
-	spi = new SPI(p5, p6, p7);
-	nfc = new NFC(spi, slaveSelectPin);
+	spi = new SPI(mosiPin, misoPin, sclkPin);
+	nfc = new NFC(spi, portController->getPinName());
 
 	nfc->addEventListener(this);
 
@@ -56,11 +57,12 @@ void PN532Capability::disable() {
 		return;
 	}
 
-	printf("# disabling TMP102 temperature measurement\n");
+	printf("# disabling PN532 NFC tag reader\n");
 
 	delete nfc;
-	delete spi;
 	nfc = NULL;
+
+	delete spi;
 	spi = NULL;
 
 	isEnabled = false;

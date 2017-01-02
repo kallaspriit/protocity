@@ -43,7 +43,9 @@ void Application::loop(int deltaUs) {
 
     // Create a buffer to store the data to be sent
     unsigned short GSData[16] = { 0x0000 };
-    unsigned short value = (unsigned short)(breatheDutyCycle * 4095.0f);
+    //int highValue = 4095;
+    int highValue = 2046;
+    unsigned short value = (unsigned short)(breatheDutyCycle * (float)highValue);
 
     // serial->printf("power: %f - %d\n", breatheDutyCycle, value);
 
@@ -53,7 +55,7 @@ void Application::loop(int deltaUs) {
         if (i % 2 == 0) {
             GSData[i] = value;
         } else {
-            GSData[i] = 4095 - value;
+            GSData[i] = highValue - value;
         }
     }
 
