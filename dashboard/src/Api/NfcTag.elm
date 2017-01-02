@@ -5,6 +5,7 @@ import Json.Decode exposing (Decoder, float, int, string, bool)
 import Json.Decode.Pipeline exposing (decode, hardcoded, optional, required, requiredAt)
 import Model.Msg exposing (..)
 import Model.NfcTag exposing (..)
+import BasicAuth exposing (..)
 
 
 loadNfcTag : Int -> Cmd Msg
@@ -14,10 +15,11 @@ loadNfcTag id =
             "https://telia.cumulocity.com/inventory/managedObjects/" ++ (toString id)
 
         request =
-            -- Http.get url nfcTagDecoder
             Http.request
                 { method = "GET"
-                , headers = [ Http.header "Authorization" "Basic cHJpaXQua2FsbGFzQHRlbGlhLmVlOnB1cmdpc3VwcA==" ]
+                , headers =
+                    -- TODO move the credentials to a configuration file
+                    [ buildAuthorizationHeader "priit.kallas@telia.ee" "purgisupp" ]
                 , url = url
                 , body = Http.emptyBody
                 , expect = Http.expectJson nfcTagDecoder

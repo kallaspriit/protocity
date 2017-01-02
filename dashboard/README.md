@@ -56,3 +56,5 @@ Your atom / elm dev environment should be good to go!
 - [Elm tutorial](https://www.elm-tutorial.org/en/)
 - [Sortable table stateful view component example](https://github.com/evancz/elm-sortable-table)
 - [Elm cheat-sheet](https://github.com/izdi/elm-cheat-sheet)
+- [Elm packages index](http://package.elm-lang.org/)
+- [Awesome Elm list of tutorials, libraries etc](https://github.com/isRuslan/awesome-elm)
