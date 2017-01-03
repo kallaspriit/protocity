@@ -276,7 +276,7 @@ public class Gateway implements Driver, OperationExecutor {
 	private void setupEtherioTagSensor() {
 		// TODO make port configurable
 		registerDriver(
-				new EtherioTagSensor("EtherIO tag sensor", commander, 1)
+				new EtherioTagSensor("EtherIO tag sensor", commander, 2)
 		);
 	}
 
