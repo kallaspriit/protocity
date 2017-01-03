@@ -11,6 +11,7 @@ public class EtherioLightSensor extends AbstractLightSensor {
     private final Commander commander;
     private final int portNumber;
     private PortController portController;
+    private int lastReportedIlluminance = -1;
 
     private static final String CAPABILITY = "TSL2561";
 
@@ -43,7 +44,14 @@ public class EtherioLightSensor extends AbstractLightSensor {
 
                 int illuminance = Integer.valueOf(arguments.get(0));
 
+	            // don't report the value if it has not changed
+                if (lastReportedIlluminance != -1 && illuminance == lastReportedIlluminance) {
+                    return;
+                }
+
                 reportIlluminance(illuminance);
+
+                lastReportedIlluminance = illuminance;
             }
         });
     }

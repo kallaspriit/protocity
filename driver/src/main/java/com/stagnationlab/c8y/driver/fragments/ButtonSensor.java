@@ -22,9 +22,9 @@ public class ButtonSensor {
     }
 
     public boolean equals(Object other) {
-        if(this == other) {
+        if (this == other) {
             return true;
-        } else if(!(other instanceof ButtonSensor)) {
+        } else if (!(other instanceof ButtonSensor)) {
             return false;
         } else {
             ButtonSensor buttonSensor = (ButtonSensor)other;

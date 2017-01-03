@@ -61,7 +61,9 @@ public abstract class AbstractRelayActuator extends AbstractDevice {
 
     @Override
     public void start() {
-        applyRelayState(relay.getRelayState() == Relay.RelayState.CLOSED);
+        // applyRelayState(relay.getRelayState() == Relay.RelayState.CLOSED);
+
+        setRelayClosed(relay.getRelayState() == Relay.RelayState.CLOSED);
     }
 
     protected abstract void applyRelayState(boolean isRelayClosed);

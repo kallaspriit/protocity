@@ -13,6 +13,7 @@ import com.stagnationlab.c8y.driver.platforms.etherio.EtherioButtonSensor;
 import com.stagnationlab.c8y.driver.platforms.etherio.EtherioLightSensor;
 import com.stagnationlab.c8y.driver.platforms.etherio.EtherioMonitoringSensor;
 import com.stagnationlab.c8y.driver.platforms.etherio.EtherioMotionSensor;
+import com.stagnationlab.c8y.driver.platforms.etherio.EtherioMultiDacActuator;
 import com.stagnationlab.c8y.driver.platforms.etherio.EtherioRelayActuator;
 import com.stagnationlab.c8y.driver.platforms.etherio.EtherioTagSensor;
 import com.stagnationlab.c8y.driver.platforms.etherio.EtherioTemperatureSensor;
@@ -183,7 +184,7 @@ public class Gateway implements Driver, OperationExecutor {
 
 	private void setupEtherio() throws IOException {
 		// TODO make host and port configurable, support multiple
-		String hostName = "10.220.20.125";
+		String hostName = "10.220.20.131";
 		int portNumber = 8080;
 
 		SocketClient socketClient = new SocketClient(hostName, portNumber);
@@ -204,6 +205,7 @@ public class Gateway implements Driver, OperationExecutor {
 		setupEtherioLightSensor();
 //		setupEtherioTemperatureSensor();
 		setupEtherioTagSensor();
+		setupEtherioMultiDacActuator();
 
 		// simulated devices
 		// setupSimulatedLightSensor();
@@ -275,6 +277,13 @@ public class Gateway implements Driver, OperationExecutor {
 		// TODO make port configurable
 		registerDriver(
 				new EtherioTagSensor("EtherIO tag sensor", commander, 1)
+		);
+	}
+
+	private void setupEtherioMultiDacActuator() {
+		// TODO make port configurable
+		registerDriver(
+				new EtherioMultiDacActuator("EtherIO multiple DAC actuator", commander, 3, 16)
 		);
 	}
 }
