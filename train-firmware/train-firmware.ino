@@ -17,6 +17,7 @@ const int WS_PORT             = 8080;
 const int DEBUG_LED_PIN       = LED_BUILTIN; // should be pin 5
 const int MOTOR_CONTROL_PIN_A = 0;
 const int MOTOR_CONTROL_PIN_B = 4;
+const int BATTERY_VOLTAGE_PIN = A0;
 
 // environment config
 const int ANALOG_MAX_VALUE = 1023;
@@ -41,6 +42,7 @@ void setup() {
   pinMode(DEBUG_LED_PIN, OUTPUT);
   pinMode(MOTOR_CONTROL_PIN_A, OUTPUT);
   pinMode(MOTOR_CONTROL_PIN_B, OUTPUT);
+  pinMode(BATTERY_VOLTAGE_PIN, INPUT);
 
   // setup default pin states
   digitalWrite(DEBUG_LED_PIN, HIGH);
@@ -199,6 +201,14 @@ void handleCommand(String command, String parameters[], int parameterCount) {
     sendMotorState();
   } else if (command == "get-motor-state" && parameterCount == 0) {
     sendMotorState();
+  } else if (command == "get-battery-voltage" && parameterCount == 0) {
+    float voltage = getBatteryVoltage();
+
+    serial->print("battery voltage: ");
+    serial->print(voltage);
+    serial->println("V");
+    
+    sendBatteryVoltage();
   } else {
     serial->print("Got command '");
     serial->print(command);
@@ -213,6 +223,30 @@ void handleCommand(String command, String parameters[], int parameterCount) {
       serial->println(parameters[i]);
     }
   }
+}
+
+float getBatteryVoltage() {
+  int reading = analogRead(BATTERY_VOLTAGE_PIN);
+  float resistor1 = 8175.0; // measured value of a 8.2k resistor
+  float resistor2 = 1985.0f; // measured value of a 2k resistor
+  float calibrationMultiplier = 1.053f; // multimeter-measured voltage / reported voltage
+  
+  int maxReading = 1023;
+  float maxReadingVoltage = 1.0f;
+  float sensedVoltage = ((float)reading / (float)maxReading) * maxReadingVoltage * calibrationMultiplier;
+  float actualVoltage = sensedVoltage / (resistor2 / (resistor1 + resistor2));
+
+  /*
+  serial->print("reading: ");
+  serial->print(reading);
+  serial->print("; sensedVoltage: ");
+  serial->print(sensedVoltage);
+  serial->print("; actualVoltage: ");
+  serial->print(actualVoltage);
+  serial->println();
+  */
+
+  return actualVoltage;
 }
 
 void toggleDebugLed() {
@@ -265,6 +299,17 @@ void sendMotorState() {
   }
   
   String data = "motor:" + motorDirection + ":" + String(motorSpeed);
+  webSocketClient.sendData(data);
+}
+
+void sendBatteryVoltage() {
+  if (!client.connected()) {
+    return;
+  }
+
+  float voltage = getBatteryVoltage();
+  
+  String data = "battery:" + String(voltage);
   webSocketClient.sendData(data);
 }
 

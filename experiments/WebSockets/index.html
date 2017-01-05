@@ -41,6 +41,9 @@
     <div class="row">
         <input id="slider" type="range" min="-100" max="100" step="10" style="width: 100%;" />
     </div>
+    <div class="row">
+        <strong>Voltage: </strong><span id="voltage">waiting..</span>
+    </div>
 </body>
 <script>
 
@@ -51,6 +54,11 @@ ws.onopen = function(event) {
 
     send('get-led-state');
     send('get-motor-state');
+    requestBatteryVoltage();
+
+    setInterval(function() {
+        requestBatteryVoltage();
+    }, 5000);
 };
 
 ws.onmessage = function (event) {
@@ -76,6 +84,13 @@ ws.onmessage = function (event) {
             document.getElementById('slider').value = direction === 'stop' ? 0 : direction === 'forward' ? speed : -speed;
 
             break;
+
+        case 'battery':
+            var voltage = parseFloat(parameters[0]);
+
+            document.getElementById('voltage').innerHTML = voltage.toPrecision(3) + 'V';
+
+            break;
     }
 }
 
@@ -99,6 +114,10 @@ function stopMotor() {
     send('motor:stop');
 
     document.getElementById('slider').value = 0;
+}
+
+function requestBatteryVoltage() {
+    send('get-battery-voltage');
 }
 
 document.getElementById('slider').addEventListener('input', function(e) {
