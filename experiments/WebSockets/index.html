@@ -1,0 +1,116 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>WS Client</title>
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimal-ui">
+    <meta http-equiv="cleartype" content="on">
+    <style>
+
+    .row {
+        padding: 10px 0;
+    }
+    .led-unknown,
+    .led-on,
+    .led-off {
+        background-color: #CCC;
+    }
+    .led-on {
+        background-color: #0F0;
+    }
+    .led-off {
+        background-color: #F00;
+    }
+
+    </style>
+</head>
+
+</html>
+<body>
+    <h1>Train Conductor</h1>
+    <div class="row">
+        <button id="led-indicator" onClick="toggleLed()" class="led-unknown">Toggle LED</button>
+    </div>
+    <div class="row">
+        <button onClick="setMotorSpeed('reverse', 100)">&lt;&lt; 100%</button>
+        <button onClick="setMotorSpeed('reverse', 50)">&lt; 50%</button>
+        <button onClick="stopMotor()">Stop</button>
+        <button onClick="setMotorSpeed('forward', 50)">&gt; 50%</button>
+        <button onClick="setMotorSpeed('forward', 100)">&gt;&gt; 100%</button>
+    </div>
+    <div class="row">
+        <input id="slider" type="range" min="-100" max="100" step="10" style="width: 100%;" />
+    </div>
+</body>
+<script>
+
+var ws = new WebSocket("ws://10.220.20.140:8080");
+
+ws.onopen = function(event) {
+    console.log('opened');
+
+    send('get-led-state');
+    send('get-motor-state');
+};
+
+ws.onmessage = function (event) {
+    var message = event.data;
+    var tokens = message.split(':');
+    var command = tokens[0];
+    var parameters = tokens.slice(1);
+
+    console.log('< ' + message, command, parameters);
+
+    switch (command) {
+        case 'led':
+            var isLedOn = parameters[0] === '1';
+
+            document.getElementById('led-indicator').className = isLedOn ? 'led-on' : 'led-off';
+
+            break;
+
+        case 'motor':
+            var direction = parameters[0];
+            var speed = parseInt(parameters[1]);
+
+            document.getElementById('slider').value = direction === 'stop' ? 0 : direction === 'forward' ? speed : -speed;
+
+            break;
+    }
+}
+
+function send(message) {
+    console.log('> ' + message);
+
+    ws.send(message);
+}
+
+function toggleLed() {
+    send('toggle-led');
+}
+
+function setMotorSpeed(direction, speed) {
+    send('motor:' + direction + ':' + speed);
+
+    document.getElementById('slider').value = direction === 'forward' ? speed : -speed;
+}
+
+function stopMotor() {
+    send('motor:stop');
+
+    document.getElementById('slider').value = 0;
+}
+
+document.getElementById('slider').addEventListener('input', function(e) {
+    var value = e.target.value;
+
+    if (value > 0) {
+        setMotorSpeed('forward', Math.abs(value));
+    } else if (value < 0) {
+        setMotorSpeed('reverse', Math.abs(value));
+    } else {
+        stopMotor();
+    }
+});
+
+</script>

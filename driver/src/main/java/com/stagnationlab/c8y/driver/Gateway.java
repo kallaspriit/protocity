@@ -184,7 +184,7 @@ public class Gateway implements Driver, OperationExecutor {
 
 	private void setupEtherio() throws IOException {
 		// TODO make host and port configurable, support multiple
-		String hostName = "10.220.20.131";
+		String hostName = "10.220.20.201";
 		int portNumber = 8080;
 
 		SocketClient socketClient = new SocketClient(hostName, portNumber);
