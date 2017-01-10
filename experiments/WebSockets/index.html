@@ -21,6 +21,12 @@
     .led-off {
         background-color: #F00;
     }
+    .charging-on {
+        color: #0F0;
+    }
+    .charging-off {
+        color : #F00;
+    }
 
     </style>
 </head>
@@ -42,22 +48,32 @@
         <input id="slider" type="range" min="-100" max="100" step="10" style="width: 100%;" />
     </div>
     <div class="row">
-        <strong>Voltage: </strong><span id="voltage">waiting..</span>
+        <strong>Train voltage: </strong><span id="train-voltage">waiting..</span>
+    </div>
+    <h1>Truck status</h1>
+    <div class="row">
+        <strong>Truck voltage: </strong><span id="truck-voltage">waiting..</span>
+    </div>
+    <div class="row">
+        <strong>Charging status: </strong><span id="truck-charging">waiting..</span>
     </div>
 </body>
 <script>
-
-var ws = new WebSocket("ws://10.220.20.140:3000");
+var ip = '10.220.20.76';
+var port = '3000';
+var ws = new WebSocket("ws://" + ip + ":" + port);
 
 ws.onopen = function(event) {
     console.log('opened');
 
     send('get-led-state');
     send('get-motor-state');
-    requestBatteryVoltage();
+    requestBatteryVoltage('train');
+    requestBatteryVoltage('truck');
 
     setInterval(function() {
-        requestBatteryVoltage();
+        requestBatteryVoltage('train');
+        requestBatteryVoltage('truck');
     }, 5000);
 };
 
@@ -86,10 +102,19 @@ ws.onmessage = function (event) {
             break;
 
         case 'battery':
-            var voltage = parseFloat(parameters[0]);
+            var voltage = parseFloat(parameters[1]);
+            console.log(voltage);
+            document.getElementById(parameters[0] + '-voltage').innerHTML = voltage.toPrecision(3) + 'V';
 
-            document.getElementById('voltage').innerHTML = voltage.toPrecision(3) + 'V';
+            break;
 
+        case 'truck':
+            switch(parameters[0]) {
+                case 'charging':
+                    var isCharging = parameters[1] === 'true';
+                    document.getElementById('truck-charging').innerHTML = isCharging ? 'CHARGING' : 'NOT CHARGING';
+                    document.getElementById('truck-charging').className = isCharging ? 'charging-on' : 'charging-off';
+            }
             break;
     }
 }
@@ -116,8 +141,8 @@ function stopMotor() {
     document.getElementById('slider').value = 0;
 }
 
-function requestBatteryVoltage() {
-    send('get-battery-voltage');
+function requestBatteryVoltage(client) {
+    send('get-battery-voltage:' + client);
 }
 
 document.getElementById('slider').addEventListener('input', function(e) {

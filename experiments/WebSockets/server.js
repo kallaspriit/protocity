@@ -1,7 +1,6 @@
 var WebSocketServer = require('ws').Server;
 
 var port = 3000;
-
 var wss = new WebSocketServer({
     port: port
 });
@@ -18,16 +17,16 @@ wss.broadcast = function broadcast(data, ignoreClient) {
         client.send(data);
     });
 };
-
 wss.on('listening', function connection() {
     console.log('server has been started on port ' + port);
 });
-
 wss.on('connection', function connection(client) {
     client.id = ++clientIdCounter;
 
     console.log('client #' + client.id + ' connected');
-
+    client.on('error', function(err){
+            console.log(err)
+    });
     client.on('message', function incoming(message) {
         console.log('received: %s', message);
 

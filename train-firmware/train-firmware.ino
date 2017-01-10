@@ -11,7 +11,7 @@ const char WIFI_PASSWORD[]    = "purgisupp";
 // configure websockets
 char WS_HOST[]                = "10.220.20.140";
 char WS_PATH[]                = "/";
-const int WS_PORT             = 8080;
+const int WS_PORT             = 3000;
 
 // configure pins
 const int DEBUG_LED_PIN       = LED_BUILTIN; // should be pin 5
@@ -201,14 +201,14 @@ void handleCommand(String command, String parameters[], int parameterCount) {
     sendMotorState();
   } else if (command == "get-motor-state" && parameterCount == 0) {
     sendMotorState();
-  } else if (command == "get-battery-voltage" && parameterCount == 0) {
+  } else if (command == "get-battery-voltage" && parameterCount == 1) {
     float voltage = getBatteryVoltage();
 
     serial->print("battery voltage: ");
     serial->print(voltage);
     serial->println("V");
     
-    sendBatteryVoltage();
+    sendBatteryVoltage(parameters[0]);
   } else {
     serial->print("Got command '");
     serial->print(command);
@@ -302,14 +302,15 @@ void sendMotorState() {
   webSocketClient.sendData(data);
 }
 
-void sendBatteryVoltage() {
+void sendBatteryVoltage(String cl) {
   if (!client.connected()) {
     return;
   }
-
-  float voltage = getBatteryVoltage();
-  
-  String data = "battery:" + String(voltage);
-  webSocketClient.sendData(data);
+  if (cl == "train") {
+    float voltage = getBatteryVoltage();
+ 
+    String data = "battery:" + cl + ":" + String(voltage);
+    webSocketClient.sendData(data);    
+  }
 }
 
