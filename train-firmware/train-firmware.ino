@@ -1,8 +1,15 @@
 #include <ESP8266WiFi.h>
 #include <Arduino.h>
+#include <SPI.h>
+
+// Helpful links
+// Common pins            https://github.com/esp8266/Arduino/blob/3e7b4b8e0cf4e1f7ad48104abfc42723b5e4f9be/variants/generic/common.h
+// Sparkfun thing pins    https://github.com/esp8266/Arduino/blob/3e7b4b8e0cf4e1f7ad48104abfc42723b5e4f9be/variants/thing/pins_arduino.h
+// Hookup guide           https://learn.sparkfun.com/tutorials/esp8266-thing-hookup-guide/all
 
 #include "WebSocketClient.h"
 #include "Commander.h"
+#include "MCP320X.h"
 
 // configure wify
 const char WIFI_SSID[]        = "Stagnationlab";
@@ -11,13 +18,14 @@ const char WIFI_PASSWORD[]    = "purgisupp";
 // configure websockets
 char WS_HOST[]                = "10.220.20.140";
 char WS_PATH[]                = "/";
-const int WS_PORT             = 8080;
+const int WS_PORT             = 3000;
 
 // configure pins
 const int DEBUG_LED_PIN       = LED_BUILTIN; // should be pin 5
 const int MOTOR_CONTROL_PIN_A = 0;
 const int MOTOR_CONTROL_PIN_B = 4;
 const int BATTERY_VOLTAGE_PIN = A0;
+const int ADC_SLAVE_SELECT_PIN = 2;
 
 // environment config
 const int ANALOG_MAX_VALUE = 1023;
@@ -27,6 +35,7 @@ WebSocketClient webSocketClient;
 WiFiClient client;
 HardwareSerial *serial = &Serial;
 Commander commander(serial);
+MCP320X adc(ADC_SLAVE_SELECT_PIN);
 
 // runtime info
 String motorDirection = "stop";
@@ -108,6 +117,10 @@ void setup() {
       // Hang on failure
     }
   }
+
+  // initialize SPI and adc
+  SPI.begin();
+  adc.begin();
 
   // all done with the setup, show solid led
   serial->println("setup complete");
@@ -226,6 +239,7 @@ void handleCommand(String command, String parameters[], int parameterCount) {
 }
 
 float getBatteryVoltage() {
+  /*
   int reading = analogRead(BATTERY_VOLTAGE_PIN);
   float resistor1 = 8175.0; // measured value of a 8.2k resistor
   float resistor2 = 1985.0f; // measured value of a 2k resistor
@@ -235,6 +249,7 @@ float getBatteryVoltage() {
   float maxReadingVoltage = 1.0f;
   float sensedVoltage = ((float)reading / (float)maxReading) * maxReadingVoltage * calibrationMultiplier;
   float actualVoltage = sensedVoltage / (resistor2 / (resistor1 + resistor2));
+  */
 
   /*
   serial->print("reading: ");
@@ -246,7 +261,11 @@ float getBatteryVoltage() {
   serial->println();
   */
 
-  return actualVoltage;
+  // return actualVoltage;
+
+  int reading = adc.read12(adc.SINGLE_CH0);
+
+  return (float)reading;
 }
 
 void toggleDebugLed() {
