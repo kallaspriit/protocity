@@ -1,0 +1,15 @@
+{
+  "name": "node-train-conductor",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Priit Kallas <kallaspriit@gmail.com> (http://stagnationlab.com/)",
+  "license": "ISC",
+  "dependencies": {
+    "serialport": "^4.0.7",
+    "ws": "^1.1.1"
+  }
+}

@@ -13,3 +13,4 @@
 /dashboard/node_modules
 /dashboard/dist
 /experiments/WebSockets/node_modules
+/experiments/NodeTrainConductor/node_modules
