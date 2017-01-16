@@ -44,6 +44,9 @@
         <button onClick="setMotorSpeed('forward', 50)">&gt; 50%</button>
         <button onClick="setMotorSpeed('forward', 100)">&gt;&gt; 100%</button>
     </div>
+	<div class="row">
+        <button onClick="testStopToCharge();">Test stop to charge</button>
+    </div>
     <div class="row">
         <input id="slider" type="range" min="-100" max="100" step="10" style="width: 100%;" />
     </div>
@@ -59,7 +62,7 @@
     </div>
 </body>
 <script>
-var ip = '10.220.20.78';
+var ip = 'localhost';
 var port = '3000';
 var ws = new WebSocket("ws://" + ip + ":" + port);
 
@@ -143,6 +146,10 @@ function stopMotor() {
 
 function requestBatteryVoltage(client) {
     send('get-battery-voltage:' + client);
+}
+
+function testStopToCharge() {
+	send('charge');
 }
 
 document.getElementById('slider').addEventListener('input', function(e) {
