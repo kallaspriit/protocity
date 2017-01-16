@@ -9,14 +9,15 @@ HardwareSerial *serial = &Serial;
 Commander commander(serial);
 
 const int CHARGING_LED = 0;
+const float CHARGING_VOLTAGE = 3.8;
 const char* ssid = "Stagnationlab";
 const char* password = "purgisupp";
 
 unsigned long previousMillis = 0;
-const long interval = 1000;
+const long interval = 250;
 
 // configure websockets
-char WS_HOST[]                = "10.220.20.76";
+char WS_HOST[]                = "10.220.20.78";
 char WS_PATH[]                = "/";
 const int WS_PORT             = 3000;
 
@@ -32,7 +33,7 @@ void setup_wifi() {
   Serial.println(ssid);
 
   WiFi.begin(ssid, password);
-  digitalWrite(CHARGING_LED, LOW);
+  digitalWrite(LED_BUILTIN, HIGH); // onboard led põlema connectimise ajaks, debug
   while (WiFi.status() != WL_CONNECTED) {
     
     delay(500);
@@ -74,6 +75,7 @@ void setup_wifi() {
   // perform the handshake
   if (webSocketClient.handshake(client)) {
     serial->println("handshake was successful");
+    digitalWrite(LED_BUILTIN, LOW); // kustutame onboard ledi ära
   } else {
     serial->println("handshake failed");
     while (1) {
@@ -85,7 +87,7 @@ void setup_wifi() {
 void setup() {
   Serial.begin(9600);
   pinMode(CHARGING_LED, OUTPUT);
-  digitalWrite(CHARGING_LED, HIGH);
+  digitalWrite(CHARGING_LED, LOW);
   pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
   setup_wifi();
 }
@@ -122,26 +124,28 @@ void blinkLED() {
  
   if(currentMillis - previousMillis >= interval) {
     previousMillis = currentMillis;
-    if (voltage == 0.0) {
-       voltage = getBatteryVoltage();
-    }
+    voltage = getBatteryVoltage();
     if (voltage > CHARGING_VOLTAGE) {
       if (!charging) {
         charging = true;
+        digitalWrite(CHARGING_LED, HIGH);  // paneme lihtsalt põlema, vilkumine ebaühtlane
         String data = "truck:charging:true";
-        webSocketClient.sendData(data);  
+        webSocketClient.sendData(data);
+       
       }
-      if (blinkOn) {
-        digitalWrite(CHARGING_LED, LOW);     
-      } else {
-        digitalWrite(CHARGING_LED, HIGH);
-      }
-      blinkOn = !blinkOn;
+      //if (blinkOn) {
+      //  digitalWrite(CHARGING_LED, LOW);     
+      //} else {
+      //  digitalWrite(CHARGING_LED, HIGH);
+      //}
+      //blinkOn = !blinkOn;
     } else {
-      String data = "truck:charging:false";
-      charging = false;
-      webSocketClient.sendData(data);  
-      digitalWrite(CHARGING_LED, HIGH);
+      if (charging) {
+        String data = "truck:charging:false";
+        charging = false;
+        digitalWrite(CHARGING_LED, LOW);
+        webSocketClient.sendData(data);          
+      }
     } 
   }
 }
