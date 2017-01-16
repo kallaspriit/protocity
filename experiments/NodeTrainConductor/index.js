@@ -9,7 +9,8 @@ const config = {
         baudrate: 115200,
         delimiter: '\n'
     },
-    chargeSpeed: 60
+    chargeFindSpeed: 65,
+    chargeReverseSpeed: 50
 };
 
 const serial = new SerialPort(config.train.port, {
@@ -82,13 +83,13 @@ serial.on('data', (message) => {
             if (lastTrainDirection === 1) {
                 console.log('# backing up');
 
-                reverse(50);
+                reverse(config.chargeReverseSpeed);
 
                 clearTimeout(onTagTimeout);
             } else if (lastTrainDirection === -1) {
                 console.log('# going forward');
 
-                forward(50);
+                forward(config.chargeReverseSpeed);
                 clearTimeout(onTagTimeout);
             }
         }
@@ -116,7 +117,7 @@ function sendMessage(serial, message, callback) {
 function stopToCharge() {
     isStoppingToCharge = true;
 
-    forward(config.chargeSpeed);
+    forward(config.chargeFindSpeed);
 }
 
 function forward(speed = 100) {
