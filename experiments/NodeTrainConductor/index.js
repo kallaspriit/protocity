@@ -60,6 +60,8 @@ serial.on('data', (message) => {
     if (message.indexOf('enter:TRAIN') !== -1) {
         console.log('# train entered tag');
 
+        serial.sendMessage('1:port:3:TLC5940:value:0:1');
+
         isOnTagReader = true;
 
         if (isStoppingToCharge) {
@@ -76,6 +78,8 @@ serial.on('data', (message) => {
         }
     } else if (message.indexOf('exit:TRAIN') !== -1) {
         console.log('# train exited tag');
+
+        serial.sendMessage('1:port:3:TLC5940:value:0:0');
 
         isOnTagReader = false;
 

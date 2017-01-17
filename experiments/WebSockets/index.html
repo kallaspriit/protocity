@@ -62,7 +62,7 @@
     </div>
 </body>
 <script>
-var ip = 'localhost';
+var ip = window.location.host;
 var port = '3000';
 var ws = new WebSocket("ws://" + ip + ":" + port);
 
@@ -77,7 +77,7 @@ ws.onopen = function(event) {
     setInterval(function() {
         requestBatteryVoltage('train');
         requestBatteryVoltage('truck');
-    }, 5000);
+    }, 10000);
 };
 
 ws.onmessage = function (event) {

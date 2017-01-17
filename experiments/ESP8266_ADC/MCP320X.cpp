@@ -22,7 +22,7 @@ void  MCP320X::setupSPI(const byte cdiv, const byte mode) {
 }
 
 void MCP320X::setupSPI() {
-	SPI.setClockDivider(clock_divider);
+	//SPI.setClockDivider(clock_divider); // ESP2866 does not seem to like this
 	SPI.setDataMode(spi_mode);
 	SPI.setBitOrder(MSBFIRST);
 }

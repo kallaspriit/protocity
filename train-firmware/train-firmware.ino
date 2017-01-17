@@ -239,33 +239,17 @@ void handleCommand(String command, String parameters[], int parameterCount) {
 }
 
 float getBatteryVoltage() {
-  /*
-  int reading = analogRead(BATTERY_VOLTAGE_PIN);
-  float resistor1 = 8175.0; // measured value of a 8.2k resistor
-  float resistor2 = 1985.0f; // measured value of a 2k resistor
-  float calibrationMultiplier = 1.053f; // multimeter-measured voltage / reported voltage
-  
-  int maxReading = 1023;
-  float maxReadingVoltage = 1.0f;
-  float sensedVoltage = ((float)reading / (float)maxReading) * maxReadingVoltage * calibrationMultiplier;
-  float actualVoltage = sensedVoltage / (resistor2 / (resistor1 + resistor2));
-  */
-
-  /*
-  serial->print("reading: ");
-  serial->print(reading);
-  serial->print("; sensedVoltage: ");
-  serial->print(sensedVoltage);
-  serial->print("; actualVoltage: ");
-  serial->print(actualVoltage);
-  serial->println();
-  */
-
-  // return actualVoltage;
+  float resistor1 = 8200.0; // between input and output
+  float resistor2 = 15000.0f; // between input and ground
+  float calibrationMultiplier = 0.99f; // multimeter-measured voltage / reported voltage
+  int maxReading = 4095;
+  float maxReadingVoltage = 3.3f; // Vcc/Vref pin
 
   int reading = adc.read12(adc.SINGLE_CH0);
 
-  return (float)reading;
+  float actualVoltage = calculateAdcVoltage(reading, maxReading, maxReadingVoltage, resistor1, resistor2, calibrationMultiplier);
+
+  return actualVoltage;
 }
 
 void toggleDebugLed() {
@@ -331,5 +315,12 @@ void sendBatteryVoltage(String cl) {
     String data = "battery:" + cl + ":" + String(voltage);
     webSocketClient.sendData(data);    
   }
+}
+
+float calculateAdcVoltage(int reading, int maxReading, float maxReadingVoltage, float resistor1, float resistor2, float calibrationMultiplier) {
+  float sensedVoltage = ((float)reading / (float)maxReading) * maxReadingVoltage * calibrationMultiplier;
+  float actualVoltage = sensedVoltage / (resistor2 / (resistor1 + resistor2));
+
+  return actualVoltage;
 }
 
