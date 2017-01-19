@@ -38,20 +38,28 @@
         <button id="led-indicator" onClick="toggleLed()" class="led-unknown">Toggle LED</button>
     </div>
     <div class="row">
-        <button onClick="setMotorSpeed('reverse', 100)">&lt;&lt; 100%</button>
-        <button onClick="setMotorSpeed('reverse', 50)">&lt; 50%</button>
+        <button onClick="setMotorSpeed(-100)">&lt;&lt; 100%</button>
+        <button onClick="setMotorSpeed(-80)">&lt;&lt; 80%</button>
+        <button onClick="setMotorSpeed(-50)">&lt; 50%</button>
         <button onClick="stopMotor()">Stop</button>
-        <button onClick="setMotorSpeed('forward', 50)">&gt; 50%</button>
-        <button onClick="setMotorSpeed('forward', 100)">&gt;&gt; 100%</button>
+        <button onClick="brakeMotor()">Brake</button>
+        <button onClick="setMotorSpeed(50)">&gt; 50%</button>
+        <button onClick="setMotorSpeed(80)">&gt; 80%</button>
+        <button onClick="setMotorSpeed(100)">&gt;&gt; 100%</button>
     </div>
 	<div class="row">
         <button onClick="testStopToCharge();">Test stop to charge</button>
+        <button onClick="testNodeServer();">Test node server</button>
+        <button onClick="requestObstacleDistance();">Get obstacle distance</button>
     </div>
     <div class="row">
         <input id="slider" type="range" min="-100" max="100" step="10" style="width: 100%;" />
     </div>
     <div class="row">
-        <strong>Train voltage: </strong><span id="train-voltage">waiting..</span>
+        <strong>Battery voltage: </strong><span id="train-voltage">waiting..</span><br/>
+        <strong>Target speed: </strong><span id="train-target-speed">waiting..</span><br/>
+        <strong>Current speed: </strong><span id="train-current-speed">waiting..</span><br/>
+        <strong>Train obstacle distance: </strong><span id="train-obstacle-distance">waiting..</span>
     </div>
     <h1>Truck status</h1>
     <div class="row">
@@ -69,15 +77,17 @@ var ws = new WebSocket("ws://" + ip + ":" + port);
 ws.onopen = function(event) {
     console.log('opened');
 
-    send('get-led-state');
-    send('get-motor-state');
+    requestLedState();
+    requestMotorState();
     requestBatteryVoltage('train');
     requestBatteryVoltage('truck');
+    //requestObstacleDistance();
 
     setInterval(function() {
         requestBatteryVoltage('train');
         requestBatteryVoltage('truck');
-    }, 10000);
+        //requestObstacleDistance();
+    }, 60000);
 };
 
 ws.onmessage = function (event) {
@@ -97,17 +107,28 @@ ws.onmessage = function (event) {
             break;
 
         case 'motor':
-            var direction = parameters[0];
-            var speed = parseInt(parameters[1]);
+            if (parameters.length !== 2) {
+                break;
+            }
 
-            document.getElementById('slider').value = direction === 'stop' ? 0 : direction === 'forward' ? speed : -speed;
+            var currentSpeed = parseInt(parameters[0]);
+            var targetSpeed = parseInt(parameters[1]);
+
+            document.getElementById('slider').value = targetSpeed;
+            document.getElementById('train-current-speed').innerHTML = currentSpeed.toFixed(0) + '%';
+            document.getElementById('train-target-speed').innerHTML = targetSpeed.toFixed(0) + '%';
 
             break;
 
         case 'battery':
             var voltage = parseFloat(parameters[1]);
-            console.log(voltage);
-            document.getElementById(parameters[0] + '-voltage').innerHTML = voltage.toPrecision(3) + 'V';
+            document.getElementById(parameters[0] + '-voltage').innerHTML = voltage.toFixed(3) + 'V';
+
+            break;
+
+        case 'obstacle-distance':
+            var distance = parseFloat(parameters[0]);
+            document.getElementById('train-obstacle-distance').innerHTML = distance.toFixed(1) + 'cm';
 
             break;
 
@@ -132,36 +153,49 @@ function toggleLed() {
     send('toggle-led');
 }
 
-function setMotorSpeed(direction, speed) {
-    send('motor:' + direction + ':' + speed);
+function setMotorSpeed(speed) {
+    send('motor:' + speed);
 
-    document.getElementById('slider').value = direction === 'forward' ? speed : -speed;
+    document.getElementById('slider').value = speed;
 }
 
 function stopMotor() {
-    send('motor:stop');
+    setMotorSpeed(0);
+}
 
-    document.getElementById('slider').value = 0;
+function brakeMotor() {
+    send('brake');
+    //stopMotor()
+}
+
+function requestLedState() {
+    send('get-led-state');
+}
+
+function requestMotorState() {
+    send('get-motor-state');
 }
 
 function requestBatteryVoltage(client) {
     send('get-battery-voltage:' + client);
 }
 
+function requestObstacleDistance() {
+    send('get-obstacle-distance');
+}
+
 function testStopToCharge() {
 	send('charge');
+}
+
+function testNodeServer() {
+	send('test-node-server');
 }
 
 document.getElementById('slider').addEventListener('input', function(e) {
     var value = e.target.value;
 
-    if (value > 0) {
-        setMotorSpeed('forward', Math.abs(value));
-    } else if (value < 0) {
-        setMotorSpeed('reverse', Math.abs(value));
-    } else {
-        stopMotor();
-    }
+    setMotorSpeed(value);
 });
 
 </script>

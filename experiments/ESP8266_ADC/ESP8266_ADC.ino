@@ -45,8 +45,7 @@ void loop() {
   float resistor2 = 15000.0f; // between input and ground
   float calibrationMultiplier = 0.99f; // multimeter-measured voltage / reported voltage
   int maxReading = 4095;
-  float maxReadingVoltage = 3.3f; // Vcc/Vref pin
-  float maxDistanceVoltage = 3.3f; // Vcc/Vref pin
+  float maxReadingVoltage = 3.3f; // Vcc/Vref pinpin
 
   // calculation
   int voltageReading = adc.read12(adc.SINGLE_CH0);

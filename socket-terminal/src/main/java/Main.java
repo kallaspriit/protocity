@@ -28,7 +28,7 @@ public class Main {
                 return;
             }
 
-            System.out.printf("> %s%n> ", message);
+            System.out.printf("< %s%n> ", message);
         });
 
         while (true) {

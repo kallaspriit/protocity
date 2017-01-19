@@ -1,16 +1,14 @@
 const SerialPort = require('serialport');
 const WebSocket = require('ws');
 
-console.log(typeof Readline);
-
 const config = {
     train: {
         port: 'COM11',
         baudrate: 115200,
         delimiter: '\n'
     },
-    chargeFindSpeed: 65,
-    chargeReverseSpeed: 50
+    chargeFindSpeed:80,
+    chargeReverseSpeed: 60
 };
 
 const serial = new SerialPort(config.train.port, {
@@ -20,7 +18,7 @@ const serial = new SerialPort(config.train.port, {
 
 let isStoppingToCharge = false;
 let isOnTagReader = false;
-let lastTrainDirection = 0;
+let lastTrainSpeed = 0;
 let onTagTimeout = null;
 
 serial.name = 'train';
@@ -33,7 +31,7 @@ const ws = new WebSocket('ws://localhost:3000');
 ws.sendMessage = (message) => {
     console.log(`ws < ${message}`);
 
-    ws.send(message + '\n');
+    ws.send(message);
 }
 
 ws.on('open', () => {
@@ -45,6 +43,10 @@ ws.on('message', (message, flags) => {
 
     if (message === 'charge') {
         stopToCharge();
+    } else if (message === 'test-node-server') {
+        console.log('testing server..');
+
+        setMotorSpeed(-100);
     }
 });
 
@@ -67,7 +69,8 @@ serial.on('data', (message) => {
         if (isStoppingToCharge) {
             console.log('# stopping train');
 
-            stop();
+            //brakeMotor();
+            stopMotor();
 
             onTagTimeout = setTimeout(() => {
                 console.log('# now charging');
@@ -79,24 +82,26 @@ serial.on('data', (message) => {
     } else if (message.indexOf('exit:TRAIN') !== -1) {
         console.log('# train exited tag');
 
-        serial.sendMessage('1:port:3:TLC5940:value:0:0');
-
         isOnTagReader = false;
 
         if (isStoppingToCharge) {
-            if (lastTrainDirection === 1) {
+            console.log('# still stopping to charge');
+
+            if (lastTrainSpeed > 0) {
                 console.log('# backing up');
 
-                reverse(config.chargeReverseSpeed);
+                setMotorSpeed(-config.chargeReverseSpeed);
 
                 clearTimeout(onTagTimeout);
-            } else if (lastTrainDirection === -1) {
+            } else if (lastTrainSpeed < 0) {
                 console.log('# going forward');
 
-                forward(config.chargeReverseSpeed);
+                setMotorSpeed(config.chargeReverseSpeed);
                 clearTimeout(onTagTimeout);
             }
         }
+
+        serial.sendMessage('1:port:3:TLC5940:value:0:0');
     }
 });
 
@@ -121,23 +126,21 @@ function sendMessage(serial, message, callback) {
 function stopToCharge() {
     isStoppingToCharge = true;
 
-    forward(config.chargeFindSpeed);
+    setMotorSpeed(config.chargeFindSpeed);
 }
 
-function forward(speed = 100) {
-    ws.sendMessage(`motor:forward:${speed}`);
+function setMotorSpeed(speed = 100) {
+    ws.sendMessage(`motor:${speed}`);
 
-    lastTrainDirection = 1;
+    if (speed !== 0) {
+        lastTrainSpeed = speed;
+    }
 }
 
-function reverse(speed = 100) {
-    ws.sendMessage(`motor:reverse:${speed}`);
-
-    lastTrainDirection = -1;
+function stopMotor() {
+    setMotorSpeed(0);
 }
 
-function stop() {
-    ws.sendMessage(`motor:stop:0`);
-
-    //lastTrainDirection = 0;
+function brakeMotor() {
+    ws.sendMessage('brake');
 }
