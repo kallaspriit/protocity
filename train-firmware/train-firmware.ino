@@ -1,24 +1,21 @@
 #include <ESP8266WiFi.h>
+#include <DNSServer.h>
+#include <ESP8266WebServer.h>
 #include <Arduino.h>
 #include <SPI.h>
+#include <stdarg.h>
+
+#include "WiFiManager.h"
+#include "Commander.h"
+#include "MCP320X.h"
 
 // Helpful links
 // Common pins            https://github.com/esp8266/Arduino/blob/3e7b4b8e0cf4e1f7ad48104abfc42723b5e4f9be/variants/generic/common.h
 // Sparkfun thing pins    https://github.com/esp8266/Arduino/blob/3e7b4b8e0cf4e1f7ad48104abfc42723b5e4f9be/variants/thing/pins_arduino.h
 // Hookup guide           https://learn.sparkfun.com/tutorials/esp8266-thing-hookup-guide/all
 
-#include "WebSocketClient.h"
-#include "Commander.h"
-#include "MCP320X.h"
-
-// configure wify
-const char WIFI_SSID[]        = "Stagnationlab";
-const char WIFI_PASSWORD[]    = "purgisupp";
-
-// configure websockets
-char WS_HOST[]                = "10.220.20.140";
-char WS_PATH[]                = "/";
-const int WS_PORT             = 3000;
+// configure server
+const int SERVER_PORT = 8080;
 
 // configure pins
 const int DEBUG_LED_PIN       = LED_BUILTIN; // should be pin 5
@@ -31,6 +28,8 @@ const int ADC_SLAVE_SELECT_PIN = 2;
 const int ANALOG_MAX_VALUE = 1023;
 const float MAX_ADC_READING_VOLTAGE = 3.3f; // Vcc/Vref pin
 const int MAX_ADC_READING_VALE = 4095;
+const int RECEIVE_BUFFER_SIZE = 1024;
+const int LOG_BUFFER_LENGTH = 128;
 
 // behaviour config
 const float OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM = 18.0f;
@@ -38,10 +37,9 @@ const unsigned long SPEED_DECISION_INTERVAL = 10;
 const unsigned long BRAKE_DURATION = 250;
 
 // dependencies
-WebSocketClient webSocketClient;
+WiFiServer server(SERVER_PORT);
 WiFiClient client;
-HardwareSerial *serial = &Serial;
-Commander commander(serial);
+Commander commander(&Serial);
 MCP320X adc(ADC_SLAVE_SELECT_PIN);
 
 // runtime info
@@ -51,128 +49,111 @@ bool isBraking = false;
 bool stopAfterBrake = false;
 unsigned long brakeStartTime = 0;
 unsigned long lastSpeedDecisionTime = 0;
+char receiveBuffer[RECEIVE_BUFFER_SIZE];
+int receiveLength = 0;
+bool wasClientConnected = false;
+float obstacleDistance = 0.0f;
+bool wasObstacleDetected = false;
 
 // configure resources
 void setup() {
-  // initialize serial for debugging
-  serial->begin(115200);
-  delay(10);
+  setupSerial();
+  setupPinModes();
+  setupAdc();
+  setupMotorController();
+  setupWifiConnection();
+  setupServer();
 
-  // setup pins
+  //Serial.printf("test %s (%d) %.2f\n", "priit", 29, 15.1234567890f);
+  log("test2 %s (%d)", "priit", 29);
+}
+
+void setupSerial() {
+  Serial.begin(115200);
+  delay(100);
+  Serial.println();
+}
+
+void setupPinModes() {
+  log("setting up pin-modes");
+  
   pinMode(DEBUG_LED_PIN, OUTPUT);
   pinMode(MOTOR_CONTROL_PIN_A, OUTPUT);
   pinMode(MOTOR_CONTROL_PIN_B, OUTPUT);
   pinMode(BATTERY_VOLTAGE_PIN, INPUT);
+}
 
-  // setup default pin states
-  digitalWrite(DEBUG_LED_PIN, HIGH);
-
-  // make the motor brake by default
-  stopMotor();
-
-  // connect to the wifi network
-  serial->print("connecting to wifi network: ");
-  serial->println(WIFI_SSID);
-
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-
-  // wait for the connection, blink the debug led
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    serial->print(".");
-    toggleDebugLed();
-  }
-
-  // kill the led once connected, lights up again once connected to websocket
-  setDebugLed(LOW);
-
-  // send wifi connection info to the console
-  serial->print("connected to wifi network, my ip: ");
-  serial->println(WiFi.localIP());
-
-  WiFi.printDiag(Serial);
-
-  // give the chip some time before connecting to websocket
-  delay(500);
-
-  // send websocket info to console
-  serial->print("connecting to ws://");
-  serial->print(WS_HOST);
-  serial->print(":");
-  serial->print(WS_PORT);
-  serial->println(WS_PATH);
-
-  // connect to the websocket server
-  if (client.connect(WS_HOST, WS_PORT)) {
-    serial->println("connected to websocket");
-  } else {
-    serial->println("connecting to websocket failed");
-    while (1) {
-      // hang on failure, watchdog will reboot it
-    }
-  }
-
-  // perform the websocket handshake
-  serial->println("performing websocket handshake");
-
-  // configure handshake
-  webSocketClient.path = WS_PATH;
-  webSocketClient.host = WS_HOST;
-
-  // perform the handshake
-  if (webSocketClient.handshake(client)) {
-    serial->println("handshake was successful");
-  } else {
-    serial->println("handshake failed");
-    while (1) {
-      // Hang on failure
-    }
-  }
-
-  // initialize SPI and adc
+void setupAdc() {
+  log("setting up analog to digital converter");
+  
   SPI.begin();
   adc.begin();
+}
 
-  // all done with the setup, show solid led
-  serial->println("setup complete");
-  setDebugLed(HIGH);
+void setupMotorController() {
+  log("setting up motor controller");
+  
+  // make the motor brake by default
+  stopMotor();
+}
+
+void setupWifiConnection() {
+  log("setting up wifi network");
+
+  WiFiManager wifiManager;
+  wifiManager.setDebugOutput(false);
+  wifiManager.autoConnect();
+
+  log("wifi connection established");
+
+  // show some diagnostics information
+  //WiFi.printDiag(Serial);
+}
+
+void setupServer() {
+  log("setting up server.. ");
+  
+  // start tcp socket server
+  server.begin();
+  
+  log("server started on %s:%d", WiFi.localIP().toString().c_str(), SERVER_PORT);
 }
 
 void loop() {
-  //Serial.print(".");
-  
+  loopCommander();
+  loopServer();
+  loopMotorController();
+}
+
+void loopCommander() {
   while (commander.gotCommand()) {
     handleCommand(commander.command, commander.parameters, commander.parameterCount);
   }
+}
 
-  if (client.connected()) {
-    String data;
+void loopServer() {
+  if (!client.connected()) {
+    if (wasClientConnected) {
+      handleClientDisconnected();
 
-    webSocketClient.getData(data);
+      wasClientConnected = false;
+    }
+    
+    client = server.available();
 
-    if (data.length() > 0) {
-      serial->print("< ");
-      serial->println(data);
-
-      commander.parseCommand(data);
-      handleCommand(commander.command, commander.parameters, commander.parameterCount);
-
-      /*
-        if (data == "toggle-led") {
-        toggleDebugLed();
-
-        data = "led:" + String(digitalRead(BUILTIN_LED));
-        webSocketClient.sendData(data);
-        }
-      */
+    if (client.connected()) {
+      handleClientConnected();
+      
+      wasClientConnected = true;
     }
   } else {
-    serial->println("Client disconnected.");
-    while (1) {
-      // Hang on disconnect.
+    if (client.available() > 0) {
+      handleClientDataAvailable();
     }
   }
+}
 
+void loopMotorController() {
   unsigned long currentTime = millis();
   unsigned long timeSinceLastSpeedDecision = currentTime - lastSpeedDecisionTime;
 
@@ -183,52 +164,114 @@ void loop() {
   }
 }
 
+void handleClientConnected() {
+  log("client connected, remote ip: %s", client.remoteIP().toString().c_str());
+}
+
+void handleClientDataAvailable() {
+  //String message = client.readStringUntil('\n');
+
+  // read data from the client
+  while (client.available()) {
+    char character = client.read();
+
+    if (character == '\n') {
+      receiveBuffer[receiveLength++] = '\0';
+      
+      handleMessage(String(receiveBuffer));
+
+      //client.flush();
+
+      receiveLength = 0;
+    } else {
+      receiveBuffer[receiveLength++] = character;
+    }
+
+    // avoid buffer overflow
+    if (receiveLength == RECEIVE_BUFFER_SIZE -1) {
+      break;
+    }
+  }
+}
+
+void handleClientDisconnected() {
+  log("client disconnected");
+}
+
+void handleMessage(String message) {
+  if (message.length() == 0) {
+    return;
+  }
+  
+  Serial.print("< ");
+  Serial.println(message);
+  
+  commander.parseCommand(message);
+  handleCommand(commander.command, commander.parameters, commander.parameterCount);
+}
+
+void sendMessage(String message) {
+  if (!client.connected()) {
+    Serial.print("> ");
+    Serial.print(message);
+    Serial.println(" (no client connected)");
+
+    return;
+  }
+
+  Serial.print(">");
+  Serial.println(message);
+  
+  client.print(message + String("\n"));
+}
+
 void handleCommand(String command, String parameters[], int parameterCount) {
   if (command == "led" && parameterCount == 1) {
     int state = parameters[0].toInt() == 1 ? HIGH : LOW;
 
     setDebugLed(state);
 
-    serial->println(state ? "turning debug led on" : "turning debug led off");
+    if (state) {
+      log("turning debug led on");
+    } else {
+      log("turning debug led off");
+    }
 
     sendLedState();
   } else if (command == "toggle-led" && parameterCount == 0) {
     toggleDebugLed();
 
-    serial->println("toggling debug led");
+    log("toggling debug led");
 
     sendLedState();
   } else if (command == "get-led-state" && parameterCount == 0) {
     sendLedState();
-  } else if (command == "motor" && parameterCount == 1) {
+  } else if (command == "set-speed" && parameterCount == 1) {
     targetSpeed = min(max(parameters[0].toInt(), -100), 100);
 
     applyMotorSpeed();
+  } else if (command == "get-speed" && parameterCount == 0) {
+    sendMotorSpeed();
   } else if (command == "brake") {
-    serial->println("braking");
+    log("braking");
 
     brakeMotor();
     
     stopAfterBrake = true;
   } else if (command == "get-motor-state" && parameterCount == 0) {
-    sendMotorState();
-  } else if (command == "get-battery-voltage" && parameterCount == 1) {
-    sendBatteryVoltage(parameters[0]);
+    sendMotorSpeed();
+  } else if (command == "get-battery-voltage" && parameterCount == 0) {
+    sendBatteryVoltage();
   } else if (command == "get-obstacle-distance") {
     sendObstacleDistance();
   } else {
-    serial->print("Got command '");
-    serial->print(command);
-    serial->print("' with ");
-    serial->print(parameterCount);
-    serial->println(" parameters: ");
+    log("got command '%s' with %d parameters:", command.c_str(), parameterCount);
 
     for (int i = 0; i < parameterCount; i++) {
-      serial->print("  > ");
-      serial->print(i);
-      serial->print(": ");
-      serial->println(parameters[i]);
+      log("  %d: %s", i, parameters[i].c_str());
     }
+
+    sendMessage("unsupported command");
   }
 }
 
@@ -267,13 +310,10 @@ void setMotorSpeed(int speed, bool sendState = true) {
   }
   
   speed = min(max(speed, -100), 100);
+  
   int analogOutValue = (int)(((float)abs(speed) / 100.0f) * (float)ANALOG_MAX_VALUE);
   
-  serial->print("setting motor to ");
-  serial->print(speed > 0 ? "move forward" : speed < 0 ? "move in reverse" : "stop");
-  serial->print(" at ");
-  serial->print(speed);
-  serial->println("% speed");
+  log("setting motor to %s at %d%% speed", speed > 0 ? "move forward" : speed < 0 ? "move in reverse" : "stop", speed);
 
   motorSpeed = speed;
   
@@ -290,13 +330,11 @@ void setMotorSpeed(int speed, bool sendState = true) {
   }
 
   if (sendState) {
-    sendMotorState();
+    sendMotorSpeed();
   }
 }
 
 void stopMotor() {
-  serial->println("stopping motor");
-
   setMotorSpeed(0);
 }
 
@@ -304,58 +342,6 @@ void brakeMotor() {
   isBraking = true;
   brakeStartTime = millis();
   applyMotorSpeed();
-}
-
-void sendLedState() {
-  if (!client.connected()) {
-    return;
-  }
-  
-  String data = "led:" + String(digitalRead(DEBUG_LED_PIN));
-  webSocketClient.sendData(data);
-}
-
-void sendMotorState() {
-  if (!client.connected()) {
-    return;
-  }
-
-  String data = "motor:" + String(motorSpeed) + ":" + String(targetSpeed);
-  webSocketClient.sendData(data);
-}
-
-void sendBatteryVoltage(String vehicle) {
-  if (!client.connected()) {
-    return;
-  }
-  
-  if (vehicle != "train") {
-    return;
-  }
-  
-  float voltage = getBatteryVoltage();
-
-  serial->print("battery voltage: ");
-  serial->print(voltage);
-  serial->println("V");
-
-  String data = "battery:" + vehicle + ":" + String(voltage);
-  webSocketClient.sendData(data);
-}
-
-void sendObstacleDistance() {
-  if (!client.connected()) {
-    return;
-  }
-  
-  float distance = getObstacleDistance();
-
-  serial->print("obstacle distance: ");
-  serial->print(distance);
-  serial->println("cm");
-
-  String data = "obstacle-distance:" + String(distance);
-  webSocketClient.sendData(data);
 }
 
 float calculateAdcVoltage(int reading, int maxReading, float maxReadingVoltage, float resistor1, float resistor2, float calibrationMultiplier) {
@@ -366,9 +352,9 @@ float calculateAdcVoltage(int reading, int maxReading, float maxReadingVoltage, 
 }
 
 bool isObstacleDetected() {
-  float obstacleDistanceCm = getObstacleDistance();
+  obstacleDistance = getObstacleDistance();
 
-  return obstacleDistanceCm < OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM;
+  return obstacleDistance < OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM;
 }
 
 void applyMotorSpeed() {
@@ -389,17 +375,67 @@ void applyMotorSpeed() {
     }
   } else if (isObstacleDetected() && targetSpeed > 0) {
     if (motorSpeed != 0 && !isBraking) {
-      Serial.println("obstacle detected, stopping train");
+      log("obstacle detected, stopping train");
   
       //stopMotor();
       brakeMotor();
+
+      sendObstacleDetectedEvent(obstacleDistance);
+
+      wasObstacleDetected = true;
     }
   } else if (motorSpeed != targetSpeed) {
-    Serial.print("no obstacle detected, matching motor speed to target of ");
-    Serial.print(targetSpeed);
-    Serial.println("%");
+    
+
+    if (wasObstacleDetected) {
+      sendObstacleClearedEvent();
+
+      log("obstacle cleared, resuming target speed of %d%%", targetSpeed);
+    } else {
+      log("applying target speed of %d%%", targetSpeed);
+    }
     
     setMotorSpeed(targetSpeed);
   }
 }
 
+void sendLedState() {
+  sendMessage("led:" + String(digitalRead(DEBUG_LED_PIN)));
+}
+
+void sendMotorSpeed() {
+  sendMessage("speed:" + String(motorSpeed) + ":" + String(targetSpeed));
+}
+
+void sendObstacleDetectedEvent(float distance) {
+  sendMessage("obstacle-detected:" + String(distance));
+}
+
+void sendObstacleClearedEvent() {
+  sendMessage("obstacle-cleared");
+}
+
+void sendBatteryVoltage() {
+  float voltage = getBatteryVoltage();
+
+  log("battery voltage: %sV", String(voltage).c_str());
+
+  sendMessage("battery:" + vehicle + ":" + String(voltage));
+}
+
+void sendObstacleDistance() {
+  float distance = getObstacleDistance();
+
+  log("obstacle distance: %s cm", String(distance).c_str());
+
+  sendMessage("obstacle-distance:" + String(distance));
+}
+
+void log(char *fmt, ...){
+    char buf[LOG_BUFFER_LENGTH];
+    va_list args;
+    va_start (args, fmt );
+    vsnprintf(buf, LOG_BUFFER_LENGTH, fmt, args);
+    va_end (args);
+    Serial.print(String("# ") + String(buf) + String("\n"));
+}
