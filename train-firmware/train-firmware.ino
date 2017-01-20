@@ -29,7 +29,8 @@ const int ANALOG_MAX_VALUE = 1023;
 const float MAX_ADC_READING_VOLTAGE = 3.3f; // Vcc/Vref pin
 const int MAX_ADC_READING_VALE = 4095;
 const int RECEIVE_BUFFER_SIZE = 1024;
-const int LOG_BUFFER_LENGTH = 128;
+const int LOG_BUFFER_SIZE = 128;
+const int COMMAND_BUFFER_SIZE = 128;
 
 // behaviour config
 const float OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM = 18.0f;
@@ -39,7 +40,7 @@ const unsigned long BRAKE_DURATION = 250;
 // dependencies
 WiFiServer server(SERVER_PORT);
 WiFiClient client;
-Commander commander(&Serial);
+Commander commander;
 MCP320X adc(ADC_SLAVE_SELECT_PIN);
 
 // runtime info
@@ -50,7 +51,10 @@ bool stopAfterBrake = false;
 unsigned long brakeStartTime = 0;
 unsigned long lastSpeedDecisionTime = 0;
 char receiveBuffer[RECEIVE_BUFFER_SIZE];
+char logBuffer[LOG_BUFFER_SIZE];
+char commandBuffer[COMMAND_BUFFER_SIZE];
 int receiveLength = 0;
+int commandLength = 0;
 bool wasClientConnected = false;
 float obstacleDistance = 0.0f;
 bool wasObstacleDetected = false;
@@ -63,15 +67,12 @@ void setup() {
   setupMotorController();
   setupWifiConnection();
   setupServer();
-
-  //Serial.printf("test %s (%d) %.2f\n", "priit", 29, 15.1234567890f);
-  log("test2 %s (%d)", "priit", 29);
 }
 
 void setupSerial() {
   Serial.begin(115200);
   delay(100);
-  Serial.println();
+  Serial.print("\n");
 }
 
 void setupPinModes() {
@@ -120,14 +121,29 @@ void setupServer() {
 }
 
 void loop() {
-  loopCommander();
+  loopSerial();
   loopServer();
   loopMotorController();
 }
 
-void loopCommander() {
-  while (commander.gotCommand()) {
-    handleCommand(commander.command, commander.parameters, commander.parameterCount);
+void loopSerial() {
+  while (Serial.available() > 0) {
+    char character = Serial.read();
+
+    if (character == '\n') {
+      commandBuffer[commandLength++] = '\0';
+      
+      handleMessage(String(commandBuffer));
+
+      commandLength = 0;
+    } else {
+      commandBuffer[commandLength++] = character;
+    }
+
+    // avoid buffer overflow
+    if (commandLength == COMMAND_BUFFER_SIZE -1) {
+      break;
+    }
   }
 }
 
@@ -169,9 +185,6 @@ void handleClientConnected() {
 }
 
 void handleClientDataAvailable() {
-  //String message = client.readStringUntil('\n');
-
-  // read data from the client
   while (client.available()) {
     char character = client.read();
 
@@ -204,75 +217,214 @@ void handleMessage(String message) {
   }
   
   Serial.print("< ");
-  Serial.println(message);
+  Serial.print(message + String("\n"));
   
   commander.parseCommand(message);
-  handleCommand(commander.command, commander.parameters, commander.parameterCount);
+
+  if (commander.isValid) {
+    handleCommand(commander.id, commander.command, commander.parameters, commander.parameterCount);
+  } else {
+    log("got incomplete command message '%s', expected something like 1:command:arg1:arg2", message.c_str());
+
+    sendErrorMessage(commander.id, "incomplete command");
+  }
+}
+
+void handleCommand(int requestId, String command, String parameters[], int parameterCount) {
+  if (command == "set-led") {
+    handleSetLedCommand(requestId, parameters, parameterCount);
+  } else if (command == "get-led") {
+    handleGetLedCommand(requestId, parameters, parameterCount);
+  } else if (command == "toggle-led") {
+    handleToggleLedCommand(requestId, parameters, parameterCount);
+  } else if (command == "set-speed") {
+    handleSetSpeedCommand(requestId, parameters, parameterCount);
+  } else if (command == "get-speed") {
+    handleGetSpeedCommand(requestId, parameters, parameterCount);
+  } else if (command == "get-battery-voltage") {
+    handleGetBatteryVoltageCommand(requestId, parameters, parameterCount);
+  } else if (command == "get-obstacle-distance") {
+    handleGetObstacleDistanceCommand(requestId, parameters, parameterCount);
+  } else {
+    handleUnsupportedCommand(requestId, command, parameters, parameterCount);
+  }
+}
+
+void handleSetLedCommand(int requestId, String parameters[], int parameterCount) {
+  if (parameterCount != 1) {
+    return sendErrorMessage(requestId, "expected 1 parameter, for example '1:set-led:1'");
+  }
+  
+  int state = parameters[0].toInt() == 1 ? HIGH : LOW;
+
+  setDebugLed(state);
+
+  if (state) {
+    log("turning debug led on");
+  } else {
+    log("turning debug led off");
+  }
+
+  sendLedState(requestId);
+}
+
+void handleGetLedCommand(int requestId, String parameters[], int parameterCount) {
+  if (parameterCount != 0) {
+    return sendErrorMessage(requestId, "expected no parameters, for example '1:get-led'");
+  }
+  
+  sendLedState(requestId);
+}
+
+void handleToggleLedCommand(int requestId, String parameters[], int parameterCount) {
+  if (parameterCount != 0) {
+    return sendErrorMessage(requestId, "expected no parameters, for example '1:toggle-led'");
+  }
+  
+  toggleDebugLed();
+
+  log("toggling debug led");
+
+  sendLedState(requestId);
+}
+
+void handleSetSpeedCommand(int requestId, String parameters[], int parameterCount) {
+  if (parameterCount != 1) {
+    return sendErrorMessage(requestId, "expected 1 parameter, for example '1:set-speed:50'");
+  }
+
+  targetSpeed = min(max(parameters[0].toInt(), -100), 100);
+
+  applyMotorSpeed();
+
+  sendMotorSpeed(requestId);
+}
+
+void handleGetSpeedCommand(int requestId, String parameters[], int parameterCount) {
+  if (parameterCount != 0) {
+    return sendErrorMessage(requestId, "expected no parameters, for example '1:get-speed'");
+  }
+
+  sendMotorSpeed(requestId);
+}
+
+void handleGetBatteryVoltageCommand(int requestId, String parameters[], int parameterCount) {
+  if (parameterCount != 0) {
+    return sendErrorMessage(requestId, "expected no parameters, for example '1:get-battery-voltage'");
+  }
+
+  sendBatteryVoltage(requestId);
+}
+
+void handleGetObstacleDistanceCommand(int requestId, String parameters[], int parameterCount) {
+  if (parameterCount != 0) {
+    return sendErrorMessage(requestId, "expected no parameters, for example '1:get-obstacle-distance'");
+  }
+
+  sendObstacleDistance(requestId);
+}
+
+void handleUnsupportedCommand(int requestId, String command, String parameters[], int parameterCount) {
+  log("got command #%d '%s' with %d parameters:", requestId, command.c_str(), parameterCount);
+
+  for (int i = 0; i < parameterCount; i++) {
+    log("  %d: %s", i, parameters[i].c_str());
+  }
+
+  sendErrorMessage(requestId, "unsupported command");
+}
+
+void sendMessage(char *fmt, ...) {
+  va_list args;
+  va_start(args, fmt );
+  vsnprintf(logBuffer, LOG_BUFFER_SIZE, fmt, args);
+  va_end(args);
+
+  if (client.connected()) {
+    client.print(String(logBuffer) + String("\n"));
+    
+    Serial.print(String("> ") + String(logBuffer) + String("\n"));
+  } else {
+    Serial.print(String("> ") + String(logBuffer) + String(" (no client connected)\n"));
+  }
 }
 
 void sendMessage(String message) {
-  if (!client.connected()) {
-    Serial.print("> ");
-    Serial.print(message);
-    Serial.println(" (no client connected)");
-
-    return;
+  if (client.connected()) {
+    client.print(message + String("\n"));
+    
+    Serial.print(String("> ") + message + String("\n"));
+  } else {
+    Serial.print(String("> ") + message + String(" (no client connected)\n"));
   }
-
-  Serial.print(">");
-  Serial.println(message);
-  
-  client.print(message + String("\n"));
 }
 
-void handleCommand(String command, String parameters[], int parameterCount) {
-  if (command == "led" && parameterCount == 1) {
-    int state = parameters[0].toInt() == 1 ? HIGH : LOW;
+void sendSuccessMessage(int requestId) {
+  sendMessage("%d:OK", requestId);
+}
 
-    setDebugLed(state);
+void sendSuccessMessage(int requestId, int value) {
+  sendMessage("%d:OK:%d", requestId, value);
+}
 
-    if (state) {
-      log("turning debug led on");
-    } else {
-      log("turning debug led off");
-    }
+void sendSuccessMessage(int requestId, int value1, int value2) {
+  sendMessage("%d:OK:%d:%d", requestId, value1, value2);
+}
 
-    sendLedState();
-  } else if (command == "toggle-led" && parameterCount == 0) {
-    toggleDebugLed();
+void sendSuccessMessage(int requestId, String info) {
+  sendMessage("%d:OK:%s", requestId, info.c_str());
+}
 
-    log("toggling debug led");
+void sendErrorMessage(int requestId) {
+  sendMessage("%d:ERROR", requestId);
+}
 
-    sendLedState();
-  } else if (command == "get-led-state" && parameterCount == 0) {
-    sendLedState();
-  } else if (command == "set-speed" && parameterCount == 1) {
-    targetSpeed = min(max(parameters[0].toInt(), -100), 100);
+void sendEventMessage(String event) {
+  sendMessage("0:%s", event.c_str());
+}
 
-    applyMotorSpeed();
-  } else if (command == "get-speed" && parameterCount == 0) {
-    sendMotorSpeed();
-  } else if (command == "brake") {
-    log("braking");
+void sendEventMessage(String event, String info) {
+  sendMessage("0:%s:%s", event.c_str(), info.c_str());
+}
 
-    brakeMotor();
-    
-    stopAfterBrake = true;
-  } else if (command == "get-motor-state" && parameterCount == 0) {
-    sendMotorSpeed();
-  } else if (command == "get-battery-voltage" && parameterCount == 0) {
-    sendBatteryVoltage();
-  } else if (command == "get-obstacle-distance") {
-    sendObstacleDistance();
-  } else {
-    log("got command '%s' with %d parameters:", command.c_str(), parameterCount);
+void sendErrorMessage(int requestId, String reason) {
+  sendMessage("%d:ERROR:%s", requestId, reason.c_str());
+}
 
-    for (int i = 0; i < parameterCount; i++) {
-      log("  %d: %s", i, parameters[i].c_str());
-    }
+void sendLedState(int requestId) {
+  sendSuccessMessage(requestId, digitalRead(DEBUG_LED_PIN) == HIGH ? 1 : 0);
+}
 
-    sendMessage("unsupported command");
-  }
+void sendMotorSpeed(int requestId) {
+  sendSuccessMessage(requestId, motorSpeed, targetSpeed);
+}
+
+void sendObstacleDetectedEvent(float distance) {
+  sendEventMessage("obstacle-detected", String(distance));
+}
+
+void sendObstacleClearedEvent() {
+  sendEventMessage("obstacle-cleared");
+}
+
+void sendBatteryVoltage(int requestId) {
+  float voltage = getBatteryVoltage();
+
+  sendSuccessMessage(requestId, String(voltage));
+}
+
+void sendObstacleDistance(int requestId) {
+  float distance = getObstacleDistance();
+
+  sendSuccessMessage(requestId, String(distance));
+}
+
+void log(char *fmt, ...){
+    va_list args;
+    va_start(args, fmt );
+    vsnprintf(logBuffer, LOG_BUFFER_SIZE, fmt, args);
+    va_end(args);
+    Serial.print(String("# ") + String(logBuffer) + String("\n"));
 }
 
 float getBatteryVoltage() {
@@ -304,7 +456,7 @@ void setDebugLed(int state) {
   digitalWrite(DEBUG_LED_PIN, state == HIGH ? HIGH : LOW);
 }
 
-void setMotorSpeed(int speed, bool sendState = true) {
+void setMotorSpeed(int speed) {
   if (speed == motorSpeed) {
     return;
   }
@@ -327,10 +479,6 @@ void setMotorSpeed(int speed, bool sendState = true) {
   } else {
     analogWrite(MOTOR_CONTROL_PIN_A, ANALOG_MAX_VALUE - analogOutValue);
     analogWrite(MOTOR_CONTROL_PIN_B, ANALOG_MAX_VALUE);
-  }
-
-  if (sendState) {
-    sendMotorSpeed();
   }
 }
 
@@ -371,7 +519,7 @@ void applyMotorSpeed() {
       stopAfterBrake = false;
       stopMotor();
     } else {
-      setMotorSpeed(targetSpeed > 0 ? -100 : 100, false);
+      setMotorSpeed(targetSpeed > 0 ? -100 : 100);
     }
   } else if (isObstacleDetected() && targetSpeed > 0) {
     if (motorSpeed != 0 && !isBraking) {
@@ -385,57 +533,16 @@ void applyMotorSpeed() {
       wasObstacleDetected = true;
     }
   } else if (motorSpeed != targetSpeed) {
-    
-
     if (wasObstacleDetected) {
       sendObstacleClearedEvent();
 
       log("obstacle cleared, resuming target speed of %d%%", targetSpeed);
+
+      wasObstacleDetected = false;
     } else {
       log("applying target speed of %d%%", targetSpeed);
     }
     
     setMotorSpeed(targetSpeed);
   }
-}
-
-void sendLedState() {
-  sendMessage("led:" + String(digitalRead(DEBUG_LED_PIN)));
-}
-
-void sendMotorSpeed() {
-  sendMessage("speed:" + String(motorSpeed) + ":" + String(targetSpeed));
-}
-
-void sendObstacleDetectedEvent(float distance) {
-  sendMessage("obstacle-detected:" + String(distance));
-}
-
-void sendObstacleClearedEvent() {
-  sendMessage("obstacle-cleared");
-}
-
-void sendBatteryVoltage() {
-  float voltage = getBatteryVoltage();
-
-  log("battery voltage: %sV", String(voltage).c_str());
-
-  sendMessage("battery:" + vehicle + ":" + String(voltage));
-}
-
-void sendObstacleDistance() {
-  float distance = getObstacleDistance();
-
-  log("obstacle distance: %s cm", String(distance).c_str());
-
-  sendMessage("obstacle-distance:" + String(distance));
-}
-
-void log(char *fmt, ...){
-    char buf[LOG_BUFFER_LENGTH];
-    va_list args;
-    va_start (args, fmt );
-    vsnprintf(buf, LOG_BUFFER_LENGTH, fmt, args);
-    va_end (args);
-    Serial.print(String("# ") + String(buf) + String("\n"));
 }

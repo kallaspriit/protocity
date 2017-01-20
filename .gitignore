@@ -4,9 +4,9 @@
 /etherio/.gradle
 /etherio/.idea
 /etherio/build
-/etherio-test/.gradle
-/etherio-test/.idea
-/etherio-test/build
+/experiments/etherio-test/.gradle
+/experiments/etherio-test/.idea
+/experiments/etherio-test/build
 ~$*
 .pioenvs
 /dashboard/elm-stuff
