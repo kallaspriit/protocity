@@ -7,7 +7,7 @@
 
 #include <SPI.h>
 
-#include "MCP320X.h"
+#include "MCP320X.hpp"
 
 void MCP320X::init(const byte cdiv, const byte mode) {
 	pinMode(pin_cs, OUTPUT);
@@ -59,4 +59,3 @@ byte MCP320X::read8(const byte chcfg) {
 	deselect();
 	return bl;
 }
-

@@ -34,7 +34,7 @@ public:
 
 	MCP320X(const byte pin = 10) : pin_cs(pin) {	}
 
-	inline void begin(const byte cdiv = SPI_CLOCK_DIV16, const byte mode = SPI_MODE0) { init(cdiv, mode); }
+	inline void begin(const byte cdiv = (byte)SPI_CLOCK_DIV16, const byte mode = SPI_MODE0) { init(cdiv, mode); }
 	void setupSPI(const byte cdiv, const byte mode);
 	void setupSPI();
 	inline void end() { deselect(); }

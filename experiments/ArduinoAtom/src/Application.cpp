@@ -8,7 +8,7 @@
 // WiFi Definitions //
 //////////////////////
 const char WiFiSSID[] = "Stagnationlab";
-const char WiFiPSK[] = "purgisupp";
+const char WiFiPSK[] = "";
 
 /////////////////////
 // Pin Definitions //
