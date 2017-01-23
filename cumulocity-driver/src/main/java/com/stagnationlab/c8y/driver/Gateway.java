@@ -37,13 +37,21 @@ public class Gateway implements Driver, OperationExecutor {
 	private final List<Driver> drivers = new ArrayList<>();
 	private GId gid;
 
-	private Commander commander;
+	private Commander controllerCommander;
+	private Commander trainCommander;
+
+	// TODO move configuration elsewhere
+	private final static String controllerCommanderHost = "10.220.20.201";
+	private final static int controllerCommanderPort = 8080;
+	private final static String trainCommanderHost = "10.220.20.205";
+	private final static int trainCommanderPort = 8080;
 
 	@Override
 	public void initialize() throws Exception {
 		log.info("initializing");
 
-		setupEtherio();
+		setupControllerCommander();
+		setupTrainCommander();
 		setupDevices();
 
 		try {
@@ -182,15 +190,40 @@ public class Gateway implements Driver, OperationExecutor {
 		}
 	}
 
-	private void setupEtherio() throws IOException {
-		// TODO make host and port configurable, support multiple
-		String hostName = "10.220.20.201";
-		int portNumber = 8080;
+	private void setupControllerCommander() throws IOException {
+		log.info("setting up controller commander at {}:{}", controllerCommanderHost, controllerCommanderPort);
 
-		SocketClient socketClient = new SocketClient(hostName, portNumber);
-		socketClient.connect();
+		SocketClient socketClient = new SocketClient(controllerCommanderHost, controllerCommanderPort);
+		controllerCommander = new Commander(socketClient);
 
-		commander = new Commander(socketClient);
+		try {
+			socketClient.connect();
+
+			log.info("connection to controller commander is established");
+		} catch (IOException e) {
+			log.warn("connecting to controller commander socket failed");
+		}
+	}
+
+	private void setupTrainCommander() throws IOException {
+		log.info("setting up train commander at {}:{}", trainCommanderHost, trainCommanderPort);
+
+		SocketClient socketClient = new SocketClient(trainCommanderHost, trainCommanderPort);
+		trainCommander = new Commander(socketClient);
+
+		try {
+			socketClient.connect();
+
+			log.info("connection to train commander is established");
+		} catch (IOException e) {
+			log.warn("connecting to train commander socket failed");
+
+			return;
+		}
+
+		trainCommander.sendCommand("get-battery-voltage").thenAccept(commandResponse -> {
+			log.info("got train battery voltage: {}V ({}%)", commandResponse.response.getFloat(0), commandResponse.response.getInt(1));
+		});
 	}
 
 	private void setupDevices() {
@@ -228,62 +261,62 @@ public class Gateway implements Driver, OperationExecutor {
 	private void setupEtherioRelayActuator() {
 		// TODO make port configurable
 		registerDriver(
-				new EtherioRelayActuator("EtherIO relay", commander, 1)
+				new EtherioRelayActuator("EtherIO relay", controllerCommander, 1)
 		);
 	}
 
 	private void setupEtherioButtonSensor() {
 		// TODO make port configurable
 		registerDriver(
-				new EtherioButtonSensor("EtherIO button", commander, 4)
+				new EtherioButtonSensor("EtherIO button", controllerCommander, 4)
 		);
 	}
 
 	private void setupEtherioMonitoringSensor() {
 		registerDriver(
-				new EtherioMonitoringSensor("EtherIO monitor", commander)
+				new EtherioMonitoringSensor("EtherIO monitor", controllerCommander)
 		);
 	}
 
 	private void setupEtherioAnalogInputSensor() {
 		// TODO make port configurable
 		registerDriver(
-				new EtherioAnalogInputSensor("EtherIO analog input", commander, 6, "%")
+				new EtherioAnalogInputSensor("EtherIO analog input", controllerCommander, 6, "%")
 		);
 	}
 
 	private void setupEtherioMotionSensor() {
 		// TODO make port configurable
 		registerDriver(
-				new EtherioMotionSensor("EtherIO motion sensor", commander, 5)
+				new EtherioMotionSensor("EtherIO motion sensor", controllerCommander, 5)
 		);
 	}
 
 	private void setupEtherioLightSensor() {
 		// TODO make port configurable
 		registerDriver(
-				new EtherioLightSensor("EtherIO light sensor", commander, 6)
+				new EtherioLightSensor("EtherIO light sensor", controllerCommander, 6)
 		);
 	}
 
 	private void setupEtherioTemperatureSensor() {
 		// TODO make port configurable
 		registerDriver(
-				new EtherioTemperatureSensor("EtherIO temperature sensor", commander, 6)
+				new EtherioTemperatureSensor("EtherIO temperature sensor", controllerCommander, 6)
 		);
 	}
 
 	private void setupEtherioTagSensor() {
 		// TODO make port configurable
 		registerDriver(
-				new EtherioTagSensor("EtherIO tag sensor", commander, 2)
+				new EtherioTagSensor("EtherIO tag sensor", controllerCommander, 2)
 		);
 	}
 
 	private void setupEtherioMultiDacActuator() {
 		// TODO make port configurable
 		registerDriver(
-				new EtherioMultiDacActuator("EtherIO multiple DAC actuator", commander, 3, 16)
+				new EtherioMultiDacActuator("EtherIO multiple DAC actuator", controllerCommander, 3, 16)
 		);
 	}
 }

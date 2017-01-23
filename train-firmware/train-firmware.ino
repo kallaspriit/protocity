@@ -58,6 +58,7 @@ int commandLength = 0;
 bool wasClientConnected = false;
 float obstacleDistance = 0.0f;
 bool wasObstacleDetected = false;
+float initialBatteryVoltage = 0.0f;
 
 // configure resources
 void setup() {
@@ -66,6 +67,7 @@ void setup() {
   setupAdc();
   setupMotorController();
   setupWifiConnection();
+  setupBatteryMonitor();
   setupServer();
 }
 
@@ -99,7 +101,7 @@ void setupMotorController() {
 }
 
 void setupWifiConnection() {
-  log("setting up wifi network");
+  log("setting up wifi connection");
 
   WiFiManager wifiManager;
   wifiManager.setDebugOutput(false);
@@ -109,6 +111,12 @@ void setupWifiConnection() {
 
   // show some diagnostics information
   //WiFi.printDiag(Serial);
+}
+
+void setupBatteryMonitor() {
+  initialBatteryVoltage = getBatteryVoltage();
+  
+  log("setting up battery monitor, initial voltage: %sV", String(initialBatteryVoltage).c_str());
 }
 
 void setupServer() {
@@ -375,6 +383,10 @@ void sendSuccessMessage(int requestId, String info) {
   sendMessage("%d:OK:%s", requestId, info.c_str());
 }
 
+void sendSuccessMessage(int requestId, String info1, String info2) {
+  sendMessage("%d:OK:%s:%s", requestId, info1.c_str(), info2.c_str());
+}
+
 void sendErrorMessage(int requestId) {
   sendMessage("%d:ERROR", requestId);
 }
@@ -409,8 +421,9 @@ void sendObstacleClearedEvent() {
 
 void sendBatteryVoltage(int requestId) {
   float voltage = getBatteryVoltage();
+  int chargePercentage = getBatteryChargePercentage(voltage);
 
-  sendSuccessMessage(requestId, String(voltage));
+  sendSuccessMessage(requestId, String(voltage), String(chargePercentage));
 }
 
 void sendObstacleDistance(int requestId) {
@@ -503,6 +516,34 @@ bool isObstacleDetected() {
   obstacleDistance = getObstacleDistance();
 
   return obstacleDistance < OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM;
+}
+
+int getBatteryChargePercentage(float voltage) {
+  if (voltage >= 4.20f) {
+    return 100;
+  } else if (voltage >= 4.15f) {
+    return 90;
+  } else if (voltage >= 4.10f) {
+    return 80;
+  } else if (voltage >= 4.05f) {
+    return 70;
+  } else if (voltage >= 4.00f) {
+    return 60;
+  } else if (voltage >= 3.95f) {
+    return 50;
+  } else if (voltage >= 3.90f) {
+    return 40;
+  } else if (voltage >= 3.85f) {
+    return 30;
+  } else if (voltage >= 3.80f) {
+    return 20;
+  } else if (voltage >= 3.70f) {
+    return 10;
+  } else if (voltage >= 3.60f) {
+    return 5;
+  } else {
+    return 1;
+  }
 }
 
 void applyMotorSpeed() {
