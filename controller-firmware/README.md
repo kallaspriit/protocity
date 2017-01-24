@@ -85,6 +85,11 @@ The following commands are supported (using "1" as example request id)
   - responds with OK if successful (for example `1:OK`)
   - responds with ERROR if invalid port is requested
 
+## Uploading firmware
+- either use the Atom editor
+- or to upload to a specific board with multiple boards connected:
+  - `pio run -t upload --upload-port F:` - uploads to mbed connected as F drive
+
 ## Changelog
 **02.01.2017**
 - Implemented TLC5940 multi-led driver capability.
