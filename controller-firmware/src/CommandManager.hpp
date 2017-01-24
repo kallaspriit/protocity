@@ -14,7 +14,7 @@ public:
 			Response(int requestId);
 
 			static const int MAX_ARGUMENT_COUNT = 8;
-			static const int MAX_RESPONSE_TEXT_LENGTH = 64;
+			static const int RESPONSE_BUFFER_SIZE = 1024;
 
 			int requestId;
 			int argumentCount = 0;
@@ -28,7 +28,7 @@ public:
 			std::string getSuccessResponseText();
 			std::string getErrorResponseText();
 
-			char responseTextBuffer[MAX_RESPONSE_TEXT_LENGTH];
+			char *responseBuffer;
 		};
 
 		static const int MAX_ARGUMENT_COUNT = 8;
@@ -62,6 +62,8 @@ public:
 	CommandManager::Command *getNextCommand();
 
 private:
+	void reset();
+
 	static const int COMMAND_QUEUE_SIZE = 16;
 
 	Command commandQueue[COMMAND_QUEUE_SIZE];

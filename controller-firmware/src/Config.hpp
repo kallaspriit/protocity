@@ -3,9 +3,13 @@
 
 #include "mbed.h"
 
+#include <string>
+
 class Config {
 
 public:
+	std::string version = "1.5.0";
+
 	// serial
 	PinName serialTxPin = USBTX;
 	PinName serialRxPin = USBRX;

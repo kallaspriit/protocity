@@ -17,11 +17,15 @@ Application::Application(Config *config, Serial *serial) :
 	port5(5, config->port5Pin),
 	port6(6, config->port6Pin),
 	mainLoopLed(config->mainLoopLedPin)
-{}
+{
+	commandBuffer = new char[COMMAND_BUFFER_SIZE];
+	sendBuffer = new char[SEND_BUFFER_SIZE];
+}
 
 void Application::run() {
 	setup();
 	testSetup();
+	sendReadyEvent();
 
 	while (true) {
 		loop();
@@ -50,20 +54,25 @@ void Application::loop() {
 	mainLoopLed = !mainLoopLed;
 }
 
+void Application::sendReadyEvent() {
+	snprintf(sendBuffer, SEND_BUFFER_SIZE, "0:READY:%s\n", config->version.c_str());
+
+	enqueueMessage(std::string(sendBuffer));
+}
+
 void Application::setupSerial() {
 	// configure serial
 	serial->attach(this, &Application::handleSerialRx, Serial::RxIrq);
-
-	printf("\n\n### initializing ###\n");
 }
 
 void Application::setupCommandHandlers() {
 	printf("# setting up command handlers\n");
 
 	// register command handlers
+	registerCommandHandler("ping", this, &Application::handlePingCommand);
 	registerCommandHandler("memory", this, &Application::handleMemoryCommand);
-	registerCommandHandler("sum", this, &Application::handleSumCommand);
-	registerCommandHandler("led", this, &Application::handleLedCommand);
+	registerCommandHandler("version", this, &Application::handleVersionCommand);
+	registerCommandHandler("restart", this, &Application::handleRestartCommand);
 	registerCommandHandler("port", this, &Application::handlePortCommand);
 }
 
@@ -151,8 +160,11 @@ void Application::sendQueuedMessages() {
 		std::string message = messageQueue.front();
 		messageQueue.pop();
 
-		printf(message.c_str());
-		socketServer.sendMessage(message);
+		printf("> %s", message.c_str());
+
+		if (socketServer.isClientConnected()) {
+			socketServer.sendMessage(message);
+		}
 	}
 }
 
@@ -192,7 +204,7 @@ void Application::consumeCommand(CommandManager::Command *command) {
 		printf("# calling command handler for #%d '%s' (source: %d)\n", command->id, command->name.c_str(), command->sourceId);
 
 		for (int i = 0; i < command->argumentCount; i++) {
-			printf("#  argument %d: %s\n", i, command->arguments[i].c_str());
+			printf("# - argument %d: %s\n", i, command->arguments[i].c_str());
 		}
 		*/
 
@@ -202,7 +214,7 @@ void Application::consumeCommand(CommandManager::Command *command) {
 		printf("# command handler for #%d '%s' (source: %d) has not been registered\n", command->id, command->name.c_str(), command->sourceId);
 
 		for (int i = 0; i < command->argumentCount; i++) {
-			printf("#  argument %d: %s\n", i, command->arguments[i].c_str());
+			printf("# - argument %d: %s\n", i, command->arguments[i].c_str());
 		}
 
 		// build response text
@@ -306,9 +318,17 @@ void Application::enqueueMessage(std::string message) {
 	messageQueue.push(message);
 }
 
+CommandManager::Command::Response Application::handlePingCommand(CommandManager::Command *command) {
+	if (!validateCommandArgumentCount(command, 0)) {
+		return command->createFailureResponse("expected no parameters");
+	}
+
+	return command->createSuccessResponse("pong");
+}
+
 CommandManager::Command::Response Application::handleMemoryCommand(CommandManager::Command *command) {
 	if (!validateCommandArgumentCount(command, 0)) {
-		return command->createFailureResponse("expecing no parameters");
+		return command->createFailureResponse("expected no parameters");
 	}
 
 	int freeMemoryBytes = Debug::getFreeMemoryBytes();
@@ -316,49 +336,23 @@ CommandManager::Command::Response Application::handleMemoryCommand(CommandManage
 	return command->createSuccessResponse(freeMemoryBytes);
 }
 
-CommandManager::Command::Response Application::handleSumCommand(CommandManager::Command *command) {
-	if (!validateCommandArgumentCount(command, 2)) {
-		return command->createFailureResponse("expected two parameters");
+CommandManager::Command::Response Application::handleVersionCommand(CommandManager::Command *command) {
+	if (!validateCommandArgumentCount(command, 0)) {
+		return command->createFailureResponse("expected no parameters");
 	}
 
-	float a = command->getFloat(0);
-	float b = command->getFloat(1);
-	float sum = a + b;
-
-	return command->createSuccessResponse(sum);
+	return command->createSuccessResponse(config->version);
 }
 
-CommandManager::Command::Response Application::handleLedCommand(CommandManager::Command *command) {
-	if (!validateCommandArgumentCount(command, 2)) {
-		return command->createFailureResponse("expected two parameters");
+CommandManager::Command::Response Application::handleRestartCommand(CommandManager::Command *command) {
+	if (!validateCommandArgumentCount(command, 0)) {
+		return command->createFailureResponse("expected no parameters");
 	}
 
-	int ledIndex = command->getInt(0);
-	std::string ledModeRequest = command->getString(1);
+	printf("# restarting system..\n");
+	Thread::wait(100);
 
-	if (ledIndex < 0 || ledIndex > 3) {
-		return command->createFailureResponse("expected led index between 0 and 3");
-	}
-
-	Debug::LedMode ledMode = Debug::LedMode::OFF;
-
-	if (ledModeRequest == "OFF") {
-		ledMode = Debug::LedMode::OFF;
-	} else if (ledModeRequest == "ON") {
-		ledMode = Debug::LedMode::ON;
-	} else if (ledModeRequest == "BLINK_SLOW") {
-		ledMode = Debug::LedMode::BLINK_SLOW;
-	} else if (ledModeRequest == "BLINK_FAST") {
-		ledMode = Debug::LedMode::BLINK_FAST;
-	} else if (ledModeRequest == "BLINK_ONCE") {
-		ledMode = Debug::LedMode::BLINK_ONCE;
-	} else if (ledModeRequest == "BREATHE") {
-		ledMode = Debug::LedMode::BREATHE;
-	} else {
-		return command->createFailureResponse("unsupported led mode requested");
-	}
-
-	debug.setLedMode(ledIndex, ledMode);
+	NVIC_SystemReset();
 
 	return command->createSuccessResponse();
 }

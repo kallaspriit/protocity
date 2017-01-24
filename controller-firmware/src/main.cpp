@@ -11,12 +11,12 @@ int main() {
 
 	serial.baud(config.serialBaudRate);
 
-	printf("### PrototypeCity ###\n");
+	printf("\n\n### Protocity v%s ###\n", config.version.c_str());
 
 	if (sdram_init() != 0) {
         printf("# failed to initialize SDRAM\n");
     } else {
-		printf("# SDRAM is initialized\n");
+		printf("# initialized SDRAM\n");
 	}
 
 	Application application(&config, &serial);

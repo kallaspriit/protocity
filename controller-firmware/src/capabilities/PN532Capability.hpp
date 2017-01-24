@@ -32,9 +32,6 @@ private:
 	NFC *nfc = NULL;
 	bool isEnabled = false;
 	std::string activeTagName = "";
-
-	static const int SEND_BUFFER_SIZE = 64;
-	char sendBuffer[SEND_BUFFER_SIZE];
 };
 
 #endif

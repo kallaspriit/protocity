@@ -36,6 +36,7 @@ private:
 	// main lifecycle methods
 	void setup();					// sets up the system
 	void loop();					// main loop that gets continuously called
+	void sendReadyEvent();
 
 	// application setup methods
 	void setupSerial();
@@ -66,9 +67,10 @@ private:
 	void sendHeartbeat();
 
 	// built in command handlers
+	CommandManager::Command::Response handlePingCommand(CommandManager::Command *command);
 	CommandManager::Command::Response handleMemoryCommand(CommandManager::Command *command);
-	CommandManager::Command::Response handleSumCommand(CommandManager::Command *command);
-	CommandManager::Command::Response handleLedCommand(CommandManager::Command *command);
+	CommandManager::Command::Response handleVersionCommand(CommandManager::Command *command);
+	CommandManager::Command::Response handleRestartCommand(CommandManager::Command *command);
 	CommandManager::Command::Response handlePortCommand(CommandManager::Command *command);
 
 	// digital port command handlers
@@ -103,8 +105,9 @@ private:
 	const int LED_BREATHE_INDEX = 0;
 	const int LED_COMMAND_RECEIVED_INDEX = 1;
 	const int LED_ETHERNET_STATUS_INDEX = 2;
-	static const int MAX_COMMAND_LENGTH = 64;
-	static const int SEND_BUFFER_SIZE = 64;
+	static const int MAX_COMMAND_LENGTH = 1024;
+	static const int SEND_BUFFER_SIZE = 1024;
+	static const int COMMAND_BUFFER_SIZE = MAX_COMMAND_LENGTH + 1;
 	static const int HEATBEAT_INTERVAL_US = 1000000;
 
 	// services
@@ -116,8 +119,8 @@ private:
 	SocketServer socketServer;
 
 	// command handling
-	char commandBuffer[MAX_COMMAND_LENGTH + 1];
-	char sendBuffer[SEND_BUFFER_SIZE];
+	char *commandBuffer;
+	char *sendBuffer;
 	int commandLength = 0;
 	CommandHandlerMap commandHandlerMap;
 

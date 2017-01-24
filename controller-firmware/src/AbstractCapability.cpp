@@ -3,7 +3,9 @@
 AbstractCapability::AbstractCapability(Serial *serial, PortController *portController) :
 	serial(serial),
 	portController(portController)
-{}
+{
+	sendBuffer = new char[SEND_BUFFER_SIZE];
+}
 
 /*
 void AbstractCapability::startStepThread() {

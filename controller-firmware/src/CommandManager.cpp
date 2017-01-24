@@ -44,6 +44,8 @@ void CommandManager::Command::validateArgumentIndex(int argumentIndex) {
 
 CommandManager::Command::Response::Response(int requestId) {
 	this->requestId = requestId;
+
+	responseBuffer = new char[RESPONSE_BUFFER_SIZE];
 }
 
 std::string CommandManager::Command::Response::getResponseText() {
@@ -55,9 +57,9 @@ std::string CommandManager::Command::Response::getResponseText() {
 }
 
 std::string CommandManager::Command::Response::getSuccessResponseText() {
-	snprintf(responseTextBuffer, MAX_RESPONSE_TEXT_LENGTH, "%d:OK", requestId);
+	snprintf(responseBuffer, RESPONSE_BUFFER_SIZE, "%d:OK", requestId);
 
-	std::string responseText = std::string(responseTextBuffer);
+	std::string responseText = std::string(responseBuffer);
 
 	for (int i = 0; i < argumentCount; i++) {
 		responseText += ":" + arguments[i];
@@ -67,9 +69,9 @@ std::string CommandManager::Command::Response::getSuccessResponseText() {
 }
 
 std::string CommandManager::Command::Response::getErrorResponseText() {
-	snprintf(responseTextBuffer, MAX_RESPONSE_TEXT_LENGTH, "%d:ERROR:%s", requestId, errorMessage.c_str());
+	snprintf(responseBuffer, RESPONSE_BUFFER_SIZE, "%d:ERROR:%s", requestId, errorMessage.c_str());
 
-	return std::string(responseTextBuffer);
+	return std::string(responseBuffer);
 }
 
 void CommandManager::Command::Response::addArgument(std::string argument) {
@@ -182,6 +184,14 @@ void CommandManager::handleCommand(int sourceId, const char *commandText, int le
 	if (delimiterCount == 0) {
 		printf("# expected commands in the format of ID:NAME:arg1:arg2:argN\n");
 
+		command->id = 0;
+		command->name = "";
+
+		reset();
+
+		// increment command count
+		commandQueueTail++;
+
 		return;
 	}
 
@@ -201,13 +211,16 @@ void CommandManager::handleCommand(int sourceId, const char *commandText, int le
 		command->arguments[command->argumentCount++] = argumentBuffer;
 	}
 
-	// reset
-	commandIdBuffer = "";
-	commandNameBuffer = "";
-	argumentBuffer = "";
+	reset();
 
 	// increment command count
 	commandQueueTail++;
+}
+
+void CommandManager::reset() {
+	commandIdBuffer = "";
+	commandNameBuffer = "";
+	argumentBuffer = "";
 }
 
 int CommandManager::getQueuedCommandCount() {

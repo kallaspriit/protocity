@@ -4,12 +4,14 @@ package com.stagnationlab.etherio;
 public interface MessageTransport {
 
     interface MessageListener {
+        void onSocketOpen();
+        void onSocketClose();
         void onSocketMessageReceived(String message);
     }
 
     void addMessageListener(MessageListener messageListener);
 
-    void sendMessage(String format, Object...arguments);
+    boolean sendMessage(String format, Object...arguments);
 
     int getMessageCount();
 

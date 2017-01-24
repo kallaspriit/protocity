@@ -7,9 +7,9 @@ bool EthernetManager::initialize() {
     // int initResult = eth.init("10.220.20.123", "255.255.255.0", "10.220.20.1"); // use static IP
 
 	if (initResult == 0) {
-		printf("#  success\n");
+		printf("# ethernet interface initialized\n");
 	} else {
-		printf("#  failed with code %d\n", initResult);
+		printf("# failed to initialize ethernet interface with code %d\n", initResult);
 
 		return false;
 	}
@@ -19,9 +19,9 @@ bool EthernetManager::initialize() {
     int connectResult = ethernetInterface.connect();
 
 	if (connectResult == 0) {
-		printf("#  success, ip address: %s\n", ethernetInterface.getIPAddress());
+		printf("# connected to ethernet, ip address: %s\n", ethernetInterface.getIPAddress());
 	} else {
-		printf("#  failed with code %d\n", connectResult);
+		printf("# failed to connect to ethernet with code %d\n", connectResult);
 
 		return false;
 	}

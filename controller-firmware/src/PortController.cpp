@@ -191,7 +191,7 @@ float PortController::getAnalogValue() {
 }
 
 void PortController::addEventListener(PortController::PortEventListener *listener) {
-	printf("# registering interrup listener for port %d\n", id);
+	// printf("# registering interrup listener for port %d\n", id);
 
 	listeners.push_back(listener);
 }
@@ -221,7 +221,7 @@ void PortController::stopAnalogValueListener() {
 }
 
 void PortController::addCapability(AbstractCapability *capability) {
-	printf("# registering capability %s for port %d\n", capability->getName().c_str(), id);
+	// printf("# registering capability %s for port %d\n", capability->getName().c_str(), id);
 
 	capabilities.push_back(capability);
 }

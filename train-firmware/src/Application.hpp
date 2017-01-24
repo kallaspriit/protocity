@@ -45,7 +45,7 @@ private:
     static const int COMMAND_BUFFER_SIZE = 128;
 
     // behaviour config
-    const float OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM = 18.0f;
+    const float OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM = 12.0f;
     static const unsigned long SPEED_DECISION_INTERVAL = 10;
     static const unsigned long BRAKE_DURATION = 250;
 
@@ -69,6 +69,7 @@ private:
     int commandLength = 0;
     bool wasClientConnected = false;
     float obstacleDistance = 0.0f;
+    int obstacleDetectedFrames = 0;
     bool wasObstacleDetected = false;
     float initialBatteryVoltage = 0.0f;
 
@@ -114,6 +115,7 @@ private:
     void sendErrorMessage(int requestId);
     void sendEventMessage(String event);
     void sendEventMessage(String event, String info);
+    void sendEventMessage(String event, String info1, String info2);
     void sendErrorMessage(int requestId, String reason);
 
     // send state to client

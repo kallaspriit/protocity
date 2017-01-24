@@ -24,9 +24,6 @@ private:
 	TSL2561 *sensor = NULL;
 	bool isEnabled = false;
 	int measurementIntervalMs = 5000;
-
-	static const int SEND_BUFFER_SIZE = 32;
-	char sendBuffer[SEND_BUFFER_SIZE];
 };
 
 #endif

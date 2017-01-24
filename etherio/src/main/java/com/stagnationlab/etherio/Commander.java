@@ -79,6 +79,16 @@ public class Commander implements MessageTransport.MessageListener {
 	}
 
 	@Override
+	public void onSocketOpen() {
+		log.info("socket connection opened");
+	}
+
+	@Override
+	public void onSocketClose() {
+		log.warn("socket connection closed");
+	}
+
+	@Override
 	public void onSocketMessageReceived(String message) {
 		Command responseCommand;
 

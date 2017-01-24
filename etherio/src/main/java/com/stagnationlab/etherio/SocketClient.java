@@ -4,60 +4,22 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.*;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
-public class SocketClient implements MessageTransport {
-
-    private class InputReader implements Runnable {
-
-        private volatile boolean isRunning = true;
-        private final BufferedReader socketIn;
-
-        InputReader(BufferedReader socketIn) {
-            this.socketIn = socketIn;
-        }
-
-        void close() {
-            isRunning = false;
-        }
-
-        @Override
-        public void run() {
-            while (isRunning) {
-                try {
-                    if (!socketIn.ready()) {
-                        continue;
-                    }
-
-                    String message = socketIn.readLine();
-
-                    if (message != null) {
-                        inputQueue.add(message);
-
-                        synchronized (this) {
-                            for (MessageListener messageListener : messageListeners) {
-                                messageListener.onSocketMessageReceived(message);
-                            }
-                        }
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-
-                    isRunning = false;
-                }
-            }
-        }
-    }
+public class SocketClient implements MessageTransport, Runnable {
 
     private String hostName = "127.0.0.1";
     private int portNumber = 8080;
 
     private Socket socket;
+	private BufferedReader socketIn;
     private PrintWriter socketOut;
-    private InputReader inputReader;
+    private Thread inputThread;
 
+    private boolean isRunning = false;
     private final Queue<String> inputQueue;
     private final List<MessageListener> messageListeners;
     private int messageCounter = 1;
@@ -78,24 +40,35 @@ public class SocketClient implements MessageTransport {
         this.portNumber = portNumber;
     }
 
-    public void connect() throws IOException {
-        socket = new Socket(hostName, portNumber);
-        socketOut = new PrintWriter(socket.getOutputStream(), true);
-        BufferedReader socketIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+    public void connect(int connectionTimeout) throws IOException {
+        // socket = new Socket(hostName, portNumber);
+        socket = new Socket();
+	    socket.connect(new InetSocketAddress(hostName, portNumber), connectionTimeout);
+	    isRunning = true;
 
-        inputReader = new InputReader(socketIn);
-        Thread inputThread = new Thread(inputReader);
+	    socketOut = new PrintWriter(socket.getOutputStream(), true);
+        socketIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+        inputThread = new Thread(this);
         inputThread.start();
 
-        boolean isConnected = true;
+	    for (MessageListener messageListener : messageListeners) {
+		    messageListener.onSocketOpen();
+	    }
     }
+
+	public void connect() throws IOException {
+    	connect(5000);
+	}
 
     public void addMessageListener(MessageListener messageListener) {
         messageListeners.add(messageListener);
     }
 
-    public void sendMessage(String format, Object...arguments) {
+    public boolean sendMessage(String format, Object...arguments) {
         socketOut.format(format, arguments);
+
+        return !socketOut.checkError();
     }
 
     public int getMessageCount() {
@@ -118,8 +91,50 @@ public class SocketClient implements MessageTransport {
         return messageCounter++;
     }
 
-    public void close() throws IOException {
-        inputReader.close();
-        socket.close();
+	@Override
+	public void run() {
+		while (isRunning) {
+			try {
+				if (!socketIn.ready()) {
+					continue;
+				}
+
+				String message = socketIn.readLine();
+
+				if (message != null) {
+					inputQueue.add(message);
+
+					synchronized (this) {
+						for (MessageListener messageListener : messageListeners) {
+							messageListener.onSocketMessageReceived(message);
+						}
+					}
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+
+				close();
+			}
+		}
+	}
+
+    public void close() {
+	    isRunning = false;
+
+	    try {
+		    inputThread.join();
+	    } catch (InterruptedException e) {
+		    e.printStackTrace();
+	    }
+
+	    try {
+		    socket.close();
+	    } catch (IOException e) {
+		    e.printStackTrace();
+	    }
+
+	    for (MessageListener messageListener : messageListeners) {
+		    messageListener.onSocketClose();
+	    }
     }
 }

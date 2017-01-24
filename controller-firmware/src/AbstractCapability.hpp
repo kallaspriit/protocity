@@ -29,6 +29,9 @@ protected:
 	Serial *serial;
 	PortController *portController;
 
+	static const int SEND_BUFFER_SIZE = 1024;
+	char *sendBuffer;
+
 };
 
 #endif

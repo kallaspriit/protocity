@@ -18,6 +18,8 @@ public:
 		virtual void onSocketCommandReceived(const char *command, int length) = 0;
 	};
 
+	SocketServer();
+
 	bool start(EthernetInterface *ethernetInterface, int port = 8080);
 	bool isClientConnected();
 	TCPSocketConnection *getConnectedClient();
@@ -37,12 +39,13 @@ private:
 
 	Thread listenThread;
 
-	static const int MAX_COMMAND_LENGTH = 64;
-	static const int SEND_BUFFER_SIZE = 64;
-	static const int RECEIVE_BUFFER_SIZE = 256;
-	char commandBuffer[MAX_COMMAND_LENGTH + 1];
-	char receiveBuffer[RECEIVE_BUFFER_SIZE];
-	char sendBuffer[SEND_BUFFER_SIZE];
+	static const int MAX_COMMAND_LENGTH = 1024;
+	static const int SEND_BUFFER_SIZE = 1024;
+	static const int RECEIVE_BUFFER_SIZE = 1024;
+	static const int COMMAND_BUFFER_SIZE = MAX_COMMAND_LENGTH + 1;
+	char *commandBuffer;
+	char *receiveBuffer;
+	char *sendBuffer;
 	int commandLength = 0;
 
 	typedef std::vector<SocketServerListener*> ListenerList;

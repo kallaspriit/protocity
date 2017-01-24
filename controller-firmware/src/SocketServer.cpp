@@ -1,5 +1,11 @@
 #include "SocketServer.hpp"
 
+SocketServer::SocketServer() {
+	commandBuffer = new char[COMMAND_BUFFER_SIZE];
+	receiveBuffer = new char[RECEIVE_BUFFER_SIZE];
+	sendBuffer = new char[SEND_BUFFER_SIZE];
+}
+
 bool SocketServer::start(EthernetInterface *ethernetInterface, int port) {
 	printf("# starting socket server on port %d\n", port);
 
@@ -8,9 +14,9 @@ bool SocketServer::start(EthernetInterface *ethernetInterface, int port) {
     int bindResult = tpcSocketServer.bind(port);
 
 	if (bindResult == 0) {
-		printf("#  binding to port %d was successful\n", port);
+		printf("# binding to port %d was successful\n", port);
 	} else {
-		printf("#  binding to port %d failed\n", port);
+		printf("# binding to port %d failed\n", port);
 
 		return false;
 	}
@@ -18,9 +24,9 @@ bool SocketServer::start(EthernetInterface *ethernetInterface, int port) {
     int listenResult = tpcSocketServer.listen();
 
 	if (listenResult == 0) {
-		printf("#  listening on port %d was successful\n", port);
+		printf("# listening on port %d was successful\n", port);
 	} else {
-		printf("#  listening on port %d failed\n", port);
+		printf("# listening on port %d failed\n", port);
 
 		return false;
 	}
