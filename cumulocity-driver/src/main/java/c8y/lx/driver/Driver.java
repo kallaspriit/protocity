@@ -56,7 +56,7 @@ public interface Driver {
     
     /**
      * Sets up driver. Errors during
-     * setup are reported as exception and send to the log.
+     * initialize are reported as exception and send to the log.
      */
     void initialize() throws Exception;
     

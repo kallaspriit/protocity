@@ -65,6 +65,7 @@ private:
 
 	// heatbeat
 	void sendHeartbeat();
+	void restart();
 
 	// built in command handlers
 	CommandManager::Command::Response handlePingCommand(CommandManager::Command *command);

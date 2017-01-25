@@ -26,7 +26,7 @@ public class DeviceManager {
             OperationExecutor[] supportedOperations,
             Object... fragments
     ) {
-        log.info("creating child managed object with id '" + id + "' of type '" + type + "'");
+        log.debug("creating child managed object with id '" + id + "' of type '" + type + "'");
 
         ManagedObjectRepresentation child = new ManagedObjectRepresentation();
         child.setType(type);

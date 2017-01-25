@@ -37,18 +37,18 @@ public class Gateway implements Driver, OperationExecutor {
 	private GId globalId;
 
 	private static final int DEFAULT_CONTROLLER_PORT = 8080;
+	private static final String CONFIG_FILENAME = "config.properties";
 
 	@Override
 	public void initialize() throws Exception {
-		log.info("initializing");
+		log.info("setting up");
 
 		try {
 			setupConfig();
 			setupCommanders();
-			setupDevices();
 			setupControllers();
 		} catch (Exception e) {
-			log.warn("setup failed! ({} - {})", e.getClass().getSimpleName(), e.getMessage());
+			log.warn("initialize failed! ({} - {})", e.getClass().getSimpleName(), e.getMessage());
 
 			e.printStackTrace();
 
@@ -67,7 +67,9 @@ public class Gateway implements Driver, OperationExecutor {
 	}
 
 	private void setupConfig() throws IOException {
-		InputStream configInputStream = getClass().getClassLoader().getResourceAsStream("config.properties");
+		log.info("setting up config from src/main/resources/{}", CONFIG_FILENAME);
+
+		InputStream configInputStream = getClass().getClassLoader().getResourceAsStream(CONFIG_FILENAME);
 
 		config.load(configInputStream);
 	}
@@ -82,33 +84,15 @@ public class Gateway implements Driver, OperationExecutor {
 		//commanders.put("train", createCommander("train"));
 	}
 
-	private void setupDevices() {
-		log.info("setting up devices");
-
-		// EtherIO devices
-		// setupEtherioRelayActuator();
-		// setupEtherioButtonSensor();
-		// setupEtherioMonitoringSensor();
-		// setupEtherioAnalogInputSensor();
-		// setupEtherioMotionSensor();
-		// setupEtherioLightSensor();
-		// setupEtherioTemperatureSensor();
-		// setupEtherioTagSensor();
-		// setupEtherioMultiDacActuator();
-
-		// simulated devices
-		// setupSimulatedLightSensor();
-		// setupSimulatedMotionSensor();
-		// setupSimulatedRelayActuator();
-	}
-
 	private void setupControllers() {
+		log.info("setting up controllers");
+
 		registerController(
 				new ParkingController(commanders, config)
 		);
 
 		for (AbstractController controller : controllers) {
-			List<Driver> drivers = controller.setup();
+			List<Driver> drivers = controller.initialize();
 
 			for (Driver driver : drivers) {
 				registerDriver(driver);
@@ -118,12 +102,57 @@ public class Gateway implements Driver, OperationExecutor {
 
 	@Override
 	public void initialize(Platform platform) throws Exception {
-		log.info("initializing platform");
+		log.info("initializing");
 
-		try {
-			initializeDrivers(platform);
-		} catch (Exception e) {
-			log.warn("initializing drivers platform failed");
+		initializeDrivers(platform);
+		initializeControllers(platform);
+	}
+
+	private void initializeDrivers() {
+		log.info("setting up drivers ({} total)", drivers.size());
+
+		Iterator<Driver> iterator = drivers.iterator();
+
+		while (iterator.hasNext()) {
+			Driver driver = iterator.next();
+
+			try {
+				log.info("setting up driver '{}'", driver.getClass().getSimpleName());
+
+				driver.initialize();
+			} catch (Throwable e) {
+				log.warn("setting up driver '{}' failed with '{}' ({}), skipping it", driver.getClass().getSimpleName(), e.getClass().getSimpleName(), e.getMessage());
+
+				iterator.remove();
+			}
+		}
+	}
+
+	private void initializeDrivers(Platform platform) {
+		log.info("initializing drivers ({} total)", drivers.size());
+
+		Iterator<Driver> iterator = drivers.iterator();
+
+		while (iterator.hasNext()) {
+			Driver driver = iterator.next();
+
+			try {
+				log.info("initializing driver '{}'", driver.getClass().getSimpleName());
+
+				driver.initialize(platform);
+			} catch (Throwable e) {
+				log.warn("initializing driver '{}' platform failed with '{}' ({}), skipping it", driver.getClass().getSimpleName(), e.getClass().getSimpleName(), e.getMessage());
+
+				iterator.remove();
+			}
+		}
+	}
+
+	private void initializeControllers(Platform platform) {
+		log.info("initializing controllers ({} total)", controllers.size());
+
+		for (AbstractController controller : controllers) {
+			controller.initialize(platform);
 		}
 	}
 
@@ -142,7 +171,7 @@ public class Gateway implements Driver, OperationExecutor {
 
 	@Override
 	public void discoverChildren(ManagedObjectRepresentation managedObjectRepresentation) {
-		log.info("discovering children");
+		log.debug("discovering children");
 
 		this.globalId = managedObjectRepresentation.getId();
 
@@ -157,6 +186,10 @@ public class Gateway implements Driver, OperationExecutor {
 
 		for (Driver driver : drivers) {
 			driver.start();
+		}
+
+		for (AbstractController controller : controllers) {
+			controller.start();
 		}
 	}
 
@@ -211,44 +244,6 @@ public class Gateway implements Driver, OperationExecutor {
 		log.info("registering controller '{}'", controller.getClass().getSimpleName());
 
 		controllers.add(controller);
-	}
-
-	private void initializeDrivers() {
-		log.info("initializing drivers ({} total)", drivers.size());
-
-		Iterator<Driver> iterator = drivers.iterator();
-
-		while (iterator.hasNext()) {
-			Driver driver = iterator.next();
-
-			try {
-				log.info("initializing driver '{}'", driver.getClass().getSimpleName());
-
-				driver.initialize();
-			} catch (Throwable e) {
-				log.warn("initializing driver '{}' failed with '{}' ({}), skipping it", driver.getClass().getSimpleName(), e.getClass().getSimpleName(), e.getMessage());
-
-				iterator.remove();
-			}
-		}
-	}
-
-	private void initializeDrivers(Platform platform) {
-		log.info("initializing drivers with platform");
-
-		Iterator<Driver> iterator = drivers.iterator();
-
-		while (iterator.hasNext()) {
-			Driver driver = iterator.next();
-
-			try {
-				driver.initialize(platform);
-			} catch (Throwable e) {
-				log.warn("initializing driver '{}' platform failed with '{}' ({}), skipping it", driver.getClass().getSimpleName(), e.getClass().getSimpleName(), e.getMessage());
-
-				iterator.remove();
-			}
-		}
 	}
 
 	/*

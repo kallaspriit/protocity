@@ -252,6 +252,11 @@ void Application::onSocketClientConnected(TCPSocketConnection* client) {
 
 void Application::onSocketClientDisconnected(TCPSocketConnection* client) {
 	debug.setLedMode(LED_ETHERNET_STATUS_INDEX, Debug::LedMode::BLINK_SLOW);
+
+	printf("# socket client disconnected, performing reset\n");
+
+	Thread::wait(100);
+	restart();
 }
 
 void Application::onSocketCommandReceived(const char *command, int length) {
@@ -350,11 +355,15 @@ CommandManager::Command::Response Application::handleRestartCommand(CommandManag
 	}
 
 	printf("# restarting system..\n");
-	Thread::wait(100);
 
-	NVIC_SystemReset();
+	Thread::wait(100);
+	restart();
 
 	return command->createSuccessResponse();
+}
+
+void Application::restart() {
+	NVIC_SystemReset();
 }
 
 CommandManager::Command::Response Application::handlePortCommand(CommandManager::Command *command) {

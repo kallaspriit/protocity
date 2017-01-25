@@ -57,6 +57,8 @@ public:
 		void validateArgumentIndex(int argumentIndex);
 	};
 
+	CommandManager();
+
 	void handleCommand(int sourceId, const char *command, int length);
 	int getQueuedCommandCount();
 	CommandManager::Command *getNextCommand();
@@ -64,9 +66,9 @@ public:
 private:
 	void reset();
 
-	static const int COMMAND_QUEUE_SIZE = 16;
+	static const int COMMAND_QUEUE_SIZE = 32;
 
-	Command commandQueue[COMMAND_QUEUE_SIZE];
+	Command *commandQueue;
 	int commandQueueTail = 0;
 	int commandQueueHead = 0;
 	std::string commandIdBuffer;

@@ -47,7 +47,7 @@ public abstract class AbstractDevice implements Driver {
 
     @Override
     public void initialize() throws Exception {
-	    log.info("starting '{}'", id);
+	    log.info("initializing '{}'", id);
     }
 
     @Override
@@ -60,7 +60,7 @@ public abstract class AbstractDevice implements Driver {
 
 	@Override
 	public void initializeInventory(ManagedObjectRepresentation managedObjectRepresentation) {
-		log.info("initializing '{}' inventory", id);
+		log.debug("initializing '{}' inventory", id);
 	}
 
 	@Override
@@ -75,7 +75,7 @@ public abstract class AbstractDevice implements Driver {
 
     @Override
     public void discoverChildren(ManagedObjectRepresentation parent) {
-	    log.info("discovering '{}' children", id);
+	    log.debug("discovering '{}' children", id);
 
         childDevice = DeviceManager.createChild(
                 id,

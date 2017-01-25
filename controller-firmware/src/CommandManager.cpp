@@ -128,6 +128,10 @@ CommandManager::Command::Response CommandManager::Command::createFailureResponse
 	return response;
 }
 
+CommandManager::CommandManager() {
+	commandQueue = new Command[COMMAND_QUEUE_SIZE];
+}
+
 void CommandManager::handleCommand(int sourceId, const char *commandText, int length) {
 	printf("< %s\n", commandText);
 

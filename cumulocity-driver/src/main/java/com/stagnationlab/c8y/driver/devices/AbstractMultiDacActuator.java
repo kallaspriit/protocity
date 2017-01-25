@@ -88,8 +88,8 @@ public abstract class AbstractMultiDacActuator extends AbstractDevice {
 		updateState(multiDacActuator);
 	}
 
-	private void setChannelValue(int channel, float value) {
-		log.info("setting channel {} value to {}", channel, value);
+	public void setChannelValue(int channel, float value) {
+		log.debug("setting channel {} value to {}", channel, value);
 
 		applyChannelValue(channel, value);
 
