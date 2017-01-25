@@ -78,7 +78,7 @@ public class Gateway implements Driver, OperationExecutor {
 		commanders.put("2", createCommander("2"));
 		commanders.put("3", createCommander("3"));
 		commanders.put("4", createCommander("4"));
-		commanders.put("train", createCommander("train"));
+		//commanders.put("train", createCommander("train"));
 	}
 
 	private void setupDevices() {
@@ -109,17 +109,17 @@ public class Gateway implements Driver, OperationExecutor {
 		log.info("setting up parking devices for {} slots", slotCount);
 
 		for (int i = 1; i <= slotCount; i++) {
-			String commanderId = getConfigString("parking.slot." + i + ".commanderId");
+			String commanderName = getConfigString("parking.slot." + i + ".commanderName");
 			int port = getConfigInt("parking.slot." + i + ".port");
 
-			Commander commander = commanders.get(commanderId);
+			Commander commander = commanders.get(commanderName);
 			AbstractTagSensor parkingSlotSensor = new EtherioTagSensor("Parking slot sensor " + i, commander, port);
 
 			parkingSlotSensors.put(i, parkingSlotSensor);
 
 			registerDriver(parkingSlotSensor);
 
-			log.info("added parking slot sensor #{} on commander {} port {}", i, commanderId, port);
+			log.info("added parking slot sensor #{} on commander {} port {}", i, commanderName, port);
 		}
 	}
 

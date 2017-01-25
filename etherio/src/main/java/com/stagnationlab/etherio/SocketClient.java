@@ -99,9 +99,17 @@ public class SocketClient implements MessageTransport, Runnable {
 	public void run() {
 		while (isRunning) {
 			try {
+				/*
 				if (!socketIn.ready()) {
+					try {
+						Thread.sleep(10);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+
 					continue;
 				}
+				*/
 
 				String message = socketIn.readLine();
 
