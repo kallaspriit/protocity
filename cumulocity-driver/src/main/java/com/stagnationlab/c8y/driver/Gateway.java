@@ -19,6 +19,7 @@ import com.cumulocity.sdk.client.Platform;
 import com.stagnationlab.c8y.driver.controllers.AbstractController;
 import com.stagnationlab.c8y.driver.controllers.ParkingController;
 import com.stagnationlab.c8y.driver.services.Config;
+import com.stagnationlab.c8y.driver.services.TextToSpeech;
 import com.stagnationlab.etherio.Commander;
 import com.stagnationlab.etherio.MessageTransport;
 import com.stagnationlab.etherio.SocketClient;
@@ -42,6 +43,8 @@ public class Gateway implements Driver, OperationExecutor {
 	@Override
 	public void initialize() throws Exception {
 		log.info("setting up");
+
+		TextToSpeech.speak("Setting everything up, please wait");
 
 		try {
 			setupConfig();
@@ -191,6 +194,8 @@ public class Gateway implements Driver, OperationExecutor {
 		for (AbstractController controller : controllers) {
 			controller.start();
 		}
+
+		TextToSpeech.speak("Ready, welcome to Telia Lego City!");
 	}
 
 	@Override

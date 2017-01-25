@@ -13,6 +13,7 @@ import com.stagnationlab.c8y.driver.devices.AbstractTagSensor;
 import com.stagnationlab.c8y.driver.platforms.etherio.EtherioMultiDacActuator;
 import com.stagnationlab.c8y.driver.platforms.etherio.EtherioTagSensor;
 import com.stagnationlab.c8y.driver.services.Config;
+import com.stagnationlab.c8y.driver.services.TextToSpeech;
 import com.stagnationlab.etherio.Commander;
 
 import c8y.lx.driver.Driver;
@@ -93,6 +94,7 @@ public class ParkingController extends AbstractController {
 				log.info("vehicle entered slot {}: {}", index, tagName);
 
 				setSlotFree(index, false);
+				playSlotTakenSound(index, tagName);
 			}
 
 			@Override
@@ -100,8 +102,21 @@ public class ParkingController extends AbstractController {
 				log.info("slot {} is now free", index);
 
 				setSlotFree(index, true);
+				playSlotFreedSound(index);
 			}
 		});
+	}
+
+	private void playSlotTakenSound(int index, String vehicleName) {
+		String message = vehicleName.substring(0, 1).toUpperCase() + vehicleName.substring(1).toLowerCase() + " is now parked on slot " + index;
+
+		TextToSpeech.speak(message);
+	}
+
+	private void playSlotFreedSound(int index) {
+		String message = "Slot " + index + " is now free";
+
+		TextToSpeech.speak(message);
 	}
 
 	private void setSlotFree(int index, boolean isFree) {

@@ -34,6 +34,9 @@ dependencies {
     // EtherIO
     compile name: 'etherio-1.0.0'
 
+    // audio player
+    compile name: 'jl1.0'
+
     // logging
     //compile group: 'org.slf4j', name: 'slf4j-simple', version: 'latest.release'
     compile group: 'ch.qos.logback', name: 'logback-classic', version: 'latest.release'
