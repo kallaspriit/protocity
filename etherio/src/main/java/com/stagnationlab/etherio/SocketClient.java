@@ -66,6 +66,10 @@ public class SocketClient implements MessageTransport, Runnable {
     }
 
     public boolean sendMessage(String format, Object...arguments) {
+    	if (socketOut == null) {
+    		return false;
+	    }
+
         socketOut.format(format, arguments);
 
         return !socketOut.checkError();

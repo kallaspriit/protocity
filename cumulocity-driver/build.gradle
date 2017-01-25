@@ -58,9 +58,23 @@ jar {
 }
 */
 
-task deploy(type: Copy, dependsOn: 'jar') {
-    from 'build/libs'
-    into 'C:/cumulocity-agent/lib' // TODO move hardcoded path to a configuration file / environment variable
+task deploy(dependsOn: 'jar') {
+
+    if (null == System.getenv()['CUMULOCITY_AGENT_HOME']) {
+        throw new GradleException('Please set "CUMULOCITY_AGENT_HOME" environment variable to the Cumulocity agent root directory (C:/cumulocity-agent etc)')
+    }
+
+    // copy the driver library
+    copy {
+        from 'build/libs'
+        into "${System.env.CUMULOCITY_AGENT_HOME}/lib"
+    }
+
+    // copy dependencies as well
+    copy {
+        from 'libs'
+        into "${System.env.CUMULOCITY_AGENT_HOME}/lib"
+    }
 }
 
 // make input available for gradle run

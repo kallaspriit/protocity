@@ -95,6 +95,7 @@ private:
 
     // handle commands
     void handleCommand(int requestId, String command, String parameters[], int parameterCount);
+    void handlePingCommand(int requestId, String parameters[], int parameterCount);
     void handleSetLedCommand(int requestId, String parameters[], int parameterCount);
     void handleGetLedCommand(int requestId, String parameters[], int parameterCount);
     void handleToggleLedCommand(int requestId, String parameters[], int parameterCount);

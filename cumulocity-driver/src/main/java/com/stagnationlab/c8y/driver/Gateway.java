@@ -1,63 +1,125 @@
 package com.stagnationlab.c8y.driver;
 
-import c8y.lx.driver.Driver;
-import c8y.lx.driver.OperationExecutor;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.cumulocity.model.idtype.GId;
 import com.cumulocity.model.operation.OperationStatus;
 import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
 import com.cumulocity.rest.representation.operation.OperationRepresentation;
 import com.cumulocity.sdk.client.Platform;
-import com.stagnationlab.c8y.driver.platforms.etherio.EtherioAnalogInputSensor;
-import com.stagnationlab.c8y.driver.platforms.etherio.EtherioButtonSensor;
-import com.stagnationlab.c8y.driver.platforms.etherio.EtherioLightSensor;
-import com.stagnationlab.c8y.driver.platforms.etherio.EtherioMonitoringSensor;
-import com.stagnationlab.c8y.driver.platforms.etherio.EtherioMotionSensor;
-import com.stagnationlab.c8y.driver.platforms.etherio.EtherioMultiDacActuator;
-import com.stagnationlab.c8y.driver.platforms.etherio.EtherioRelayActuator;
+import com.stagnationlab.c8y.driver.devices.AbstractTagSensor;
 import com.stagnationlab.c8y.driver.platforms.etherio.EtherioTagSensor;
-import com.stagnationlab.c8y.driver.platforms.etherio.EtherioTemperatureSensor;
-import com.stagnationlab.c8y.driver.platforms.simulated.SimulatedLightSensor;
-import com.stagnationlab.c8y.driver.platforms.simulated.SimulatedRelayActuator;
 import com.stagnationlab.etherio.Commander;
+import com.stagnationlab.etherio.MessageTransport;
 import com.stagnationlab.etherio.SocketClient;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import c8y.lx.driver.Driver;
+import c8y.lx.driver.OperationExecutor;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-@SuppressWarnings("unused")
+@SuppressWarnings({ "unused", "SameParameterValue" })
 public class Gateway implements Driver, OperationExecutor {
 	private static final Logger log = LoggerFactory.getLogger(Gateway.class);
 
+	private Properties config = new Properties();
 	private final List<Driver> drivers = new ArrayList<>();
-	private GId gid;
+	private Map<String, Commander> commanders = new HashMap<>();
+	private Map<Integer, AbstractTagSensor> parkingSlotSensors = new HashMap<>();
+	private GId globalId;
 
-	private Commander controllerCommander;
-	private Commander trainCommander;
-
-	// TODO move configuration elsewhere
-	private final static String controllerCommanderHost = "10.220.20.201";
-	private final static int controllerCommanderPort = 8080;
-	private final static String trainCommanderHost = "10.220.20.205";
-	private final static int trainCommanderPort = 8080;
+	private static final int DEFAULT_CONTROLLER_PORT = 8080;
 
 	@Override
 	public void initialize() throws Exception {
 		log.info("initializing");
 
-		setupControllerCommander();
-		setupTrainCommander();
-		setupDevices();
+		try {
+			setupConfig();
+			setupCommanders();
+			setupDevices();
+		} catch (Exception e) {
+			log.warn("setup failed! ({} - {})", e.getClass().getSimpleName(), e.getMessage());
+
+			e.printStackTrace();
+
+			throw e;
+		}
 
 		try {
 			initializeDrivers();
 		} catch (Exception e) {
-			log.warn("initializing drivers failed");
+			log.warn("initializing drivers failed! ({} - {})", e.getClass().getSimpleName(), e.getMessage());
+
+			e.printStackTrace();
+
+			throw e;
+		}
+	}
+
+	private void setupConfig() throws IOException {
+		InputStream configInputStream = getClass().getClassLoader().getResourceAsStream("config.properties");
+
+		config.load(configInputStream);
+	}
+
+	private void setupCommanders() throws IOException {
+		log.info("setting up commanders");
+
+		commanders.put("1", createCommander("1"));
+		commanders.put("2", createCommander("2"));
+		commanders.put("3", createCommander("3"));
+		commanders.put("4", createCommander("4"));
+		commanders.put("train", createCommander("train"));
+	}
+
+	private void setupDevices() {
+		log.info("setting up devices");
+
+		setupParkingDevices();
+
+		// EtherIO devices
+		// setupEtherioRelayActuator();
+		// setupEtherioButtonSensor();
+		// setupEtherioMonitoringSensor();
+		// setupEtherioAnalogInputSensor();
+		// setupEtherioMotionSensor();
+		// setupEtherioLightSensor();
+		// setupEtherioTemperatureSensor();
+		// setupEtherioTagSensor();
+		// setupEtherioMultiDacActuator();
+
+		// simulated devices
+		// setupSimulatedLightSensor();
+		// setupSimulatedMotionSensor();
+		// setupSimulatedRelayActuator();
+	}
+
+	private void setupParkingDevices() {
+		int slotCount = getConfigInt("parking.slotCount");
+
+		log.info("setting up parking devices for {} slots", slotCount);
+
+		for (int i = 1; i <= slotCount; i++) {
+			String commanderId = getConfigString("parking.slot." + i + ".commanderId");
+			int port = getConfigInt("parking.slot." + i + ".port");
+
+			Commander commander = commanders.get(commanderId);
+			AbstractTagSensor parkingSlotSensor = new EtherioTagSensor("Parking slot sensor " + i, commander, port);
+
+			parkingSlotSensors.put(i, parkingSlotSensor);
+
+			registerDriver(parkingSlotSensor);
+
+			log.info("added parking slot sensor #{} on commander {} port {}", i, commanderId, port);
 		}
 	}
 
@@ -89,7 +151,7 @@ public class Gateway implements Driver, OperationExecutor {
 	public void discoverChildren(ManagedObjectRepresentation managedObjectRepresentation) {
 		log.info("discovering children");
 
-		this.gid = managedObjectRepresentation.getId();
+		this.globalId = managedObjectRepresentation.getId();
 
 		for (Driver driver : drivers) {
 			driver.discoverChildren(managedObjectRepresentation);
@@ -114,7 +176,7 @@ public class Gateway implements Driver, OperationExecutor {
 	public void execute(OperationRepresentation operation, boolean cleanup) throws Exception {
 		log.info("execution requested{}", cleanup ? " (cleaning up)" : "");
 
-		if (!this.gid.equals(operation.getDeviceId())) {
+		if (!this.globalId.equals(operation.getDeviceId())) {
 			return;
 		}
 
@@ -190,62 +252,7 @@ public class Gateway implements Driver, OperationExecutor {
 		}
 	}
 
-	private void setupControllerCommander() throws IOException {
-		log.info("setting up controller commander at {}:{}", controllerCommanderHost, controllerCommanderPort);
-
-		SocketClient socketClient = new SocketClient(controllerCommanderHost, controllerCommanderPort);
-		controllerCommander = new Commander(socketClient);
-
-		try {
-			socketClient.connect();
-
-			log.info("connection to controller commander is established");
-		} catch (IOException e) {
-			log.warn("connecting to controller commander socket failed");
-		}
-	}
-
-	private void setupTrainCommander() throws IOException {
-		log.info("setting up train commander at {}:{}", trainCommanderHost, trainCommanderPort);
-
-		SocketClient socketClient = new SocketClient(trainCommanderHost, trainCommanderPort);
-		trainCommander = new Commander(socketClient);
-
-		try {
-			socketClient.connect();
-
-			log.info("connection to train commander is established");
-		} catch (IOException e) {
-			log.warn("connecting to train commander socket failed");
-
-			return;
-		}
-
-		trainCommander.sendCommand("get-battery-voltage").thenAccept(commandResponse -> {
-			log.info("got train battery voltage: {}V ({}%)", commandResponse.response.getFloat(0), commandResponse.response.getInt(1));
-		});
-	}
-
-	private void setupDevices() {
-		log.info("setting up sensors");
-
-		// EtherIO devices
-//	    setupEtherioRelayActuator();
-//		setupEtherioButtonSensor();
-//		setupEtherioMonitoringSensor();
-//		setupEtherioAnalogInputSensor();
-//		setupEtherioMotionSensor();
-		setupEtherioLightSensor();
-//		setupEtherioTemperatureSensor();
-		setupEtherioTagSensor();
-		setupEtherioMultiDacActuator();
-
-		// simulated devices
-		// setupSimulatedLightSensor();
-		// setupSimulatedMotionSensor();
-		// setupSimulatedRelayActuator();
-	}
-
+	/*
 	private void setupSimulatedLightSensor() {
 		registerDriver(
 				new SimulatedLightSensor("Simulated light sensor")
@@ -318,5 +325,91 @@ public class Gateway implements Driver, OperationExecutor {
 		registerDriver(
 				new EtherioMultiDacActuator("EtherIO multiple DAC actuator", controllerCommander, 3, 16)
 		);
+	}
+	*/
+
+	private String getConfigString(String name, String defaultValue) {
+		Object value = config.get(name);
+
+		if (value == null) {
+			return defaultValue;
+		}
+
+		return value.toString();
+	}
+
+	private String getConfigString(String name) {
+		Object value = config.get(name);
+
+		if (value == null) {
+			throw new IllegalArgumentException("configuration parameter called '" + name + "' does not exist");
+		}
+
+		return value.toString();
+	}
+
+	private int getConfigInt(String name, int defaultValue) {
+		Object value = config.get(name);
+
+		if (value == null) {
+			return defaultValue;
+		}
+
+		return Integer.valueOf(value.toString());
+	}
+
+	private int getConfigInt(String name) {
+		Object value = config.get(name);
+
+		if (value == null) {
+			throw new IllegalArgumentException("configuration parameter called '" + name + "' does not exist");
+		}
+
+		return Integer.valueOf(value.toString());
+	}
+
+
+
+	private Commander createCommander(String id) {
+		String host = getConfigString("commander." + id + ".host");
+		int port = getConfigInt("commander.\" + id + \".port", DEFAULT_CONTROLLER_PORT);
+
+		log.info("connecting to controller commander {} at {}:{}", id, host, port);
+
+		SocketClient socketClient = new SocketClient(host, port);
+
+		socketClient.addMessageListener(new MessageTransport.MessageListener() {
+			@Override
+			public void onSocketOpen() {
+				log.info("socket of controller {} at {}:{} was opened", id, host, port);
+			}
+
+			@Override
+			public void onSocketClose() {
+				log.info("socket of controller {} at {}:{} was closed", id, host, port);
+			}
+
+			@Override
+			public void onSocketMessageReceived(String message) {
+				// don't log heartbeat messages
+				if (message.length() >= 11 && message.substring(0, 11).equals("0:HEARTBEAT")) {
+					return;
+				}
+
+				log.debug("got controller {} message: '{}'", id, message);
+			}
+		});
+
+		Commander commander = new Commander(socketClient);
+
+		try {
+			socketClient.connect();
+		} catch (IOException e) {
+			log.warn("connecting to controller {} at {}:{} failed ({} - {})", id, host, port, e.getClass().getSimpleName(), e.getMessage());
+		}
+
+		commander.sendCommand("version").thenAccept(commandResponse -> log.info("got commander {} version: {}", id, commandResponse.response.getString(0)));
+
+		return commander;
 	}
 }
