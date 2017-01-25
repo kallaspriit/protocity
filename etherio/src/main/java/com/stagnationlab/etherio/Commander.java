@@ -71,7 +71,7 @@ public class Commander implements MessageTransport.MessageListener {
 
 		String message = command.toString();
 
-		log.info("< {}", message);
+		log.debug("< {}", message);
 
 		messageTransport.sendMessage("%s\n", message);
 
@@ -118,7 +118,7 @@ public class Commander implements MessageTransport.MessageListener {
 			return;
 		}
 
-		log.info("> {}", responseCommand.toString());
+		log.debug("> {}", responseCommand.toString());
 
 		commandPromise.commandResponse.response = responseCommand;
 		commandPromise.promise.complete(commandPromise.commandResponse);

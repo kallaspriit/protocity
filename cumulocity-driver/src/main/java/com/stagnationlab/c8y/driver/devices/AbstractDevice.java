@@ -105,7 +105,7 @@ public abstract class AbstractDevice implements Driver {
     }
 
     protected MeasurementRepresentation reportMeasurement(Object measurement, String type) {
-        log.info("reporting measurement for '{}' of type '{}': {}", id, type, Util.stringify(measurement));
+        log.debug("reporting measurement for '{}' of type '{}': {}", id, type, Util.stringify(measurement));
 
         MeasurementRepresentation measurementRepresentation = new MeasurementRepresentation();
 
@@ -124,7 +124,7 @@ public abstract class AbstractDevice implements Driver {
 	}
 
     protected void reportEvent(EventRepresentation eventRepresentation) {
-        log.info("reporting event for '{}' of type '{}': {}", id, eventRepresentation.getClass().getSimpleName(), Util.stringify(eventRepresentation));
+        log.debug("reporting event for '{}' of type '{}': {}", id, eventRepresentation.getClass().getSimpleName(), Util.stringify(eventRepresentation));
 
         eventRepresentation.setSource(childDevice);
 
@@ -132,7 +132,7 @@ public abstract class AbstractDevice implements Driver {
     }
 
     protected ManagedObjectRepresentation updateState(Object... properties) {
-        log.info("updating state of '{}': {}", id, Util.stringify(properties));
+        log.debug("updating state of '{}': {}", id, Util.stringify(properties));
 
         ManagedObjectRepresentation managedObjectRepresentation = new ManagedObjectRepresentation();
         managedObjectRepresentation.setId(childDevice.getId());

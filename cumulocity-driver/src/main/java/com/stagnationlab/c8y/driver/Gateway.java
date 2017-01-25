@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,8 +16,9 @@ import com.cumulocity.model.operation.OperationStatus;
 import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
 import com.cumulocity.rest.representation.operation.OperationRepresentation;
 import com.cumulocity.sdk.client.Platform;
-import com.stagnationlab.c8y.driver.devices.AbstractTagSensor;
-import com.stagnationlab.c8y.driver.platforms.etherio.EtherioTagSensor;
+import com.stagnationlab.c8y.driver.controllers.AbstractController;
+import com.stagnationlab.c8y.driver.controllers.ParkingController;
+import com.stagnationlab.c8y.driver.services.Config;
 import com.stagnationlab.etherio.Commander;
 import com.stagnationlab.etherio.MessageTransport;
 import com.stagnationlab.etherio.SocketClient;
@@ -30,10 +30,10 @@ import c8y.lx.driver.OperationExecutor;
 public class Gateway implements Driver, OperationExecutor {
 	private static final Logger log = LoggerFactory.getLogger(Gateway.class);
 
-	private Properties config = new Properties();
+	private final Config config = new Config();
 	private final List<Driver> drivers = new ArrayList<>();
-	private Map<String, Commander> commanders = new HashMap<>();
-	private Map<Integer, AbstractTagSensor> parkingSlotSensors = new HashMap<>();
+	private final List<AbstractController> controllers = new ArrayList<>();
+	private final Map<String, Commander> commanders = new HashMap<>();
 	private GId globalId;
 
 	private static final int DEFAULT_CONTROLLER_PORT = 8080;
@@ -46,6 +46,7 @@ public class Gateway implements Driver, OperationExecutor {
 			setupConfig();
 			setupCommanders();
 			setupDevices();
+			setupControllers();
 		} catch (Exception e) {
 			log.warn("setup failed! ({} - {})", e.getClass().getSimpleName(), e.getMessage());
 
@@ -84,8 +85,6 @@ public class Gateway implements Driver, OperationExecutor {
 	private void setupDevices() {
 		log.info("setting up devices");
 
-		setupParkingDevices();
-
 		// EtherIO devices
 		// setupEtherioRelayActuator();
 		// setupEtherioButtonSensor();
@@ -103,23 +102,17 @@ public class Gateway implements Driver, OperationExecutor {
 		// setupSimulatedRelayActuator();
 	}
 
-	private void setupParkingDevices() {
-		int slotCount = getConfigInt("parking.slotCount");
+	private void setupControllers() {
+		registerController(
+				new ParkingController(commanders, config)
+		);
 
-		log.info("setting up parking devices for {} slots", slotCount);
+		for (AbstractController controller : controllers) {
+			List<Driver> drivers = controller.setup();
 
-		for (int i = 1; i <= slotCount; i++) {
-			String commanderName = getConfigString("parking.slot." + i + ".commanderName");
-			int port = getConfigInt("parking.slot." + i + ".port");
-
-			Commander commander = commanders.get(commanderName);
-			AbstractTagSensor parkingSlotSensor = new EtherioTagSensor("Parking slot sensor " + i, commander, port);
-
-			parkingSlotSensors.put(i, parkingSlotSensor);
-
-			registerDriver(parkingSlotSensor);
-
-			log.info("added parking slot sensor #{} on commander {} port {}", i, commanderName, port);
+			for (Driver driver : drivers) {
+				registerDriver(driver);
+			}
 		}
 	}
 
@@ -174,7 +167,7 @@ public class Gateway implements Driver, OperationExecutor {
 
 	@Override
 	public void execute(OperationRepresentation operation, boolean cleanup) throws Exception {
-		log.info("execution requested{}", cleanup ? " (cleaning up)" : "");
+		log.debug("execution requested{}", cleanup ? " (cleaning up)" : "");
 
 		if (!this.globalId.equals(operation.getDeviceId())) {
 			return;
@@ -212,6 +205,12 @@ public class Gateway implements Driver, OperationExecutor {
 		log.info("registering driver '{}'", driver.getClass().getSimpleName());
 
 		drivers.add(driver);
+	}
+
+	private void registerController(AbstractController controller) {
+		log.info("registering controller '{}'", controller.getClass().getSimpleName());
+
+		controllers.add(controller);
 	}
 
 	private void initializeDrivers() {
@@ -328,51 +327,9 @@ public class Gateway implements Driver, OperationExecutor {
 	}
 	*/
 
-	private String getConfigString(String name, String defaultValue) {
-		Object value = config.get(name);
-
-		if (value == null) {
-			return defaultValue;
-		}
-
-		return value.toString();
-	}
-
-	private String getConfigString(String name) {
-		Object value = config.get(name);
-
-		if (value == null) {
-			throw new IllegalArgumentException("configuration parameter called '" + name + "' does not exist");
-		}
-
-		return value.toString();
-	}
-
-	private int getConfigInt(String name, int defaultValue) {
-		Object value = config.get(name);
-
-		if (value == null) {
-			return defaultValue;
-		}
-
-		return Integer.valueOf(value.toString());
-	}
-
-	private int getConfigInt(String name) {
-		Object value = config.get(name);
-
-		if (value == null) {
-			throw new IllegalArgumentException("configuration parameter called '" + name + "' does not exist");
-		}
-
-		return Integer.valueOf(value.toString());
-	}
-
-
-
 	private Commander createCommander(String id) {
-		String host = getConfigString("commander." + id + ".host");
-		int port = getConfigInt("commander.\" + id + \".port", DEFAULT_CONTROLLER_PORT);
+		String host = config.getString("commander." + id + ".host");
+		int port = config.getInt("commander.\" + id + \".port", DEFAULT_CONTROLLER_PORT);
 
 		log.info("connecting to controller commander {} at {}:{}", id, host, port);
 
