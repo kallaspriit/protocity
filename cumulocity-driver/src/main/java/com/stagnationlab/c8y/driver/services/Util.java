@@ -33,4 +33,8 @@ public class Util {
 		);
 	}
 
+	public static String buildOperationName(Class reference) {
+    	return reference.getCanonicalName().replaceAll("\\.", "_");
+	}
+
 }

@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.cumulocity.model.operation.OperationStatus;
 import com.cumulocity.rest.representation.operation.OperationRepresentation;
+import com.stagnationlab.c8y.driver.controllers.LightingController;
 import com.stagnationlab.c8y.driver.controllers.ParkingController;
 import com.stagnationlab.c8y.driver.devices.AbstractDevice;
 import com.stagnationlab.c8y.driver.services.Config;
@@ -83,7 +84,11 @@ public class Gateway extends AbstractDevice {
 
 	private void setupParkingController() {
 		registerChild(
-				new ParkingController("ParkingController controller", commanders, config)
+				new ParkingController("Parking controller", commanders, config)
+		);
+
+		registerChild(
+				new LightingController("Lighting controller", commanders, config)
 		);
 	}
 

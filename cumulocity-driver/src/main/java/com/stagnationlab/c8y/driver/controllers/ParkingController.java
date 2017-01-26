@@ -48,7 +48,7 @@ public class ParkingController extends AbstractController {
 	public void start() {
 		super.start();
 
-		log.info("starting parkingController controller for {} slots", slotCount);
+		log.info("starting parking controller for {} slots", slotCount);
 
 		for (int i = 1; i <= slotCount; i++) {
 			setSlotFree(i, true);

@@ -7,6 +7,7 @@ import com.cumulocity.model.operation.OperationStatus;
 import com.cumulocity.rest.representation.operation.OperationRepresentation;
 import com.stagnationlab.c8y.driver.fragments.MultiDacActuator;
 import com.stagnationlab.c8y.driver.operations.SetChannelValue;
+import com.stagnationlab.c8y.driver.services.Util;
 
 import c8y.lx.driver.OperationExecutor;
 
@@ -37,10 +38,7 @@ public abstract class AbstractMultiDacActuator extends AbstractDevice {
 		registerOperationExecutor(new OperationExecutor() {
 			@Override
 			public String supportedOperationType() {
-				//return SetChannelValue.class.getSimpleName();
-				//return "com_stagnationlab_c8y_driver_operations_SetChannelValue";
-
-				return SetChannelValue.class.getCanonicalName().replaceAll("\\.", "_");
+				return Util.buildOperationName(SetChannelValue.class);
 			}
 
 			@Override
@@ -74,6 +72,7 @@ public abstract class AbstractMultiDacActuator extends AbstractDevice {
 		});
 	}
 
+	/*
 	@Override
 	public void start() {
 		int channelCount = multiDacActuator.getChannelCount();
@@ -87,6 +86,7 @@ public abstract class AbstractMultiDacActuator extends AbstractDevice {
 
 		updateState(multiDacActuator);
 	}
+	*/
 
 	public void setChannelValue(int channel, float value) {
 		log.debug("setting channel {} value to {}", channel, value);

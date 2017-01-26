@@ -3,6 +3,7 @@ package com.stagnationlab.c8y.driver.devices;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -149,13 +150,23 @@ public abstract class AbstractDevice implements Driver {
 
     @Override
     public OperationExecutor[] getSupportedOperations() {
-	    log.debug("list of supported operations for {} requested ({} total):", id, operationExecutors.size());
+	    List<OperationExecutor> combinedOperationExecutors = new ArrayList<>();
 
-	    for (OperationExecutor operationExecutor : operationExecutors) {
-	    	log.debug("  - {}", operationExecutor.supportedOperationType());
+	    for (OperationExecutor myOperationExecutor : operationExecutors) {
+	    	combinedOperationExecutors.add(myOperationExecutor);
 	    }
 
-        return operationExecutors.toArray(new OperationExecutor[operationExecutors.size()]);
+	    for (Driver child : children) {
+		    List<OperationExecutor> childOperationExecutors = Arrays.asList(child.getSupportedOperations());
+
+		    for (OperationExecutor childOperationExecutor : childOperationExecutors) {
+		    	combinedOperationExecutors.add(childOperationExecutor);
+		    }
+	    }
+
+	    log.debug("returning list of supported operations for {} ({} total):", id, operationExecutors.size());
+
+	    return combinedOperationExecutors.toArray(new OperationExecutor[combinedOperationExecutors.size()]);
     }
 
     protected void registerChild(Driver child) {

@@ -26,7 +26,7 @@ public class DeviceManager {
             OperationExecutor[] supportedOperations,
             Object... fragments
     ) {
-        log.debug("creating managed object with id '" + id + "' of type '" + type + "'");
+        log.debug("creating managed object {} of type {}", id, type);
 
         ManagedObjectRepresentation device = new ManagedObjectRepresentation();
 
@@ -34,7 +34,7 @@ public class DeviceManager {
         device.setName(id);
 
         for (OperationExecutor operation : supportedOperations) {
-            log.info("registering supported operation type '" + operation.supportedOperationType() + "'");
+            log.info("registering supported operation type {} for {}", operation.supportedOperationType(), id);
 
             OpsUtil.addSupportedOperation(device, operation.supportedOperationType());
         }
@@ -53,7 +53,11 @@ public class DeviceManager {
 
         DeviceManagedObject deviceManagedObject = new DeviceManagedObject(platform);
         ID externalId = DeviceManager.buildExternalId(parent, device, id);
-        deviceManagedObject.createOrUpdate(device, externalId, parent.getId());
+        boolean wasCreated = deviceManagedObject.createOrUpdate(device, externalId, parent.getId());
+
+        if (wasCreated) {
+	        log.debug("created managed object {} of type {} with external id of {} and global id {}", id, type, externalId, device.getId().getValue());
+        }
 
         return device;
     }
