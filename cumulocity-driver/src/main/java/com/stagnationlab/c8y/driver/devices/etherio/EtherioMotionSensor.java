@@ -1,16 +1,21 @@
-package com.stagnationlab.c8y.driver.platforms.etherio;
+package com.stagnationlab.c8y.driver.devices.etherio;
 
-import com.stagnationlab.c8y.driver.devices.AbstractButtonSensor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.stagnationlab.c8y.driver.devices.AbstractMotionSensor;
 import com.stagnationlab.etherio.Commander;
 import com.stagnationlab.etherio.PortController;
 
-public class EtherioButtonSensor extends AbstractButtonSensor {
+public class EtherioMotionSensor extends AbstractMotionSensor {
+
+	private static final Logger log = LoggerFactory.getLogger(EtherioMotionSensor.class);
 
 	private final Commander commander;
 	private final int portNumber;
 	private PortController portController;
 
-	public EtherioButtonSensor(String id, Commander commander, int portNumber) {
+	public EtherioMotionSensor(String id, Commander commander, int portNumber) {
 		super(id);
 
 		this.commander = commander;
@@ -30,9 +35,12 @@ public class EtherioButtonSensor extends AbstractButtonSensor {
 
 			@Override
 			public void onPortDigitalValueChange(int id, PortController.DigitalValue digitalValue) {
-				setIsButtonPressed(digitalValue == PortController.DigitalValue.HIGH);
+				log.info("motion port {} changed to {}", id, digitalValue.name());
+
+				setIsMotionDetected(digitalValue == PortController.DigitalValue.LOW);
 			}
 		});
+		portController.setPullMode(PortController.PullMode.UP);
 	}
 
 }

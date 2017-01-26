@@ -1,4 +1,4 @@
-package com.stagnationlab.c8y.driver.platforms.simulated;
+package com.stagnationlab.c8y.driver.devices.simulated;
 
 import com.stagnationlab.c8y.driver.devices.AbstractRelayActuator;
 import org.slf4j.Logger;

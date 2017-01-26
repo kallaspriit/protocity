@@ -1,25 +1,25 @@
-package com.stagnationlab.c8y.driver.platforms.etherio;
+package com.stagnationlab.c8y.driver.devices.etherio;
 
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.stagnationlab.c8y.driver.devices.AbstractTagSensor;
+import com.stagnationlab.c8y.driver.devices.AbstractTemperatureSensor;
 import com.stagnationlab.etherio.Commander;
 import com.stagnationlab.etherio.PortController;
 
-public class EtherioTagSensor extends AbstractTagSensor {
+public class EtherioTemperatureSensor extends AbstractTemperatureSensor {
 
-	private static final Logger log = LoggerFactory.getLogger(EtherioMotionSensor.class);
+	private static final Logger log = LoggerFactory.getLogger(EtherioTemperatureSensor.class);
 
 	private final Commander commander;
 	private final int portNumber;
 	private PortController portController;
 
-	private static final String CAPABILITY = "PN532";
+	private static final String CAPABILITY = "TMP102";
 
-	public EtherioTagSensor(String id, Commander commander, int portNumber) {
+	public EtherioTemperatureSensor(String id, Commander commander, int portNumber) {
 		super(id);
 
 		this.commander = commander;
@@ -37,7 +37,7 @@ public class EtherioTagSensor extends AbstractTagSensor {
 	public void start() {
 		super.start();
 
-		portController.sendPortCommand(CAPABILITY, "enable");
+		portController.sendPortCommand(CAPABILITY, "enable", 5000);
 
 		portController.addEventListener(new PortController.PortEventListener() {
 			@Override
@@ -46,21 +46,13 @@ public class EtherioTagSensor extends AbstractTagSensor {
 					return;
 				}
 
-				String event = arguments.get(0);
+				log.info("try to parse: {}", arguments.get(0));
 
-				switch (event) {
-					case "enter":
-						emitTagEnter(arguments.get(1));
-						break;
+				float temperature = Float.valueOf(arguments.get(0));
 
-					case "exit":
-						emitTagExit();
-						break;
+				log.info("reporting temperature: {}", temperature);
 
-					default:
-						log.warn("unexpected tag event '{}' observed", event);
-						break;
-				}
+				reportTemperature(temperature);
 			}
 		});
 	}

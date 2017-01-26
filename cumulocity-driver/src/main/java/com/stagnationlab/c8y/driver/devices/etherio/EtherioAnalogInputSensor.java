@@ -1,4 +1,4 @@
-package com.stagnationlab.c8y.driver.platforms.etherio;
+package com.stagnationlab.c8y.driver.devices.etherio;
 
 import com.stagnationlab.c8y.driver.devices.AbstractAnalogInputSensor;
 import com.stagnationlab.etherio.Commander;

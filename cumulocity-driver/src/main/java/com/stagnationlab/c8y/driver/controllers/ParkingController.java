@@ -10,8 +10,8 @@ import org.slf4j.LoggerFactory;
 
 import com.stagnationlab.c8y.driver.devices.AbstractMultiDacActuator;
 import com.stagnationlab.c8y.driver.devices.AbstractTagSensor;
-import com.stagnationlab.c8y.driver.platforms.etherio.EtherioMultiDacActuator;
-import com.stagnationlab.c8y.driver.platforms.etherio.EtherioTagSensor;
+import com.stagnationlab.c8y.driver.devices.etherio.EtherioMultiDacActuator;
+import com.stagnationlab.c8y.driver.devices.etherio.EtherioTagSensor;
 import com.stagnationlab.c8y.driver.services.Config;
 import com.stagnationlab.c8y.driver.services.TextToSpeech;
 import com.stagnationlab.etherio.Commander;
