@@ -45,7 +45,7 @@ public abstract class AbstractMultiDacActuator extends AbstractDevice {
 
 			@Override
 			public void execute(OperationRepresentation operation, boolean cleanup) throws Exception {
-				if (!childDevice.getId().equals(operation.getDeviceId())) {
+				if (!device.getId().equals(operation.getDeviceId())) {
 					return;
 				}
 

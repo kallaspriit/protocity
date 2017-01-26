@@ -5,8 +5,6 @@ import c8y.lx.driver.OperationExecutor;
 import com.cumulocity.model.operation.OperationStatus;
 import com.cumulocity.rest.representation.operation.OperationRepresentation;
 import com.stagnationlab.c8y.driver.measurements.RelayStateMeasurement;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class AbstractRelayActuator extends AbstractDevice {
 
@@ -37,7 +35,7 @@ public abstract class AbstractRelayActuator extends AbstractDevice {
 
             @Override
             public void execute(OperationRepresentation operation, boolean cleanup) throws Exception {
-                if (!childDevice.getId().equals(operation.getDeviceId())) {
+                if (!device.getId().equals(operation.getDeviceId())) {
                     return;
                 }
 

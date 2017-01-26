@@ -16,7 +16,6 @@ import com.cumulocity.model.operation.OperationStatus;
 import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
 import com.cumulocity.rest.representation.operation.OperationRepresentation;
 import com.cumulocity.sdk.client.Platform;
-import com.stagnationlab.c8y.driver.controllers.AbstractController;
 import com.stagnationlab.c8y.driver.controllers.ParkingController;
 import com.stagnationlab.c8y.driver.services.Config;
 import com.stagnationlab.c8y.driver.services.TextToSpeech;
@@ -33,7 +32,6 @@ public class Gateway implements Driver, OperationExecutor {
 
 	private final Config config = new Config();
 	private final List<Driver> drivers = new ArrayList<>();
-	private final List<AbstractController> controllers = new ArrayList<>();
 	private final Map<String, Commander> commanders = new HashMap<>();
 	private GId globalId;
 
@@ -58,62 +56,6 @@ public class Gateway implements Driver, OperationExecutor {
 			throw e;
 		}
 
-		try {
-			initializeDrivers();
-		} catch (Exception e) {
-			log.warn("initializing drivers failed! ({} - {})", e.getClass().getSimpleName(), e.getMessage());
-
-			e.printStackTrace();
-
-			throw e;
-		}
-	}
-
-	private void setupConfig() throws IOException {
-		log.info("setting up config from src/main/resources/{}", CONFIG_FILENAME);
-
-		InputStream configInputStream = getClass().getClassLoader().getResourceAsStream(CONFIG_FILENAME);
-
-		config.load(configInputStream);
-	}
-
-	private void setupCommanders() throws IOException {
-		log.info("setting up commanders");
-
-		commanders.put("1", createCommander("1"));
-		commanders.put("2", createCommander("2"));
-		commanders.put("3", createCommander("3"));
-		commanders.put("4", createCommander("4"));
-		//commanders.put("train", createCommander("train"));
-	}
-
-	private void setupControllers() {
-		log.info("setting up controllers");
-
-		registerController(
-				new ParkingController(commanders, config)
-		);
-
-		for (AbstractController controller : controllers) {
-			List<Driver> drivers = controller.initialize();
-
-			for (Driver driver : drivers) {
-				registerDriver(driver);
-			}
-		}
-	}
-
-	@Override
-	public void initialize(Platform platform) throws Exception {
-		log.info("initializing");
-
-		initializeDrivers(platform);
-		initializeControllers(platform);
-	}
-
-	private void initializeDrivers() {
-		log.info("setting up drivers ({} total)", drivers.size());
-
 		Iterator<Driver> iterator = drivers.iterator();
 
 		while (iterator.hasNext()) {
@@ -126,12 +68,15 @@ public class Gateway implements Driver, OperationExecutor {
 			} catch (Throwable e) {
 				log.warn("setting up driver '{}' failed with '{}' ({}), skipping it", driver.getClass().getSimpleName(), e.getClass().getSimpleName(), e.getMessage());
 
+				e.printStackTrace();
+
 				iterator.remove();
 			}
 		}
 	}
 
-	private void initializeDrivers(Platform platform) {
+	@Override
+	public void initialize(Platform platform) throws Exception {
 		log.info("initializing drivers ({} total)", drivers.size());
 
 		Iterator<Driver> iterator = drivers.iterator();
@@ -146,17 +91,39 @@ public class Gateway implements Driver, OperationExecutor {
 			} catch (Throwable e) {
 				log.warn("initializing driver '{}' platform failed with '{}' ({}), skipping it", driver.getClass().getSimpleName(), e.getClass().getSimpleName(), e.getMessage());
 
+				e.printStackTrace();
+
 				iterator.remove();
 			}
 		}
 	}
 
-	private void initializeControllers(Platform platform) {
-		log.info("initializing controllers ({} total)", controllers.size());
+	private void setupConfig() throws IOException {
+		log.info("setting up config from src/main/resources/{}", CONFIG_FILENAME);
 
-		for (AbstractController controller : controllers) {
-			controller.initialize(platform);
+		InputStream configInputStream = getClass().getClassLoader().getResourceAsStream(CONFIG_FILENAME);
+
+		config.load(configInputStream);
+	}
+
+	private void setupCommanders() throws IOException {
+		log.info("setting up commanders");
+
+		List<String> commanderNames = config.getStringArray("commandersNames");
+
+		for (String commanderName : commanderNames) {
+			log.info("creating commander {}", commanderName);
+
+			commanders.put(commanderName, createCommander(commanderName));
 		}
+	}
+
+	private void setupControllers() {
+		log.info("setting up controllers");
+
+		registerDriver(
+				new ParkingController("Parking controller", commanders, config)
+		);
 	}
 
 	@Override
@@ -168,18 +135,20 @@ public class Gateway implements Driver, OperationExecutor {
 				driver.initializeInventory(managedObjectRepresentation);
 			} catch (Throwable e) {
 				log.warn("initializing driver {} inventory failed with {} ({})", driver.getClass().getSimpleName(), e.getClass().getSimpleName(), e.getMessage());
+
+				e.printStackTrace();
 			}
 		}
 	}
 
 	@Override
-	public void discoverChildren(ManagedObjectRepresentation managedObjectRepresentation) {
+	public void discoverChildren(ManagedObjectRepresentation parent) {
 		log.debug("discovering children");
 
-		this.globalId = managedObjectRepresentation.getId();
+		this.globalId = parent.getId();
 
 		for (Driver driver : drivers) {
-			driver.discoverChildren(managedObjectRepresentation);
+			driver.discoverChildren(parent);
 		}
 	}
 
@@ -189,10 +158,6 @@ public class Gateway implements Driver, OperationExecutor {
 
 		for (Driver driver : drivers) {
 			driver.start();
-		}
-
-		for (AbstractController controller : controllers) {
-			controller.start();
 		}
 
 		TextToSpeech.speak("Ready, welcome to Telia Lego City!");
@@ -243,12 +208,6 @@ public class Gateway implements Driver, OperationExecutor {
 		log.info("registering driver '{}'", driver.getClass().getSimpleName());
 
 		drivers.add(driver);
-	}
-
-	private void registerController(AbstractController controller) {
-		log.info("registering controller '{}'", controller.getClass().getSimpleName());
-
-		controllers.add(controller);
 	}
 
 	/*
@@ -327,23 +286,23 @@ public class Gateway implements Driver, OperationExecutor {
 	}
 	*/
 
-	private Commander createCommander(String id) {
-		String host = config.getString("commander." + id + ".host");
+	private Commander createCommander(String name) {
+		String host = config.getString("commander." + name + ".host");
 		int port = config.getInt("commander.\" + id + \".port", DEFAULT_CONTROLLER_PORT);
 
-		log.info("connecting to controller commander {} at {}:{}", id, host, port);
+		log.info("connecting to controller commander {} at {}:{}", name, host, port);
 
 		SocketClient socketClient = new SocketClient(host, port);
 
 		socketClient.addMessageListener(new MessageTransport.MessageListener() {
 			@Override
 			public void onSocketOpen() {
-				log.info("socket of controller {} at {}:{} was opened", id, host, port);
+				log.info("socket of controller {} at {}:{} was opened", name, host, port);
 			}
 
 			@Override
 			public void onSocketClose() {
-				log.info("socket of controller {} at {}:{} was closed", id, host, port);
+				log.info("socket of controller {} at {}:{} was closed", name, host, port);
 			}
 
 			@Override
@@ -353,7 +312,7 @@ public class Gateway implements Driver, OperationExecutor {
 					return;
 				}
 
-				log.debug("got controller {} message: '{}'", id, message);
+				log.debug("got controller {} message: '{}'", name, message);
 			}
 		});
 
@@ -362,10 +321,10 @@ public class Gateway implements Driver, OperationExecutor {
 		try {
 			socketClient.connect();
 		} catch (IOException e) {
-			log.warn("connecting to controller {} at {}:{} failed ({} - {})", id, host, port, e.getClass().getSimpleName(), e.getMessage());
+			log.warn("connecting to controller {} at {}:{} failed ({} - {})", name, host, port, e.getClass().getSimpleName(), e.getMessage());
 		}
 
-		commander.sendCommand("version").thenAccept(commandResponse -> log.info("got commander {} version: {}", id, commandResponse.response.getString(0)));
+		commander.sendCommand("version").thenAccept(commandResponse -> log.info("got commander {} version: {}", name, commandResponse.response.getString(0)));
 
 		return commander;
 	}

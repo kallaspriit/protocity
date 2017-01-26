@@ -17,7 +17,7 @@ public class DeviceManager {
 
     private static final Logger log = LoggerFactory.getLogger(DeviceManager.class);
 
-    public static ManagedObjectRepresentation createChild(
+    public static ManagedObjectRepresentation create(
             String id,
             String type,
             Platform platform,
@@ -26,20 +26,21 @@ public class DeviceManager {
             OperationExecutor[] supportedOperations,
             Object... fragments
     ) {
-        log.debug("creating child managed object with id '" + id + "' of type '" + type + "'");
+        log.debug("creating managed object with id '" + id + "' of type '" + type + "'");
 
-        ManagedObjectRepresentation child = new ManagedObjectRepresentation();
-        child.setType(type);
-        child.setName(id);
+        ManagedObjectRepresentation device = new ManagedObjectRepresentation();
+
+        device.setType(type);
+        device.setName(id);
 
         for (OperationExecutor operation : supportedOperations) {
             log.info("registering supported operation type '" + operation.supportedOperationType() + "'");
 
-            OpsUtil.addSupportedOperation(child, operation.supportedOperationType());
+            OpsUtil.addSupportedOperation(device, operation.supportedOperationType());
         }
 
         if (hardware != null) {
-            child.set(hardware);
+            device.set(hardware);
         }
 
         for (Object fragment : fragments) {
@@ -47,14 +48,14 @@ public class DeviceManager {
                 continue;
             }
 
-            child.set(fragment);
+            device.set(fragment);
         }
 
         DeviceManagedObject deviceManagedObject = new DeviceManagedObject(platform);
-        ID externalId = DeviceManager.buildExternalId(parent, child, id);
-        deviceManagedObject.createOrUpdate(child, externalId, parent.getId());
+        ID externalId = DeviceManager.buildExternalId(parent, device, id);
+        deviceManagedObject.createOrUpdate(device, externalId, parent.getId());
 
-        return child;
+        return device;
     }
 
     private static ID buildExternalId(ManagedObjectRepresentation parent, ManagedObjectRepresentation child, String id) {
