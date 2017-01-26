@@ -10,7 +10,6 @@ import com.stagnationlab.c8y.driver.devices.AbstractMultiDacActuator;
 import com.stagnationlab.c8y.driver.devices.AbstractTagSensor;
 import com.stagnationlab.c8y.driver.devices.etherio.EtherioMultiDacActuator;
 import com.stagnationlab.c8y.driver.devices.etherio.EtherioTagSensor;
-import com.stagnationlab.c8y.driver.fragments.Parking;
 import com.stagnationlab.c8y.driver.services.Config;
 import com.stagnationlab.c8y.driver.services.TextToSpeech;
 import com.stagnationlab.etherio.Commander;
@@ -19,7 +18,7 @@ public class ParkingController extends AbstractController {
 
 	private static final Logger log = LoggerFactory.getLogger(ParkingController.class);
 
-	private final Parking parking = new Parking();
+	private final com.stagnationlab.c8y.driver.fragments.ParkingController parkingController = new com.stagnationlab.c8y.driver.fragments.ParkingController();
 	private AbstractMultiDacActuator ledDriver;
 	private Map<Integer, AbstractTagSensor> sensorsMap = new HashMap<>();
 	private Map<Integer, Integer> ledChannelMap = new HashMap<>();
@@ -31,16 +30,16 @@ public class ParkingController extends AbstractController {
 
 	@Override
 	protected String getType() {
-		return parking.getClass().getSimpleName();
+		return parkingController.getClass().getSimpleName();
 	}
 
 	@Override
 	protected Object getSensorFragment() {
-		return parking;
+		return parkingController;
 	}
 
 	@Override
-	protected void createChildren() {
+	protected void setup() throws Exception {
 		setupSlotSensors();
 		setupSlotIndicators();
 	}
@@ -49,7 +48,7 @@ public class ParkingController extends AbstractController {
 	public void start() {
 		super.start();
 
-		log.info("starting parking controller for {} slots", slotCount);
+		log.info("starting parkingController controller for {} slots", slotCount);
 
 		for (int i = 1; i <= slotCount; i++) {
 			setSlotFree(i, true);
@@ -61,7 +60,7 @@ public class ParkingController extends AbstractController {
 	private void setupSlotSensors() {
 		slotCount = config.getInt("parking.slotCount");
 
-		log.info("setting up parking controller for {} slots", slotCount);
+		log.info("setting up parkingController controller for {} slots", slotCount);
 
 		for (int i = 1; i <= slotCount; i++) {
 			String commanderName = config.getString("parking.slot." + i + ".commander");
@@ -69,14 +68,14 @@ public class ParkingController extends AbstractController {
 			int ledChannel = config.getInt("parking.slot." + i + ".ledChannel");
 
 			Commander commander = commanders.get(commanderName);
-			AbstractTagSensor sensor = new EtherioTagSensor("Parking slot sensor " + i, commander, port);
+			AbstractTagSensor sensor = new EtherioTagSensor("ParkingController slot sensor " + i, commander, port);
 
 			sensorsMap.put(i, sensor);
 			ledChannelMap.put(i, ledChannel);
 
 			registerChild(sensor);
 
-			log.info("added parking slot sensor #{} on commander {} port {} using led channel {}", i, commanderName, port, ledChannel);
+			log.info("added parkingController slot sensor #{} on commander {} port {} using led channel {}", i, commanderName, port, ledChannel);
 		}
 	}
 
@@ -85,10 +84,10 @@ public class ParkingController extends AbstractController {
 		int port = config.getInt("parking.ledDriverPort");
 		int channelCount = config.getInt("parking.ledDriverChannels");
 
-		log.info("setting up parking slot indicators on commander {} port {} with {} channels", commanderName, port, channelCount);
+		log.info("setting up parkingController slot indicators on commander {} port {} with {} channels", commanderName, port, channelCount);
 
 		Commander commander = commanders.get(commanderName);
-		ledDriver = new EtherioMultiDacActuator("Parking led driver", commander, port, channelCount);
+		ledDriver = new EtherioMultiDacActuator("ParkingController led driver", commander, port, channelCount);
 
 		registerChild(ledDriver);
 	}

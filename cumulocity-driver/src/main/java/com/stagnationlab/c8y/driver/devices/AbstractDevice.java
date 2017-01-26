@@ -73,11 +73,11 @@ public abstract class AbstractDevice implements Driver {
         return null;
     }
 
-	protected void createChildren() {}
+	protected void setup() throws Exception {}
 
     @Override
     public void initialize() throws Exception {
-    	createChildren();
+    	setup();
 
 	    log.debug("initializing {} with {} {}", id, children.size(), children.size() == 1 ? "child" : "children");
 
