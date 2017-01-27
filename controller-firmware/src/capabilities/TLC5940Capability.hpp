@@ -19,10 +19,12 @@ public:
 	CommandManager::Command::Response handleEnableCommand(CommandManager::Command *command);
 	CommandManager::Command::Response handleDisableCommand(CommandManager::Command *command);
 	CommandManager::Command::Response handleValueCommand(CommandManager::Command *command);
+	CommandManager::Command::Response handleValuesCommand(CommandManager::Command *command);
 
 private:
 	bool enable();
 	void disable();
+	bool setChannelValue(int channel, float value);
 
 	const PinName mosiPin;
 	const PinName sclkPin;

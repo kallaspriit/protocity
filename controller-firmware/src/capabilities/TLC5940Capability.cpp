@@ -1,6 +1,7 @@
 #include "TLC5940Capability.hpp"
 
 #include "../PortController.hpp"
+#include "../Util.hpp"
 
 TLC5940Capability::TLC5940Capability(Serial *serial, PortController *portController, PinName mosiPin, PinName sclkPin, PinName blankPin, PinName vprgPin, PinName gsclkPin, int chainLength) :
 	AbstractCapability(serial, portController),
@@ -39,6 +40,8 @@ CommandManager::Command::Response TLC5940Capability::handleCommand(CommandManage
 		return handleDisableCommand(command);
 	} else if (action == "value") {
 		return handleValueCommand(command);
+	} else if (action == "values") {
+		return handleValuesCommand(command);
 	} else {
 		return command->createFailureResponse("invalid capability action requested");
 	}
@@ -60,19 +63,7 @@ CommandManager::Command::Response TLC5940Capability::handleDisableCommand(Comman
 
 CommandManager::Command::Response TLC5940Capability::handleValueCommand(CommandManager::Command *command) {
 	if (command->argumentCount != 5) {
-		return command->createFailureResponse("expected a total of 5 arguments (for example '1:port:1:TLC5940:value:0:4095')");
-	}
-
-	int channel = command->getInt(3);
-	float value = command->getFloat(4);
-	int maxChannel = chainLength * 16 - 1;
-
-	if (channel < 0 || channel > maxChannel) {
-		return command->createFailureResponse("invalid channel number provided");
-	}
-
-	if (value < 0.0f || value > 1.0f) {
-		return command->createFailureResponse("expected a floating point value between 0..1");
+		return command->createFailureResponse("expected a total of 5 arguments (for example '1:port:1:TLC5940:value:0:0.5')");
 	}
 
 	if (!isEnabled) {
@@ -83,13 +74,53 @@ CommandManager::Command::Response TLC5940Capability::handleValueCommand(CommandM
 		}
 	}
 
-	int rawValue = min(max((int)(value * 4095.0f), 0), 4095);
+	int channel = command->getInt(3);
+	float value = command->getFloat(4);
 
-	values[channel] = rawValue;
+	if (!setChannelValue(channel, value)) {
+		return command->createFailureResponse("setting requested value failed, check parameters");
+	}
 
-	tlc5940->setNewGSData(values);
+	return command->createSuccessResponse();
+}
 
-	printf("# set channel %d to %f (%d)\n", channel, value, rawValue);
+CommandManager::Command::Response TLC5940Capability::handleValuesCommand(CommandManager::Command *command) {
+	if (command->argumentCount != 4) {
+		return command->createFailureResponse("expected a total of 4 arguments (for example '1:port:1:TLC5940:values:0-0.5,1-1.0,3-0.0')");
+	}
+
+	if (!isEnabled) {
+		printf("# setting value requested but enable not called, enabling led driver\n");
+
+		if (!enable()) {
+			return command->createFailureResponse("enabling TLC5940 led driver failed");
+		}
+	}
+
+	std::string values = command->getString(3);
+
+	printf("#requested to set values: %s\n", values.c_str());
+
+	std::vector<std::string> channelValuePairs = Util::split(values, ',');
+
+	for (std::vector<std::string>::iterator it = channelValuePairs.begin(); it != channelValuePairs.end(); it++) {
+		std::string channelValuePair = *it;
+
+		std::vector<std::string> channelValueTokens = Util::split(channelValuePair, '-');
+
+		if (channelValueTokens.size() != 2) {
+			return command->createFailureResponse("invalid values requested");
+		}
+
+		int channel = atoi(channelValueTokens.at(0).c_str());
+		float value = atof(channelValueTokens.at(1).c_str());
+
+		printf("#  - %s > %d:%f\n", channelValuePair.c_str(), channel, value);
+
+		if (!setChannelValue(channel, value)) {
+			return command->createFailureResponse("setting requested values failed, check parameters");
+		}
+	}
 
 	return command->createSuccessResponse();
 }
@@ -119,4 +150,30 @@ void TLC5940Capability::disable() {
 	tlc5940 = NULL;
 
 	isEnabled = false;
+}
+
+bool TLC5940Capability::setChannelValue(int channel, float value) {
+	if (!isEnabled || tlc5940 == NULL) {
+		return false;
+	}
+
+	int maxChannel = chainLength * 16 - 1;
+
+	if (channel < 0 || channel > maxChannel) {
+		return false;
+	}
+
+	if (value < 0.0f || value > 1.0f) {
+		return false;
+	}
+
+	int rawValue = min(max((int)(value * 4095.0f), 0), 4095);
+
+	values[channel] = rawValue;
+
+	tlc5940->setNewGSData(values);
+
+	printf("# set channel %d to %f (%d)\n", channel, value, rawValue);
+
+	return true;
 }
