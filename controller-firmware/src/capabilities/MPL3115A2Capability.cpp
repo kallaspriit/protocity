@@ -10,33 +10,55 @@ std::string MPL3115A2Capability::getName() {
 	return "MPL3115A2";
 }
 
-CommandManager::Command::Response MPL3115A2Capability::execute(CommandManager::Command *command) {
+void MPL3115A2Capability::update(int deltaUs) {
+	if (!isEnabled) {
+		return;
+	}
+
+	int timeSinceLastMeasurementMs = timer.read_ms();
+
+	if (timeSinceLastMeasurementMs >= measurementIntervalMs) {
+		sendMeasurement();
+
+		timer.reset();
+	}
+}
+
+CommandManager::Command::Response MPL3115A2Capability::handleCommand(CommandManager::Command *command) {
 	std::string action = command->getString(2);
 
 	if (action == "enable") {
-		// one can update the interval even if alrady enabled
-		if (command->argumentCount == 4) {
-			measurementIntervalMs = command->getInt(3);
-		}
-
-		if (isEnabled) {
-			return command->createSuccessResponse();
-		}
-
-		enable();
-
-		return command->createSuccessResponse();
+		return handleEnableCommand(command);
 	} else if (action == "disable") {
-		if (!isEnabled) {
-			return command->createSuccessResponse();
-		}
-
-		disable();
-
-		return command->createSuccessResponse();
+		return handleDisableCommand(command);
 	} else {
 		return command->createFailureResponse("invalid capability action requested");
 	}
+}
+
+CommandManager::Command::Response MPL3115A2Capability::handleEnableCommand(CommandManager::Command *command) {
+	// one can update the interval even if alrady enabled
+	if (command->argumentCount == 4) {
+		measurementIntervalMs = command->getInt(3);
+	}
+
+	if (isEnabled) {
+		return command->createSuccessResponse();
+	}
+
+	enable();
+
+	return command->createSuccessResponse();
+}
+
+CommandManager::Command::Response MPL3115A2Capability::handleDisableCommand(CommandManager::Command *command) {
+	if (!isEnabled) {
+		return command->createSuccessResponse();
+	}
+
+	disable();
+
+	return command->createSuccessResponse();
 }
 
 void MPL3115A2Capability::enable() {
@@ -70,24 +92,7 @@ void MPL3115A2Capability::disable() {
 	isEnabled = false;
 }
 
-void MPL3115A2Capability::update(int deltaUs) {
-	if (!isEnabled) {
-		return;
-	}
-
-	int timeSinceLastMeasurementMs = timer.read_ms();
-
-	if (timeSinceLastMeasurementMs >= measurementIntervalMs) {
-		sendMeasurement();
-
-		timer.reset();
-	}
-}
-
 void MPL3115A2Capability::sendMeasurement() {
-	//float altitude = sensor->getAltimeter();
-	//float temperature = sensor->getTemperature();
-
 	float values[2];
 
 	sensor->getAllData(&values[0]);

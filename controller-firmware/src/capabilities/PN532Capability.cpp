@@ -13,22 +13,38 @@ std::string PN532Capability::getName() {
 	return "PN532";
 }
 
-CommandManager::Command::Response PN532Capability::execute(CommandManager::Command *command) {
+void PN532Capability::update(int deltaUs) {
+	if (!isEnabled) {
+		return;
+	}
+
+	nfc->checkForTag();
+}
+
+CommandManager::Command::Response PN532Capability::handleCommand(CommandManager::Command *command) {
 	std::string action = command->getString(2);
 
 	if (action == "enable") {
-		if (enable()) {
-			return command->createSuccessResponse();
-		} else {
-			return command->createFailureResponse("enabling nfc tag reader failed");
-		}
+		return handleEnableCommand(command);
 	} else if (action == "disable") {
-		disable();
-
-		return command->createSuccessResponse();
+		return handleDisableCommand(command);
 	} else {
 		return command->createFailureResponse("invalid capability action requested");
 	}
+}
+
+CommandManager::Command::Response PN532Capability::handleEnableCommand(CommandManager::Command *command) {
+	if (enable()) {
+		return command->createSuccessResponse();
+	} else {
+		return command->createFailureResponse("enabling nfc tag reader failed");
+	}
+}
+
+CommandManager::Command::Response PN532Capability::handleDisableCommand(CommandManager::Command *command) {
+	disable();
+
+	return command->createSuccessResponse();
 }
 
 bool PN532Capability::enable() {
@@ -68,30 +84,12 @@ void PN532Capability::disable() {
 	isEnabled = false;
 }
 
-void PN532Capability::update(int deltaUs) {
-	if (!isEnabled) {
-		return;
-	}
-
-	nfc->checkForTag();
-}
-
-/*
-void PN532Capability::sendMeasurement() {
-	float value = sensor->read();
-
-	snprintf(sendBuffer, SEND_BUFFER_SIZE, "%f", value);
-
-	portController->emitCapabilityUpdate(getName(), std::string(sendBuffer));
-}
-*/
-
 void PN532Capability::onTagRead(NfcTag &tag) {
-	//serial->printf("# read '%s' tag with uid: %s\n", tag.getTagType().c_str(), tag.getUidString().c_str());
+	// printf("# read '%s' tag with uid: %s\n", tag.getTagType().c_str(), tag.getUidString().c_str());
 }
 
 void PN532Capability::onTagEnter(NfcTag &tag) {
-	// serial->printf("# enter '%s' tag with uid: %s\n", tag.getTagType().c_str(), tag.getUidString().c_str());
+	// printf("# enter '%s' tag with uid: %s\n", tag.getTagType().c_str(), tag.getUidString().c_str());
 
 	if (!tag.hasNdefMessage()) {
 		return;
@@ -116,7 +114,7 @@ void PN532Capability::onTagEnter(NfcTag &tag) {
 	}
 
 	if (tagName.size() > 0) {
-		//serial->printf("# '%s' (%s) ENTER\n", tagName.c_str(), tag.getUidString().c_str());
+		// printf("# '%s' (%s) ENTER\n", tagName.c_str(), tag.getUidString().c_str());
 
 		snprintf(sendBuffer, SEND_BUFFER_SIZE, "enter:%s", tagName.c_str());
 
@@ -131,7 +129,7 @@ void PN532Capability::onTagExit(std::string lastTagUid) {
 		return;
 	}
 
-	//serial->printf("# '%s' (%s) EXIT\n", activeTagName.c_str(), lastTagUid.c_str());
+	// printf("# '%s' (%s) EXIT\n", activeTagName.c_str(), lastTagUid.c_str());
 
 	snprintf(sendBuffer, SEND_BUFFER_SIZE, "exit:%s", activeTagName.c_str());
 

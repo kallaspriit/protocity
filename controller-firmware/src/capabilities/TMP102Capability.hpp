@@ -12,9 +12,12 @@ public:
 	TMP102Capability(Serial *serial, PortController *portController);
 
 	std::string getName();
-	CommandManager::Command::Response execute(CommandManager::Command *command);
 	void update(int deltaUs);
 
+	CommandManager::Command::Response handleCommand(CommandManager::Command *command);
+	CommandManager::Command::Response handleEnableCommand(CommandManager::Command *command);
+	CommandManager::Command::Response handleDisableCommand(CommandManager::Command *command);
+	
 private:
 	void enable();
 	void disable();

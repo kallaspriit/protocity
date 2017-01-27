@@ -16,7 +16,7 @@ public:
 	AbstractCapability(Serial *serial, PortController *portController);
 
 	virtual std::string getName() = 0;
-	virtual CommandManager::Command::Response execute(CommandManager::Command *command) = 0;
+	virtual CommandManager::Command::Response handleCommand(CommandManager::Command *command) = 0;
 	virtual void update(int deltaUs) {};
 
 protected:

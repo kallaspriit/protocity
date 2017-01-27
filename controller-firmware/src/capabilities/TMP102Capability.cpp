@@ -10,33 +10,55 @@ std::string TMP102Capability::getName() {
 	return "TMP102";
 }
 
-CommandManager::Command::Response TMP102Capability::execute(CommandManager::Command *command) {
+void TMP102Capability::update(int deltaUs) {
+	if (!isEnabled) {
+		return;
+	}
+
+	int timeSinceLastMeasurementMs = timer.read_ms();
+
+	if (timeSinceLastMeasurementMs >= measurementIntervalMs) {
+		sendMeasurement();
+
+		timer.reset();
+	}
+}
+
+CommandManager::Command::Response TMP102Capability::handleCommand(CommandManager::Command *command) {
 	std::string action = command->getString(2);
 
 	if (action == "enable") {
-		// one can update the interval even if alrady enabled
-		if (command->argumentCount == 4) {
-			measurementIntervalMs = command->getInt(3);
-		}
-
-		if (isEnabled) {
-			return command->createSuccessResponse();
-		}
-
-		enable();
-
-		return command->createSuccessResponse();
+		return handleEnableCommand(command);
 	} else if (action == "disable") {
-		if (!isEnabled) {
-			return command->createSuccessResponse();
-		}
-
-		disable();
-
-		return command->createSuccessResponse();
+		return handleDisableCommand(command);
 	} else {
 		return command->createFailureResponse("invalid capability action requested");
 	}
+}
+
+CommandManager::Command::Response TMP102Capability::handleEnableCommand(CommandManager::Command *command) {
+	// one can update the interval even if alrady enabled
+	if (command->argumentCount == 4) {
+		measurementIntervalMs = command->getInt(3);
+	}
+
+	if (isEnabled) {
+		return command->createSuccessResponse();
+	}
+
+	enable();
+
+	return command->createSuccessResponse();
+}
+
+CommandManager::Command::Response TMP102Capability::handleDisableCommand(CommandManager::Command *command) {
+	if (!isEnabled) {
+		return command->createSuccessResponse();
+	}
+
+	disable();
+
+	return command->createSuccessResponse();
 }
 
 void TMP102Capability::enable() {
@@ -65,20 +87,6 @@ void TMP102Capability::disable() {
 	timer.stop();
 
 	isEnabled = false;
-}
-
-void TMP102Capability::update(int deltaUs) {
-	if (!isEnabled) {
-		return;
-	}
-
-	int timeSinceLastMeasurementMs = timer.read_ms();
-
-	if (timeSinceLastMeasurementMs >= measurementIntervalMs) {
-		sendMeasurement();
-
-		timer.reset();
-	}
 }
 
 void TMP102Capability::sendMeasurement() {

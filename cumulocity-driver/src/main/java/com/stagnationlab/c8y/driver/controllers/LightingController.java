@@ -57,8 +57,6 @@ public class LightingController extends AbstractController {
 
 			@Override
 			public void execute(OperationRepresentation operation, boolean cleanup) throws Exception {
-				log.info("got operation for {} targeted for {} (my id is {})", id, operation.getDeviceId().getValue(), myId.getValue());
-
 				if (!device.getId().equals(operation.getDeviceId())) {
 					return;
 				}

@@ -398,7 +398,7 @@ CommandManager::Command::Response Application::handlePortCommand(CommandManager:
 			return command->createFailureResponse("invalid action requested");
 		}
 
-		return capability->execute(command);
+		return capability->handleCommand(command);
 	}
 
 	return command->createSuccessResponse();

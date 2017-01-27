@@ -13,9 +13,12 @@ public:
 	TLC5940Capability(Serial *serial, PortController *portController, PinName mosiPin, PinName sclkPin, PinName blankPin, PinName vprgPin, PinName gsclkPin, int chainLength = 1);
 
 	std::string getName();
-	CommandManager::Command::Response execute(CommandManager::Command *command);
-	CommandManager::Command::Response handleValueCommand(CommandManager::Command *command);
 	void update(int deltaUs);
+
+	CommandManager::Command::Response handleCommand(CommandManager::Command *command);
+	CommandManager::Command::Response handleEnableCommand(CommandManager::Command *command);
+	CommandManager::Command::Response handleDisableCommand(CommandManager::Command *command);
+	CommandManager::Command::Response handleValueCommand(CommandManager::Command *command);
 
 private:
 	bool enable();

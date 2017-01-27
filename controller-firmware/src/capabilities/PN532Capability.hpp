@@ -7,22 +7,25 @@
 
 #include <string>
 
-class PN532Capability : public AbstractCapability, public NFC::NfcEventListener {
+class PN532Capability : public AbstractCapability, private NFC::NfcEventListener {
 
 public:
 	PN532Capability(Serial *serial, PortController *portController, PinName mosiPin, PinName misoPin, PinName sclkPin);
 
 	std::string getName();
-	CommandManager::Command::Response execute(CommandManager::Command *command);
 	void update(int deltaUs);
 
-	void onTagRead(NfcTag &tag) override;
-	void onTagEnter(NfcTag &tag) override;
-	void onTagExit(std::string lastTagUid) override;
+	CommandManager::Command::Response handleCommand(CommandManager::Command *command);
+	CommandManager::Command::Response handleEnableCommand(CommandManager::Command *command);
+	CommandManager::Command::Response handleDisableCommand(CommandManager::Command *command);
 
 private:
 	bool enable();
 	void disable();
+
+	void onTagRead(NfcTag &tag) override;
+	void onTagEnter(NfcTag &tag) override;
+	void onTagExit(std::string lastTagUid) override;
 
 	const PinName mosiPin;
 	const PinName misoPin;

@@ -10,33 +10,41 @@ std::string TSL2561Capability::getName() {
 	return "TSL2561";
 }
 
-CommandManager::Command::Response TSL2561Capability::execute(CommandManager::Command *command) {
+CommandManager::Command::Response TSL2561Capability::handleCommand(CommandManager::Command *command) {
 	std::string action = command->getString(2);
 
 	if (action == "enable") {
-		// one can update the interval even if alrady enabled
-		if (command->argumentCount == 4) {
-			measurementIntervalMs = command->getInt(3);
-		}
-
-		if (isEnabled) {
-			return command->createSuccessResponse();
-		}
-
-		enable();
-
-		return command->createSuccessResponse();
+		return handleEnableCommand(command);
 	} else if (action == "disable") {
-		if (!isEnabled) {
-			return command->createSuccessResponse();
-		}
-
-		disable();
-
-		return command->createSuccessResponse();
+		return handleDisableCommand(command);
 	} else {
 		return command->createFailureResponse("invalid capability action requested");
 	}
+}
+
+CommandManager::Command::Response TSL2561Capability::handleEnableCommand(CommandManager::Command *command) {
+	// one can update the interval even if alrady enabled
+	if (command->argumentCount == 4) {
+		measurementIntervalMs = command->getInt(3);
+	}
+
+	if (isEnabled) {
+		return command->createSuccessResponse();
+	}
+
+	enable();
+
+	return command->createSuccessResponse();
+}
+
+CommandManager::Command::Response TSL2561Capability::handleDisableCommand(CommandManager::Command *command) {
+	if (!isEnabled) {
+		return command->createSuccessResponse();
+	}
+
+	disable();
+
+	return command->createSuccessResponse();
 }
 
 void TSL2561Capability::enable() {

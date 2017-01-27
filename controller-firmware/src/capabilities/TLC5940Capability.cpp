@@ -22,30 +22,40 @@ std::string TLC5940Capability::getName() {
 	return "TLC5940";
 }
 
-CommandManager::Command::Response TLC5940Capability::execute(CommandManager::Command *command) {
+void TLC5940Capability::update(int deltaUs) {
+	if (!isEnabled) {
+		return;
+	}
+
+	// nothing to do periodically
+}
+
+CommandManager::Command::Response TLC5940Capability::handleCommand(CommandManager::Command *command) {
 	std::string action = command->getString(2);
 
 	if (action == "enable") {
-		if (enable()) {
-			return command->createSuccessResponse();
-		} else {
-			return command->createFailureResponse("enabling TLC5940 led driver failed");
-		}
-	} else if (action == "value") {
-		if (!isEnabled) {
-			if (!enable()) {
-				return command->createFailureResponse("enabling TLC5940 led driver failed");
-			}
-		}
-
-		return handleValueCommand(command);
+		return handleEnableCommand(command);
 	} else if (action == "disable") {
-		disable();
-
-		return command->createSuccessResponse();
+		return handleDisableCommand(command);
+	} else if (action == "value") {
+		return handleValueCommand(command);
 	} else {
 		return command->createFailureResponse("invalid capability action requested");
 	}
+}
+
+CommandManager::Command::Response TLC5940Capability::handleEnableCommand(CommandManager::Command *command) {
+	if (enable()) {
+		return command->createSuccessResponse();
+	} else {
+		return command->createFailureResponse("enabling TLC5940 led driver failed");
+	}
+}
+
+CommandManager::Command::Response TLC5940Capability::handleDisableCommand(CommandManager::Command *command) {
+	disable();
+
+	return command->createSuccessResponse();
 }
 
 CommandManager::Command::Response TLC5940Capability::handleValueCommand(CommandManager::Command *command) {
@@ -63,6 +73,14 @@ CommandManager::Command::Response TLC5940Capability::handleValueCommand(CommandM
 
 	if (value < 0.0f || value > 1.0f) {
 		return command->createFailureResponse("expected a floating point value between 0..1");
+	}
+
+	if (!isEnabled) {
+		printf("# setting value requested but enable not called, enabling led driver\n");
+
+		if (!enable()) {
+			return command->createFailureResponse("enabling TLC5940 led driver failed");
+		}
 	}
 
 	int rawValue = min(max((int)(value * 4095.0f), 0), 4095);
@@ -101,12 +119,4 @@ void TLC5940Capability::disable() {
 	tlc5940 = NULL;
 
 	isEnabled = false;
-}
-
-void TLC5940Capability::update(int deltaUs) {
-	if (!isEnabled) {
-		return;
-	}
-
-	// anything to do?
 }
