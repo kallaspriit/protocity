@@ -121,15 +121,18 @@ public class LightingController extends AbstractController {
 				log.info("got operation request to set multiple channel values");
 
 				Map<String, Number> values = action.getValues();
+				Map<Integer, Float> channelValueMap = new HashMap<>();
 
 				for (Map.Entry<String, Number> channelValuePair : values.entrySet()) {
-					int channel = Integer.valueOf(channelValuePair.getKey());
+					int lightNumber = Integer.valueOf(channelValuePair.getKey());
 					float value = channelValuePair.getValue().floatValue();
 
-					log.info("- {}: {}", channel, value);
+					log.debug("- {}: {}", lightNumber, value);
 
-					setLightLevel(channel, value);
+					channelValueMap.put(lightNumber, value);
 				}
+
+				setLightLevels(channelValueMap);
 
 				operation.setStatus(OperationStatus.SUCCESSFUL.toString());
 			}
@@ -185,6 +188,35 @@ public class LightingController extends AbstractController {
 			driver.setChannelValue(channelIndex, value);
 		} catch (Exception e) {
 			log.warn("setting light {} to {} failed ({} - {})", lightNumber, value, e.getClass().getSimpleName(), e.getMessage());
+		}
+	}
+
+	private void setLightLevels(Map<Integer, Float> channelValueMap) {
+		Map<String, Map<Integer, Float>> commanderChannelValueMap = new HashMap<>();
+
+		for (Map.Entry<Integer, Float> channelValuePair : channelValueMap.entrySet()) {
+			int lightNumber = channelValuePair.getKey();
+			float value = channelValuePair.getValue();
+
+			try {
+				String commanderName = config.getString("lighting.light." + lightNumber + ".commander");
+				int channelIndex = config.getInt("lighting.light." + lightNumber + ".channel");
+
+				if (!commanderChannelValueMap.containsKey(commanderName)) {
+					commanderChannelValueMap.put(commanderName, new HashMap<>());
+				}
+
+				commanderChannelValueMap.get(commanderName).put(channelIndex, value);
+			} catch (Exception e) {
+				log.warn("setting light {} to {} failed ({} - {})", lightNumber, value, e.getClass().getSimpleName(), e.getMessage());
+			}
+		}
+
+		for (String commanderName : commanderChannelValueMap.keySet()) {
+			Map<Integer, Float> values = commanderChannelValueMap.get(commanderName);
+			AbstractMultiDacActuator driver = driverMap.get(commanderName);
+
+			driver.setChannelValues(values);
 		}
 	}
 }

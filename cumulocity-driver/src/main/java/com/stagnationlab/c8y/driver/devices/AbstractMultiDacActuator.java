@@ -99,7 +99,6 @@ public abstract class AbstractMultiDacActuator extends AbstractDevice {
 		updateState(multiDacActuator);
 	}
 
-	/*
 	public void setChannelValues(Map<Integer, Float> values) {
 		log.debug("setting multiple channel values");
 
@@ -107,19 +106,18 @@ public abstract class AbstractMultiDacActuator extends AbstractDevice {
 			int channel = channelValuePair.getKey();
 			float value = channelValuePair.getValue();
 
-			log.info("- {}: {}", channel, value);
+			log.debug("- {}: {}", channel, value);
 
-			setLightLevel(channel, value);
+			multiDacActuator.updateChannelValue(channel, value);
 		}
 
-		applyChannelValue(channel, value);
+		applyChannelValues(values);
 
-		multiDacActuator.updateChannelValue(channel, value);
 		updateState(multiDacActuator);
 	}
-	*/
 
 	protected abstract void applyChannelValue(int channel, float value);
+	protected abstract void applyChannelValues(Map<Integer, Float> values);
 
 
 
