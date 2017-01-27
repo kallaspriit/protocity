@@ -50,7 +50,7 @@ public class ParkingController extends AbstractController {
 
 		log.info("starting parking controller for {} slots", slotCount);
 
-		for (int i = 1; i <= slotCount; i++) {
+		for (int i = 0; i < slotCount; i++) {
 			setSlotFree(i, true);
 
 			registerEventListeners(i, sensorsMap.get(i));
@@ -62,7 +62,7 @@ public class ParkingController extends AbstractController {
 
 		log.info("setting up parkingController controller for {} slots", slotCount);
 
-		for (int i = 1; i <= slotCount; i++) {
+		for (int i = 0; i < slotCount; i++) {
 			String commanderName = config.getString("parking.slot." + i + ".commander");
 			int port = config.getInt("parking.slot." + i + ".port");
 			int ledChannel = config.getInt("parking.slot." + i + ".ledChannel");

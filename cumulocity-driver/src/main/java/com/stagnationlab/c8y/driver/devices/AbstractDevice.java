@@ -83,7 +83,13 @@ public abstract class AbstractDevice implements Driver {
 	    log.debug("initializing {} with {} {}", id, children.size(), children.size() == 1 ? "child" : "children");
 
 	    for (Driver child : children) {
-	    	child.initialize();
+	    	try {
+			    child.initialize();
+		    } catch (Exception e) {
+			    debugDriverException(child, e, "Initializing failed");
+
+			    throw e;
+		    }
 	    }
     }
 
@@ -97,7 +103,13 @@ public abstract class AbstractDevice implements Driver {
         this.inventoryApi = platform.getInventoryApi();
 
 	    for (Driver child : children) {
-		    child.initialize(platform);
+	    	try {
+			    child.initialize(platform);
+		    } catch (Exception e) {
+				debugDriverException(child, e, "Initializing platform connectivity failed");
+
+				throw e;
+		    }
 	    }
     }
 
@@ -108,7 +120,13 @@ public abstract class AbstractDevice implements Driver {
 		debugManagedObject(owner);
 
 		for (Driver child : children) {
-			child.initializeInventory(owner);
+			try {
+				child.initializeInventory(owner);
+			} catch (Exception e) {
+				debugDriverException(child, e, "Initializing inventory failed");
+
+				throw e;
+			}
 		}
 	}
 
@@ -135,7 +153,13 @@ public abstract class AbstractDevice implements Driver {
 		debugManagedObject(device);
 
 		for (Driver child : children) {
-			child.discoverChildren(device);
+			try {
+				child.discoverChildren(device);
+			} catch (Exception e) {
+				debugDriverException(child, e, "Discovering children failed");
+
+				throw e;
+			}
 		}
 	}
 
@@ -144,7 +168,13 @@ public abstract class AbstractDevice implements Driver {
 		log.debug("starting {}", id);
 
 		for (Driver child : children) {
-			child.start();
+			try {
+				child.start();
+			} catch (Exception e) {
+				debugDriverException(child, e, "Initializing platform connectivity failed");
+
+				throw e;
+			}
 		}
 	}
 
@@ -250,5 +280,17 @@ public abstract class AbstractDevice implements Driver {
 
 	protected void debugManagedObject(ManagedObjectRepresentation o) {
 		log.debug("  > id: {}, type: {}, name: {}", o.getId() == null ? "n/a" : o.getId().getValue(), o.getType(), o.getName());
+	}
+
+	protected void debugDriverException(Driver child, Exception e, String message) {
+		if (child instanceof AbstractDevice) {
+			AbstractDevice childDevice = (AbstractDevice)child;
+
+			log.warn("{}:{} - {} ({} - {})", childDevice.getClass().getSimpleName(), childDevice.getId(), message, e.getClass().getSimpleName(), e.getMessage());
+		} else {
+			log.warn("{} - {} ({} - {})", child.getClass().getSimpleName(), message, e.getClass().getSimpleName(), e.getMessage());
+		}
+
+		e.printStackTrace();
 	}
 }

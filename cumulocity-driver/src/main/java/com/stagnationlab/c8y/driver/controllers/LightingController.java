@@ -1,5 +1,6 @@
 package com.stagnationlab.c8y.driver.controllers;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,6 +12,7 @@ import com.cumulocity.rest.representation.operation.OperationRepresentation;
 import com.stagnationlab.c8y.driver.devices.AbstractMultiDacActuator;
 import com.stagnationlab.c8y.driver.devices.etherio.EtherioMultiDacActuator;
 import com.stagnationlab.c8y.driver.operations.SetChannelValue;
+import com.stagnationlab.c8y.driver.operations.SetChannelValues;
 import com.stagnationlab.c8y.driver.services.Config;
 import com.stagnationlab.c8y.driver.services.Util;
 import com.stagnationlab.etherio.Commander;
@@ -46,6 +48,7 @@ public class LightingController extends AbstractController {
 
 	private void setupOperations() {
 		setupSetChannelValueOperation();
+		setupSetChannelValuesOperation();
 	}
 
 	private void setupSetChannelValueOperation() {
@@ -86,12 +89,59 @@ public class LightingController extends AbstractController {
 		});
 	}
 
+	private void setupSetChannelValuesOperation() {
+		registerOperationExecutor(new OperationExecutor() {
+			@Override
+			public String supportedOperationType() {
+				return Util.buildOperationName(SetChannelValues.class);
+			}
+
+			@Override
+			public void execute(OperationRepresentation operation, boolean cleanup) throws Exception {
+				if (!device.getId().equals(operation.getDeviceId())) {
+					return;
+				}
+
+				if (cleanup) {
+					log.info("ignoring cleanup operation");
+
+					operation.setStatus(OperationStatus.FAILED.toString());
+
+					return;
+				}
+
+				SetChannelValues action = operation.get(SetChannelValues.class);
+
+				if (action == null) {
+					log.warn("operation is missing the SetChannelValues object");
+
+					return;
+				}
+
+				log.info("got operation request to set multiple channel values");
+
+				Map<String, Number> values = action.getValues();
+
+				for (Map.Entry<String, Number> channelValuePair : values.entrySet()) {
+					int channel = Integer.valueOf(channelValuePair.getKey());
+					float value = channelValuePair.getValue().floatValue();
+
+					log.info("- {}: {}", channel, value);
+
+					setLightLevel(channel, value);
+				}
+
+				operation.setStatus(OperationStatus.SUCCESSFUL.toString());
+			}
+		});
+	}
+
 	private void setupLedDrivers() {
 		int lightCount = config.getInt("lighting.lightCount");
 
 		log.debug("setting up light drivers for {} lights", lightCount);
 
-		for (int lightNumber = 1; lightNumber <= lightCount; lightNumber++) {
+		for (int lightNumber = 0; lightNumber < lightCount; lightNumber++) {
 			String commanderName = config.getString("lighting.light." + lightNumber + ".commander");
 
 			int ledDriverPort = config.getInt("lighting.driver." + commanderName + ".port");
@@ -119,18 +169,22 @@ public class LightingController extends AbstractController {
 
 		int lightCount = config.getInt("lighting.lightCount");
 
-		for (int lightNumber = 1; lightNumber <= lightCount; lightNumber++) {
-			setLightLevel(lightNumber, 1.0f);
+		for (int lightNumber = 0; lightNumber < lightCount; lightNumber++) {
+			setLightLevel(lightNumber, 0.0f);
 		}
 	}
 
 	private void setLightLevel(int lightNumber, float value) {
-		String commanderName = config.getString("lighting.light." + lightNumber + ".commander");
-		int channelIndex = config.getInt("lighting.light." + lightNumber + ".channel");
-		AbstractMultiDacActuator driver = driverMap.get(commanderName);
+		try {
+			String commanderName = config.getString("lighting.light." + lightNumber + ".commander");
+			int channelIndex = config.getInt("lighting.light." + lightNumber + ".channel");
+			AbstractMultiDacActuator driver = driverMap.get(commanderName);
 
-		log.debug("setting light {} to {} on commander {} channel {}", lightNumber, value, commanderName, channelIndex);
+			log.debug("setting light {} to {} on commander {} channel {}", lightNumber, value, commanderName, channelIndex);
 
-		driver.setChannelValue(channelIndex, value);
+			driver.setChannelValue(channelIndex, value);
+		} catch (Exception e) {
+			log.warn("setting light {} to {} failed ({} - {})", lightNumber, value, e.getClass().getSimpleName(), e.getMessage());
+		}
 	}
 }

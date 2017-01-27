@@ -1,5 +1,7 @@
 package com.stagnationlab.c8y.driver.devices;
 
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,6 +98,26 @@ public abstract class AbstractMultiDacActuator extends AbstractDevice {
 		multiDacActuator.updateChannelValue(channel, value);
 		updateState(multiDacActuator);
 	}
+
+	/*
+	public void setChannelValues(Map<Integer, Float> values) {
+		log.debug("setting multiple channel values");
+
+		for (Map.Entry<Integer, Float> channelValuePair : values.entrySet()) {
+			int channel = channelValuePair.getKey();
+			float value = channelValuePair.getValue();
+
+			log.info("- {}: {}", channel, value);
+
+			setLightLevel(channel, value);
+		}
+
+		applyChannelValue(channel, value);
+
+		multiDacActuator.updateChannelValue(channel, value);
+		updateState(multiDacActuator);
+	}
+	*/
 
 	protected abstract void applyChannelValue(int channel, float value);
 

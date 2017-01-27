@@ -34,7 +34,7 @@ public class DeviceManager {
         device.setName(id);
 
         for (OperationExecutor operation : supportedOperations) {
-            log.info("registering supported operation type {} for {}", operation.supportedOperationType(), id);
+            log.debug("registering supported operation type {} for {}", operation.supportedOperationType(), id);
 
             OpsUtil.addSupportedOperation(device, operation.supportedOperationType());
         }
