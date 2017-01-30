@@ -1,0 +1,42 @@
+apply plugin: 'java'
+apply plugin: 'application'
+apply plugin: 'idea'
+
+//noinspection GroovyUnusedAssignment
+sourceCompatibility = 1.8
+group 'com.stagnationlab.text-to-speech'
+version '1.0.0'
+mainClassName = "Main"
+
+repositories {
+    flatDir {
+        dirs 'libs'
+        //dirs $/../etherio/build/libs/$
+    }
+
+    mavenCentral()
+}
+
+dependencies {
+    // audio player
+    compile name: 'jl1.0'
+
+    compile group: 'ch.qos.logback', name: 'logback-classic', version: 'latest.release'
+
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+}
+
+jar {
+    manifest {
+        attributes "Main-Class": mainClassName
+    }
+
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+// make input available for gradle run
+run {
+    standardInput = System.in
+}

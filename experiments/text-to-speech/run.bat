@@ -1,0 +1,1 @@
+java -jar .\build\libs\etherio-test-1.0.0.jar

@@ -113,15 +113,15 @@ public class ParkingController extends AbstractController {
 	}
 
 	private void playSlotTakenSound(int index, String vehicleName) {
-		String message = vehicleName.substring(0, 1).toUpperCase() + vehicleName.substring(1).toLowerCase() + " is now parked on slot " + index;
+		String message = vehicleName.substring(0, 1).toUpperCase() + vehicleName.substring(1).toLowerCase() + " is now parked on slot " + (index + 1);
 
-		TextToSpeech.speak(message);
+		TextToSpeech.INSTANCE.speak(message, true);
 	}
 
 	private void playSlotFreedSound(int index) {
-		String message = "Slot " + index + " is now free";
+		String message = "Slot " + (index + 1) + " is now free";
 
-		TextToSpeech.speak(message);
+		TextToSpeech.INSTANCE.speak(message, true);
 	}
 
 	private void setSlotFree(int index, boolean isFree) {

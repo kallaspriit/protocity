@@ -122,7 +122,7 @@ public class Gateway extends AbstractDevice {
 	public void start() {
 		super.start();
 
-		TextToSpeech.speak("Ready, welcome to Telia Lego City!");
+		TextToSpeech.INSTANCE.speak("Ready, welcome to Telia Lego City!");
 	}
 
 	private Commander createCommander(String name) {

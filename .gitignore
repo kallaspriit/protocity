@@ -14,3 +14,6 @@
 /dashboard/dist
 /experiments/WebSockets/node_modules
 /experiments/NodeTrainConductor/node_modules
+/experiments/text-to-speech/.idea
+/experiments/text-to-speech/.gradle
+/experiments/text-to-speech/build

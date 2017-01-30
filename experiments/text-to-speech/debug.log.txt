@@ -1,0 +1,32 @@
+14:01:46 DEBUG c.s.c.d.s.TextToSpeech                   - adding message 'main thread first message' to the queue
+14:01:46 DEBUG c.s.c.d.s.TextToSpeech                   - no message is currently playing, playing next queued message
+14:01:46 DEBUG c.s.c.d.s.TextToSpeech                   - playNextMessage() (1 in queue)
+14:01:46 DEBUG c.s.c.d.s.TextToSpeech                   - creating task to play 'main thread first message', currently not playing
+14:01:46 DEBUG c.s.c.d.s.PlayMessageTask                - preparing message 'main thread first message' from 'https://translate.google.com/translate_tts?ie=UTF-8&q=main+thread+first+message&tl=en&client=tw-ob&ttsspeed=1'
+14:01:47 INFO  c.s.c.d.s.PlayMessageTask                - playing message 'main thread first message'
+14:01:48 DEBUG c.s.c.d.s.TextToSpeech                   - adding message 'main thread second message' to the queue
+14:01:48 DEBUG c.s.c.d.s.TextToSpeech                   - replacing message queue with 'second thread first message'
+14:01:48 DEBUG c.s.c.d.s.TextToSpeech                   - stopping currently playing message
+14:01:48 DEBUG c.s.c.d.s.PlayMessageTask                - stopping already playing message 'main thread first message'
+14:01:48 DEBUG c.s.c.d.s.TextToSpeech                   - joining play message thread
+14:01:48 DEBUG c.s.c.d.s.PlayMessageTask                - completed playing message 'main thread first message'
+14:01:48 DEBUG c.s.c.d.s.PlayMessageTask                - completed task to play 'main thread first message'
+14:01:48 DEBUG c.s.c.d.s.TextToSpeech                   - playing message completed, checking for next one
+14:01:48 DEBUG c.s.c.d.s.TextToSpeech                   - playNextMessage() (1 in queue)
+14:01:48 DEBUG c.s.c.d.s.TextToSpeech                   - creating task to play 'second thread first message', currently not playing
+14:01:48 DEBUG c.s.c.d.s.TextToSpeech                   - joined play message thread
+14:01:48 DEBUG c.s.c.d.s.TextToSpeech                   - adding message 'second thread second message' to the queue
+14:01:48 DEBUG c.s.c.d.s.PlayMessageTask                - preparing message 'second thread first message' from 'https://translate.google.com/translate_tts?ie=UTF-8&q=second+thread+first+message&tl=en&client=tw-ob&ttsspeed=1'
+14:01:48 INFO  c.s.c.d.s.PlayMessageTask                - playing message 'second thread first message'
+14:01:51 DEBUG c.s.c.d.s.PlayMessageTask                - completed playing message 'second thread first message'
+14:01:51 DEBUG c.s.c.d.s.PlayMessageTask                - completed task to play 'second thread first message'
+14:01:51 DEBUG c.s.c.d.s.TextToSpeech                   - playing message completed, checking for next one
+14:01:51 DEBUG c.s.c.d.s.TextToSpeech                   - playNextMessage() (1 in queue)
+14:01:51 DEBUG c.s.c.d.s.TextToSpeech                   - creating task to play 'second thread second message', currently not playing
+14:01:51 DEBUG c.s.c.d.s.PlayMessageTask                - preparing message 'second thread second message' from 'https://translate.google.com/translate_tts?ie=UTF-8&q=second+thread+second+message&tl=en&client=tw-ob&ttsspeed=1'
+14:01:51 INFO  c.s.c.d.s.PlayMessageTask                - playing message 'second thread second message'
+14:01:53 DEBUG c.s.c.d.s.PlayMessageTask                - completed playing message 'second thread second message'
+14:01:53 DEBUG c.s.c.d.s.PlayMessageTask                - completed task to play 'second thread second message'
+14:01:53 DEBUG c.s.c.d.s.TextToSpeech                   - playing message completed, checking for next one
+14:01:53 DEBUG c.s.c.d.s.TextToSpeech                   - playNextMessage() (0 in queue)
+14:01:53 DEBUG c.s.c.d.s.TextToSpeech                   - there are no more messages queued to play

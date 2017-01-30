@@ -1,0 +1,26 @@
+<configuration>
+
+    <!-- console appender -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss} %-5level %-40logger{20} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
+		<file>debug.log.txt</file>
+		<append>false</append>
+		<encoder>
+			<pattern>%d{HH:mm:ss} %-5level %-40logger{20} - %msg%n</pattern>
+		</encoder>
+	</appender>
+
+    <!-- make the application log at lower level -->
+    <logger name="com.stagnationlab" level="TRACE"/>
+
+    <!-- external components log above WARN level -->
+    <root level="WARN">
+        <appender-ref ref="STDOUT"/>
+		<appender-ref ref="FILE"/>
+    </root>
+</configuration>
