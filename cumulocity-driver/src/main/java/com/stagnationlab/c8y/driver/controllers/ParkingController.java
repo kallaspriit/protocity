@@ -22,6 +22,7 @@ public class ParkingController extends AbstractController {
 	private AbstractMultiDacActuator ledDriver;
 	private Map<Integer, AbstractTagSensor> sensorsMap = new HashMap<>();
 	private Map<Integer, Integer> ledChannelMap = new HashMap<>();
+	private Map<Integer, String> slotNameMap = new HashMap<>();
 	private int slotCount = 0;
 
 	public ParkingController(String id, Map<String, Commander> commanders, Config config) {
@@ -63,6 +64,7 @@ public class ParkingController extends AbstractController {
 		log.info("setting up parkingController controller for {} slots", slotCount);
 
 		for (int i = 0; i < slotCount; i++) {
+			String name = config.getString("parking.slot." + i + ".name");
 			String commanderName = config.getString("parking.slot." + i + ".commander");
 			int port = config.getInt("parking.slot." + i + ".port");
 			int ledChannel = config.getInt("parking.slot." + i + ".ledChannel");
@@ -72,10 +74,11 @@ public class ParkingController extends AbstractController {
 
 			sensorsMap.put(i, sensor);
 			ledChannelMap.put(i, ledChannel);
+			slotNameMap.put(i, name);
 
 			registerChild(sensor);
 
-			log.info("added parkingController slot sensor #{} on commander {} port {} using led channel {}", i, commanderName, port, ledChannel);
+			log.info("added parking controller slot sensor #{} called '{}' on commander {} port {} using led channel {}", i, name, commanderName, port, ledChannel);
 		}
 	}
 
@@ -113,15 +116,21 @@ public class ParkingController extends AbstractController {
 	}
 
 	private void playSlotTakenSound(int index, String vehicleName) {
-		String message = vehicleName.substring(0, 1).toUpperCase() + vehicleName.substring(1).toLowerCase() + " is now parked on slot " + (index + 1);
+		String name = getSlotName(index);
+		String message = vehicleName.substring(0, 1).toUpperCase() + vehicleName.substring(1).toLowerCase() + " is now parked on " + name;
 
 		TextToSpeech.INSTANCE.speak(message, true);
 	}
 
 	private void playSlotFreedSound(int index) {
-		String message = "Slot " + (index + 1) + " is now free";
+		String name = getSlotName(index);
+		String message = name + " is now free";
 
 		TextToSpeech.INSTANCE.speak(message, true);
+	}
+
+	private String getSlotName(int index) {
+		return slotNameMap.get(index);
 	}
 
 	private void setSlotFree(int index, boolean isFree) {
