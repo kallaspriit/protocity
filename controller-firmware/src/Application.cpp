@@ -1,11 +1,13 @@
 #include "Application.hpp"
 #include "Config.hpp"
 
+#include "capabilities/DebugCapability.hpp"
 #include "capabilities/TSL2561Capability.hpp"
 #include "capabilities/TMP102Capability.hpp"
 #include "capabilities/MPL3115A2Capability.hpp"
 #include "capabilities/PN532Capability.hpp"
 #include "capabilities/TLC5940Capability.hpp"
+#include "capabilities/Si7021Capability.hpp"
 
 Application::Application(Config *config, Serial *serial) :
 	config(config),
@@ -96,9 +98,11 @@ void Application::setupPorts() {
 void Application::setupPort(PortController *portController) {
 	portController->addEventListener(this);
 
-	portController->addCapability(new TSL2561Capability(serial, portController));
-	portController->addCapability(new TMP102Capability(serial, portController));
-	portController->addCapability(new MPL3115A2Capability(serial, portController));
+	portController->addCapability(new DebugCapability(serial, portController, config->sdaPin, config->sclPin));
+	portController->addCapability(new TSL2561Capability(serial, portController, config->sdaPin, config->sclPin));
+	portController->addCapability(new TMP102Capability(serial, portController, config->sdaPin, config->sclPin));
+	portController->addCapability(new MPL3115A2Capability(serial, portController, config->sdaPin, config->sclPin));
+	portController->addCapability(new Si7021Capability(serial, portController, config->sdaPin, config->sclPin));
 	portController->addCapability(new PN532Capability(serial, portController, config->nfcMosiPin, config->nfcMisoPin, config->nfcSclkPin));
 	portController->addCapability(new TLC5940Capability(serial, portController, config->ledMosiPin, config->ledSclkPin, config->ledBlankPin, config->ledVprgPin, config->ledGsclkPin, config->ledChainLength));
 }

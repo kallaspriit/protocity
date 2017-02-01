@@ -2,8 +2,10 @@
 
 #include "../PortController.hpp"
 
-TMP102Capability::TMP102Capability(Serial *serial, PortController *portController) :
-	AbstractCapability(serial, portController)
+TMP102Capability::TMP102Capability(Serial *serial, PortController *portController, PinName sdaPin, PinName sclPin) :
+	AbstractCapability(serial, portController),
+	sdaPin(sdaPin),
+    sclPin(sclPin)
 {}
 
 std::string TMP102Capability::getName() {
@@ -37,7 +39,7 @@ CommandManager::Command::Response TMP102Capability::handleCommand(CommandManager
 }
 
 CommandManager::Command::Response TMP102Capability::handleEnableCommand(CommandManager::Command *command) {
-	// one can update the interval even if alrady enabled
+	// one can update the interval even if already enabled
 	if (command->argumentCount == 4) {
 		measurementIntervalMs = command->getInt(3);
 	}
@@ -68,7 +70,7 @@ void TMP102Capability::enable() {
 
 	printf("# enabling TMP102 temperature measurement every %d milliseconds\n", measurementIntervalMs);
 
-	sensor = new TMP102(p9, p10, 0x90);
+	sensor = new TMP102(sdaPin, sclPin, 0x90);
 
 	timer.start();
 

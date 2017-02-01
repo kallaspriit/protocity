@@ -9,7 +9,7 @@
 class MPL3115A2Capability : public AbstractCapability {
 
 public:
-	MPL3115A2Capability(Serial *serial, PortController *portController);
+	MPL3115A2Capability(Serial *serial, PortController *portController, PinName sdaPin = p9, PinName sclPin = p10);
 
 	std::string getName();
 	void update(int deltaUs);
@@ -22,6 +22,9 @@ private:
 	void enable();
 	void disable();
 	void sendMeasurement();
+
+	PinName sdaPin;
+    PinName sclPin;
 
 	Timer timer;
 	MPL3115A2 *sensor = NULL;

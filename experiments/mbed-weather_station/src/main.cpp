@@ -9,18 +9,18 @@
 //DigitalOut led(LED1);
 //DigitalOut led2(LED2);
 DigitalOut flash(LED4);
-DigitalOut kollane(p25);
-DigitalOut punane(p26);
+//DigitalOut kollane(p25);
+//DigitalOut punane(p26);
 
 //InterruptIn sound(p14);
-AnalogIn sound_env(p15);
+AnalogIn sound_env(p17);
 
 Serial serial(USBTX, USBRX);
 
 Si7021 humidity(p9, p10);
 TMP102 temperature(p9, p10, 0x90);
 MPL3115A2 pressure(p9, p10, 0x60 << 1);
-uLCD_4DGL uLCD(p37,p31,p11);
+uLCD_4DGL uLCD(p37,p31,p8);
 TSL2561 luminosity(p9, p10, TSL2561_ADDR_FLOAT);
 
 
@@ -86,7 +86,7 @@ int main() {
         uLCD.printf("\n");
         uLCD.locate(5,13);
 
-
+        /*
         //microfone
         if(sound_value <= 15){
           //uLCD.printf("Vaikne.\n");
@@ -103,7 +103,7 @@ int main() {
           kollane = 0;
           punane = 1;
         }
-
+        */
 
     }
 }

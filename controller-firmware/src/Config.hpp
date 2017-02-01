@@ -8,7 +8,7 @@
 class Config {
 
 public:
-	std::string version = "1.8.0";
+	std::string version = "1.9.0";
 
 	// serial
 	PinName serialTxPin = USBTX;
@@ -45,6 +45,10 @@ public:
 	PinName ledVprgPin = p16;
 	PinName ledGsclkPin = p30;
 	int ledChainLength = 1;
+
+	// i2c pin configuration
+	PinName sdaPin = p9;
+	PinName sclPin = p10;
 };
 
 #endif

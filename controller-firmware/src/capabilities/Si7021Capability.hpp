@@ -1,15 +1,14 @@
-#ifndef TSL2561CAPABILITY_HPP
-#define TSL2561CAPABILITY_HPP
+#ifndef SI7021CAPABILITY_HPP
+#define SI7021CAPABILITY_HPP
 
 #include "../AbstractCapability.hpp"
 
-#include <TSL2561.hpp>
+#include <Si7021.hpp>
 
-// https://www.sparkfun.com/products/12055
-class TSL2561Capability : public AbstractCapability {
+class Si7021Capability : public AbstractCapability {
 
 public:
-	TSL2561Capability(Serial *serial, PortController *portController, PinName sdaPin = p9, PinName sclPin = p10);
+	Si7021Capability(Serial *serial, PortController *portController, PinName sdaPin = p9, PinName sclPin = p10);
 
 	std::string getName();
 	void update(int deltaUs);
@@ -19,17 +18,17 @@ public:
 	CommandManager::Command::Response handleDisableCommand(CommandManager::Command *command);
 
 private:
-	void enable();
+	bool enable();
 	void disable();
-	void sendMeasurement();
+    void sendMeasurement();
 
-	PinName sdaPin;
+    PinName sdaPin;
     PinName sclPin;
 
-	Timer timer;
-	TSL2561 *sensor = NULL;
+    Timer timer;
+	Si7021 *sensor = NULL;
 	bool isEnabled = false;
-	int measurementIntervalMs = 5000;
+    int measurementIntervalMs = 5000;
 };
 
 #endif

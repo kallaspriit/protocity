@@ -2,8 +2,10 @@
 
 #include "../PortController.hpp"
 
-MPL3115A2Capability::MPL3115A2Capability(Serial *serial, PortController *portController) :
-	AbstractCapability(serial, portController)
+MPL3115A2Capability::MPL3115A2Capability(Serial *serial, PortController *portController, PinName sdaPin, PinName sclPin) :
+	AbstractCapability(serial, portController),
+	sdaPin(sdaPin),
+    sclPin(sclPin)
 {}
 
 std::string MPL3115A2Capability::getName() {
@@ -66,12 +68,13 @@ void MPL3115A2Capability::enable() {
 		return;
 	}
 
-	printf("# enabling TMP102 temperature measurement every %d milliseconds\n", measurementIntervalMs);
+	printf("# enabling MPL3115A2 pressure measurement every %d milliseconds\n", measurementIntervalMs);
 
-	sensor = new MPL3115A2(p9, p10, 0x60 << 1);
+	sensor = new MPL3115A2(sdaPin, sclPin, 0x60 << 1);
 
-	sensor->Oversample_Ratio( OVERSAMPLE_RATIO_32);
-	sensor->Altimeter_Mode();
+	sensor->Oversample_Ratio(OVERSAMPLE_RATIO_32);
+	//sensor->Altimeter_Mode();
+	sensor->Barometric_Mode();
 
 	timer.start();
 
@@ -83,7 +86,7 @@ void MPL3115A2Capability::disable() {
 		return;
 	}
 
-	printf("# disabling TMP102 temperature measurement\n");
+	printf("# disabling MPL3115A2 pressure measurement\n");
 
 	delete sensor;
 	sensor = NULL;
@@ -93,11 +96,11 @@ void MPL3115A2Capability::disable() {
 }
 
 void MPL3115A2Capability::sendMeasurement() {
-	float values[2];
+	float pressureKpa = sensor->getPressure() / 1000.0f;
+	float pressureMmHg = pressureKpa / 0.13332239f;
+	float temperature = sensor->getTemperature();
 
-	sensor->getAllData(&values[0]);
-
-	snprintf(sendBuffer, SEND_BUFFER_SIZE, "%f:%f", values[0], values[1]);
+	snprintf(sendBuffer, SEND_BUFFER_SIZE, "%f:%f:%f", pressureKpa, pressureMmHg, temperature);
 
 	portController->emitCapabilityUpdate(getName(), std::string(sendBuffer));
 }

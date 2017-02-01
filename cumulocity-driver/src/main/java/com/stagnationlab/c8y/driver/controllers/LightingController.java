@@ -1,6 +1,5 @@
 package com.stagnationlab.c8y.driver.controllers;
 
-import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,6 +10,7 @@ import com.cumulocity.model.operation.OperationStatus;
 import com.cumulocity.rest.representation.operation.OperationRepresentation;
 import com.stagnationlab.c8y.driver.devices.AbstractMultiDacActuator;
 import com.stagnationlab.c8y.driver.devices.etherio.EtherioMultiDacActuator;
+import com.stagnationlab.c8y.driver.operations.SetAllChannelsValue;
 import com.stagnationlab.c8y.driver.operations.SetChannelValue;
 import com.stagnationlab.c8y.driver.operations.SetChannelValues;
 import com.stagnationlab.c8y.driver.services.Config;
@@ -49,6 +49,7 @@ public class LightingController extends AbstractController {
 	private void setupOperations() {
 		setupSetChannelValueOperation();
 		setupSetChannelValuesOperation();
+		setupSetAllChannelsValueOperation();
 	}
 
 	private void setupSetChannelValueOperation() {
@@ -129,6 +130,52 @@ public class LightingController extends AbstractController {
 
 					log.debug("- {}: {}", lightNumber, value);
 
+					channelValueMap.put(lightNumber, value);
+				}
+
+				setLightLevels(channelValueMap);
+
+				operation.setStatus(OperationStatus.SUCCESSFUL.toString());
+			}
+		});
+	}
+
+	private void setupSetAllChannelsValueOperation() {
+		registerOperationExecutor(new OperationExecutor() {
+			@Override
+			public String supportedOperationType() {
+				return Util.buildOperationName(SetAllChannelsValue.class);
+			}
+
+			@Override
+			public void execute(OperationRepresentation operation, boolean cleanup) throws Exception {
+				if (!device.getId().equals(operation.getDeviceId())) {
+					return;
+				}
+
+				if (cleanup) {
+					log.info("ignoring cleanup operation");
+
+					operation.setStatus(OperationStatus.FAILED.toString());
+
+					return;
+				}
+
+				SetAllChannelsValue action = operation.get(SetAllChannelsValue.class);
+
+				if (action == null) {
+					log.warn("operation is missing the SetAllChannelsValue object");
+
+					return;
+				}
+
+				log.info("got operation request to set all channels value");
+
+				float value = action.getValue();
+				Map<Integer, Float> channelValueMap = new HashMap<>();
+				int lightCount = config.getInt("lighting.lightCount");
+
+				for (int lightNumber = 0; lightNumber < lightCount; lightNumber++) {
 					channelValueMap.put(lightNumber, value);
 				}
 

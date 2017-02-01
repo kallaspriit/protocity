@@ -212,7 +212,7 @@ public abstract class AbstractDevice implements Driver {
     }
 
     protected void registerOperationExecutor(OperationExecutor operationExecutor) {
-        log.info("registering operation executor for {} of type: {}", id, operationExecutor.supportedOperationType());
+        log.debug("registering operation executor for {} of type: {}", id, operationExecutor.supportedOperationType());
 
         operationExecutors.add(operationExecutor);
     }

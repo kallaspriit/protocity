@@ -9,7 +9,7 @@
 class TMP102Capability : public AbstractCapability {
 
 public:
-	TMP102Capability(Serial *serial, PortController *portController);
+	TMP102Capability(Serial *serial, PortController *portController, PinName sdaPin = p9, PinName sclPin = p10);
 
 	std::string getName();
 	void update(int deltaUs);
@@ -17,11 +17,14 @@ public:
 	CommandManager::Command::Response handleCommand(CommandManager::Command *command);
 	CommandManager::Command::Response handleEnableCommand(CommandManager::Command *command);
 	CommandManager::Command::Response handleDisableCommand(CommandManager::Command *command);
-	
+
 private:
 	void enable();
 	void disable();
 	void sendMeasurement();
+
+	PinName sdaPin;
+    PinName sclPin;
 
 	Timer timer;
 	TMP102 *sensor = NULL;

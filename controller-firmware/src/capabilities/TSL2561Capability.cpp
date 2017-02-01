@@ -2,8 +2,10 @@
 
 #include "../PortController.hpp"
 
-TSL2561Capability::TSL2561Capability(Serial *serial, PortController *portController) :
-	AbstractCapability(serial, portController)
+TSL2561Capability::TSL2561Capability(Serial *serial, PortController *portController, PinName sdaPin, PinName sclPin) :
+	AbstractCapability(serial, portController),
+    sdaPin(sdaPin),
+    sclPin(sclPin)
 {}
 
 std::string TSL2561Capability::getName() {
@@ -55,7 +57,7 @@ void TSL2561Capability::enable() {
 	printf("# enabling TSL2561 luminosity measurement every %d milliseconds\n", measurementIntervalMs);
 
 	// TODO make I2C pins configurable
-	sensor = new TSL2561(p32, p31, TSL2561_ADDR_FLOAT);
+	sensor = new TSL2561(sdaPin, sclPin, TSL2561_ADDR_FLOAT);
 	sensor->setGain(TSL2561_GAIN_0X);
 	sensor->setTiming(TSL2561_INTEGRATIONTIME_402MS);
 
