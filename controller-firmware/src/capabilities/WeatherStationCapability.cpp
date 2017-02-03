@@ -38,19 +38,31 @@ void WeatherStationCapability::updateLcd(int deltaUs) {
         return;
     }
 
-    if (updateReadings(deltaUs)) {
-        sendMeasurement();
-    }
+    updateReadings(deltaUs);
 
     renderTimer.reset();
 }
 
-bool WeatherStationCapability::updateReadings(int deltaUs) {
-    return updateThermometerReading(deltaUs)
-        || updateLightmeterReading(deltaUs)
-        || updateHygrometerReading(deltaUs)
-        || updateBarometerReading(deltaUs)
-        || updateSoundmeterReading(deltaUs);
+void WeatherStationCapability::updateReadings(int deltaUs) {
+    if (updateThermometerReading(deltaUs)) {
+        sendMeasurement("thermometer", thermometerLastRenderedValue);
+    }
+
+    if (updateLightmeterReading(deltaUs)) {
+        sendMeasurement("lightmeter", lightmeterLastRenderedValue);
+    }
+
+    if (updateHygrometerReading(deltaUs)) {
+        sendMeasurement("hygrometer", hygrometerLastRenderedValue);
+    }
+
+    if (updateBarometerReading(deltaUs)) {
+        sendMeasurement("barometer", barometerLastRenderedValue);
+    }
+
+    if (updateSoundmeterReading(deltaUs)) {
+        sendMeasurement("soundmeter", soundmeterLastRenderedValue);
+    }
 }
 
 bool WeatherStationCapability::updateThermometerReading(int deltaUs) {
@@ -321,16 +333,13 @@ void WeatherStationCapability::renderSoundmeter(float value) {
     lcd->printf("Sound level  %sdB", leftPad(value, 3, 0).c_str());
 }
 
-void WeatherStationCapability::sendMeasurement() {
+void WeatherStationCapability::sendMeasurement(std::string name, float value) {
 	snprintf(
         sendBuffer,
         SEND_BUFFER_SIZE,
-        "%f:%f:%f:%f:%f",
-        thermometerLastRenderedValue,
-        lightmeterLastRenderedValue,
-        hygrometerLastRenderedValue,
-        barometerLastRenderedValue,
-        soundmeterLastRenderedValue
+        "%s:%f",
+        name.c_str(),
+        value
     );
 
 	portController->emitCapabilityUpdate(getName(), std::string(sendBuffer));

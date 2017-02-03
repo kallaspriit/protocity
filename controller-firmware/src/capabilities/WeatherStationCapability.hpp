@@ -25,7 +25,7 @@ private:
 
 	bool enable();
 	void disable();
-	void sendMeasurement();
+	void sendMeasurement(std::string name, float value);
 
 	void renderBackground();
 	void renderThermometer(float value);
@@ -35,7 +35,7 @@ private:
 	void renderSoundmeter(float value);
 
 	void updateLcd(int deltaUs);
-	bool updateReadings(int deltaUs);
+	void updateReadings(int deltaUs);
 	bool updateThermometerReading(int deltaUs);
 	bool updateLightmeterReading(int deltaUs);
 	bool updateHygrometerReading(int deltaUs);

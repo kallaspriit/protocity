@@ -22,12 +22,6 @@ public class WeatherController extends AbstractController {
 	private final com.stagnationlab.c8y.driver.fragments.WeatherController state = new com.stagnationlab.c8y.driver.fragments.WeatherController();
 	private PortController portController;
 
-	private float lastTemperature = 0.0f;
-	private float lastLightLevel = 0.0f;
-	private float lastHumidity = 0.0f;
-	private float lastPressure = 0.0f;
-	private float lastSoundLevel = 0.0f;
-
 	private static final String CAPABILITY = "weather-station";
 
 	public WeatherController(String id, Map<String, Commander> commanders, Config config) {
@@ -70,62 +64,70 @@ public class WeatherController extends AbstractController {
 					return;
 				}
 
-				float temperature = Float.valueOf(arguments.get(0));
-				float lightLevel = Float.valueOf(arguments.get(1));
-				float humidity = Float.valueOf(arguments.get(2));
-				float pressure = Float.valueOf(arguments.get(3));
-				float soundLevel = Float.valueOf(arguments.get(4));
+				String sensor = arguments.get(0);
+				float value = Float.valueOf(arguments.get(1));
 
-				handleWeatherUpdate(temperature, lightLevel, humidity, pressure, soundLevel);
+				switch (sensor) {
+					case "thermometer":
+						handleThermometerUpdate(value);
+						break;
+
+					case "lightmeter":
+						handleLightmeterUpdate(value);
+						break;
+
+					case "hygrometer":
+						handleHygrometerUpdate(value);
+						break;
+
+					case "barometer":
+						handleBarometerUpdate(value);
+						break;
+
+					case "soundmeter":
+						handleSoundmeterUpdate(value);
+						break;
+				}
 			}
 		});
 	}
 
-	private void handleWeatherUpdate(float temperature, float lightLevel, float humidity, float pressure, float soundLevel) {
-		log.debug(
-				"weather update temperature: {}C, light level: {} lux, humidity: {}%, pressure: {}mmHg, sound level: {}dB",
-				temperature,
-				lightLevel,
-				humidity,
-				pressure,
-				soundLevel
-		);
+	private void handleThermometerUpdate(float value) {
+		reportMeasurement(new TemperatureMeasurement(value));
 
-		if (temperature != lastTemperature) {
-			reportMeasurement(new TemperatureMeasurement(temperature));
+		state.setTemperature(value);
 
-			lastTemperature = temperature;
-		}
+		updateState(state);
+	}
 
-		if (lightLevel != lastLightLevel) {
-			reportMeasurement(new LightMeasurement(lightLevel));
+	private void handleLightmeterUpdate(float value) {
+		reportMeasurement(new LightMeasurement(value));
 
-			lastLightLevel = lightLevel;
-		}
+		state.setLightLevel(value);
 
-		if (humidity != lastHumidity) {
-			reportMeasurement(new HumidityMeasurement(humidity));
+		updateState(state);
+	}
 
-			lastHumidity = humidity;
-		}
+	private void handleHygrometerUpdate(float value) {
+		reportMeasurement(new HumidityMeasurement(value));
 
-		if (pressure != lastPressure) {
-			reportMeasurement(new PressureMeasurement(pressure));
+		state.setHumidity(value);
 
-			lastPressure = pressure;
-		}
+		updateState(state);
+	}
 
-		if (soundLevel != lastSoundLevel) {
-			reportMeasurement(new SoundMeasurement(soundLevel));
+	private void handleBarometerUpdate(float value) {
+		reportMeasurement(new PressureMeasurement(value));
 
-			lastSoundLevel = soundLevel;
-		}
+		state.setPressure(value);
 
-		state.setTemperature(temperature);
-		state.setLightLevel(lightLevel);
-		state.setHumidity(humidity);
-		state.setPressure(pressure);
-		state.setSoundLevel(soundLevel);
+		updateState(state);
+	}
+
+	private void handleSoundmeterUpdate(float value) {
+		reportMeasurement(new SoundMeasurement(value));
+
+		state.setSoundLevel(value);
 
 		updateState(state);
 	}
