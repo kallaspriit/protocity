@@ -27,6 +27,10 @@ void Si7021Capability::update(int deltaUs) {
 }
 
 CommandManager::Command::Response Si7021Capability::handleCommand(CommandManager::Command *command) {
+	if (command->argumentCount < 3) {
+        return command->createFailureResponse("no capability action requested");
+    }
+
 	std::string action = command->getString(2);
 
 	if (action == "enable") {

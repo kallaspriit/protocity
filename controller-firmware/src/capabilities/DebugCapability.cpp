@@ -13,6 +13,10 @@ std::string DebugCapability::getName() {
 }
 
 CommandManager::Command::Response DebugCapability::handleCommand(CommandManager::Command *command) {
+	if (command->argumentCount < 3) {
+        return command->createFailureResponse("no capability action requested");
+    }
+	
 	std::string action = command->getString(2);
 
 	if (action == "i2c") {

@@ -49,6 +49,13 @@ public:
 	// i2c pin configuration
 	PinName sdaPin = p9;
 	PinName sclPin = p10;
+
+	// lcd pin configuration
+	PinName lcdTxPin = p37;
+	PinName lcdRxPin = p31;
+	PinName lcdResetPin = p8;
+
+
 };
 
 #endif

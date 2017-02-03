@@ -8,6 +8,7 @@
 #include "capabilities/PN532Capability.hpp"
 #include "capabilities/TLC5940Capability.hpp"
 #include "capabilities/Si7021Capability.hpp"
+#include "capabilities/WeatherStationCapability.hpp"
 
 Application::Application(Config *config, Serial *serial) :
 	config(config),
@@ -105,6 +106,7 @@ void Application::setupPort(PortController *portController) {
 	portController->addCapability(new Si7021Capability(serial, portController, config->sdaPin, config->sclPin));
 	portController->addCapability(new PN532Capability(serial, portController, config->nfcMosiPin, config->nfcMisoPin, config->nfcSclkPin));
 	portController->addCapability(new TLC5940Capability(serial, portController, config->ledMosiPin, config->ledSclkPin, config->ledBlankPin, config->ledVprgPin, config->ledGsclkPin, config->ledChainLength));
+	portController->addCapability(new WeatherStationCapability(serial, portController, config->sdaPin, config->sclPin, config->lcdTxPin, config->lcdRxPin, config->lcdResetPin));
 }
 
 void Application::setupDebug() {

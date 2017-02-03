@@ -14,10 +14,11 @@ public:
 	void update(int deltaUs);
 
 	CommandManager::Command::Response handleCommand(CommandManager::Command *command);
+
+private:
 	CommandManager::Command::Response handleEnableCommand(CommandManager::Command *command);
 	CommandManager::Command::Response handleDisableCommand(CommandManager::Command *command);
 
-private:
 	bool enable();
 	void disable();
     void sendMeasurement();

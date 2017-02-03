@@ -27,6 +27,10 @@ void MPL3115A2Capability::update(int deltaUs) {
 }
 
 CommandManager::Command::Response MPL3115A2Capability::handleCommand(CommandManager::Command *command) {
+	if (command->argumentCount < 3) {
+        return command->createFailureResponse("no capability action requested");
+    }
+	
 	std::string action = command->getString(2);
 
 	if (action == "enable") {
@@ -73,8 +77,9 @@ void MPL3115A2Capability::enable() {
 	sensor = new MPL3115A2(sdaPin, sclPin, 0x60 << 1);
 
 	sensor->Oversample_Ratio(OVERSAMPLE_RATIO_32);
-	//sensor->Altimeter_Mode();
 	sensor->Barometric_Mode();
+
+	sendMeasurement();
 
 	timer.start();
 

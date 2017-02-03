@@ -25,6 +25,10 @@ CommandManager::Command::Response TSL2561Capability::handleCommand(CommandManage
 }
 
 CommandManager::Command::Response TSL2561Capability::handleEnableCommand(CommandManager::Command *command) {
+	if (command->argumentCount < 3) {
+        return command->createFailureResponse("no capability action requested");
+    }
+	
 	// one can update the interval even if alrady enabled
 	if (command->argumentCount == 4) {
 		measurementIntervalMs = command->getInt(3);
@@ -56,10 +60,11 @@ void TSL2561Capability::enable() {
 
 	printf("# enabling TSL2561 luminosity measurement every %d milliseconds\n", measurementIntervalMs);
 
-	// TODO make I2C pins configurable
 	sensor = new TSL2561(sdaPin, sclPin, TSL2561_ADDR_FLOAT);
 	sensor->setGain(TSL2561_GAIN_0X);
 	sensor->setTiming(TSL2561_INTEGRATIONTIME_402MS);
+
+	sendMeasurement();
 
 	timer.start();
 

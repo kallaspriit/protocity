@@ -27,6 +27,10 @@ void TMP102Capability::update(int deltaUs) {
 }
 
 CommandManager::Command::Response TMP102Capability::handleCommand(CommandManager::Command *command) {
+	if (command->argumentCount < 3) {
+        return command->createFailureResponse("no capability action requested");
+    }
+	
 	std::string action = command->getString(2);
 
 	if (action == "enable") {
@@ -71,6 +75,8 @@ void TMP102Capability::enable() {
 	printf("# enabling TMP102 temperature measurement every %d milliseconds\n", measurementIntervalMs);
 
 	sensor = new TMP102(sdaPin, sclPin, 0x90);
+
+	sendMeasurement();
 
 	timer.start();
 
