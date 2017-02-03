@@ -18,7 +18,7 @@ public class ParkingController extends AbstractController {
 
 	private static final Logger log = LoggerFactory.getLogger(ParkingController.class);
 
-	private final com.stagnationlab.c8y.driver.fragments.ParkingController parkingController = new com.stagnationlab.c8y.driver.fragments.ParkingController();
+	private final com.stagnationlab.c8y.driver.fragments.ParkingController state = new com.stagnationlab.c8y.driver.fragments.ParkingController();
 	private AbstractMultiDacActuator ledDriver;
 	private Map<Integer, AbstractTagSensor> sensorsMap = new HashMap<>();
 	private Map<Integer, Integer> ledChannelMap = new HashMap<>();
@@ -31,12 +31,12 @@ public class ParkingController extends AbstractController {
 
 	@Override
 	protected String getType() {
-		return parkingController.getClass().getSimpleName();
+		return state.getClass().getSimpleName();
 	}
 
 	@Override
 	protected Object getSensorFragment() {
-		return parkingController;
+		return state;
 	}
 
 	@Override
@@ -61,7 +61,7 @@ public class ParkingController extends AbstractController {
 	private void setupSlotSensors() {
 		slotCount = config.getInt("parking.slotCount");
 
-		log.info("setting up parkingController controller for {} slots", slotCount);
+		log.info("setting up parking controller controller for {} slots", slotCount);
 
 		for (int i = 0; i < slotCount; i++) {
 			String name = config.getString("parking.slot." + i + ".name");
@@ -87,7 +87,7 @@ public class ParkingController extends AbstractController {
 		int port = config.getInt("parking.ledDriverPort");
 		int channelCount = config.getInt("parking.ledDriverChannels");
 
-		log.info("setting up parkingController slot indicators on commander {} port {} with {} channels", commanderName, port, channelCount);
+		log.info("setting up parking controller slot indicators on commander {} port {} with {} channels", commanderName, port, channelCount);
 
 		Commander commander = commanders.get(commanderName);
 		ledDriver = new EtherioMultiDacActuator("ParkingController led driver", commander, port, channelCount);

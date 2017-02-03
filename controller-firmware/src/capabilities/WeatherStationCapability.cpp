@@ -223,7 +223,7 @@ bool WeatherStationCapability::enable() {
     lightmeter = new TSL2561(sdaPin, sclPin, TSL2561_ADDR_FLOAT);
     hygrometer = new Si7021(sdaPin, sclPin);
     barometer = new MPL3115A2(sdaPin, sclPin, 0x60 << 1);
-    soundmeter = new AnalogIn(p17); // TODO make pin configurable
+    soundmeter = new AnalogIn(portController->getPinName());
 
     // configure sensors
     barometer->Oversample_Ratio(OVERSAMPLE_RATIO_32);

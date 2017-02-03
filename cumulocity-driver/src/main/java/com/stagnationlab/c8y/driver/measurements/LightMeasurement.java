@@ -9,11 +9,6 @@ public class LightMeasurement {
 	private float value;
 	private String unit;
 
-	public LightMeasurement() {
-		value = 0.0f;
-		unit = "lux";
-	}
-
 	public LightMeasurement(float value, String unit) {
 		this.value = value;
 		this.unit = unit;
@@ -21,6 +16,10 @@ public class LightMeasurement {
 
 	public LightMeasurement(float value) {
 		this(value, "lux");
+	}
+
+	public LightMeasurement() {
+		this(0.0f);
 	}
 
 	public MeasurementValue getLuminosity() {

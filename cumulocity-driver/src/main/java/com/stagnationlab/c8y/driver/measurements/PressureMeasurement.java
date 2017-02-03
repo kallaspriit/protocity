@@ -4,29 +4,29 @@ import com.cumulocity.model.measurement.MeasurementValue;
 import com.stagnationlab.c8y.driver.services.Util;
 
 @SuppressWarnings({ "WeakerAccess", "unused" })
-public class TemperatureMeasurement {
+public class PressureMeasurement {
 
 	private float value;
 	private String unit;
 
-	public TemperatureMeasurement(float value, String unit) {
+	public PressureMeasurement(float value, String unit) {
 		this.value = value;
 		this.unit = unit;
 	}
 
-	public TemperatureMeasurement(float value) {
-		this(value, "C");
+	public PressureMeasurement(float value) {
+		this(value, "%");
 	}
 
-	public TemperatureMeasurement() {
-		this(0.0f);
+	public PressureMeasurement() {
+		this(0.0f, "mmHg");
 	}
 
-	public MeasurementValue getTemperature() {
+	public MeasurementValue getPressure() {
 		return Util.buildMeasurementValue(value, unit);
 	}
 
-	public void setTemperature(MeasurementValue measurementValue) {
+	public void setPressure(MeasurementValue measurementValue) {
 		value = measurementValue.getValue().floatValue();
 	}
 

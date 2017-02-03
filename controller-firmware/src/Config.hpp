@@ -8,7 +8,7 @@
 class Config {
 
 public:
-	std::string version = "1.9.0";
+	std::string version = "1.11.0";
 
 	// serial
 	PinName serialTxPin = USBTX;
@@ -41,7 +41,7 @@ public:
 	// Led driver configuration
 	PinName ledMosiPin = p11;
 	PinName ledSclkPin = p13;
-	PinName ledBlankPin = p15;
+	PinName ledBlankPin = p14;
 	PinName ledVprgPin = p16;
 	PinName ledGsclkPin = p30;
 	int ledChainLength = 1;

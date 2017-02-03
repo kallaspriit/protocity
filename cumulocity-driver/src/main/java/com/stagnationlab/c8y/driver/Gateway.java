@@ -13,6 +13,7 @@ import com.cumulocity.model.operation.OperationStatus;
 import com.cumulocity.rest.representation.operation.OperationRepresentation;
 import com.stagnationlab.c8y.driver.controllers.LightingController;
 import com.stagnationlab.c8y.driver.controllers.ParkingController;
+import com.stagnationlab.c8y.driver.controllers.WeatherController;
 import com.stagnationlab.c8y.driver.devices.AbstractDevice;
 import com.stagnationlab.c8y.driver.services.Config;
 import com.stagnationlab.c8y.driver.services.TextToSpeech;
@@ -79,16 +80,16 @@ public class Gateway extends AbstractDevice {
 	private void setupControllers() {
 		log.info("setting up controllers");
 
-		setupParkingController();
-	}
-
-	private void setupParkingController() {
 		registerChild(
 				new ParkingController("Parking controller", commanders, config)
 		);
 
 		registerChild(
 				new LightingController("Lighting controller", commanders, config)
+		);
+
+		registerChild(
+				new WeatherController("Weather controller", commanders, config)
 		);
 	}
 

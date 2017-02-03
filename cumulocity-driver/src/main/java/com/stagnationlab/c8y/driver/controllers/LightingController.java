@@ -23,7 +23,7 @@ public class LightingController extends AbstractController {
 
 	private static final Logger log = LoggerFactory.getLogger(LightingController.class);
 
-	private final com.stagnationlab.c8y.driver.fragments.LightingController lightingController = new com.stagnationlab.c8y.driver.fragments.LightingController();
+	private final com.stagnationlab.c8y.driver.fragments.LightingController state = new com.stagnationlab.c8y.driver.fragments.LightingController();
 	private final Map<String, AbstractMultiDacActuator> driverMap = new HashMap<>();
 
 	public LightingController(String id, Map<String, Commander> commanders, Config config) {
@@ -32,18 +32,43 @@ public class LightingController extends AbstractController {
 
 	@Override
 	protected String getType() {
-		return lightingController.getClass().getSimpleName();
+		return state.getClass().getSimpleName();
 	}
 
 	@Override
 	protected Object getSensorFragment() {
-		return lightingController;
+		return state;
 	}
 
 	@Override
 	protected void setup() throws Exception {
 		setupLedDrivers();
 		setupOperations();
+	}
+
+	private void setupLedDrivers() {
+		int lightCount = config.getInt("lighting.lightCount");
+
+		log.debug("setting up light drivers for {} lights", lightCount);
+
+		for (int lightNumber = 0; lightNumber < lightCount; lightNumber++) {
+			String commanderName = config.getString("lighting.light." + lightNumber + ".commander");
+
+			int ledDriverPort = config.getInt("lighting.driver." + commanderName + ".port");
+			int ledDriverChannels = config.getInt("lighting.driver." + commanderName + ".channels");
+
+			Commander commander = commanders.get(commanderName);
+
+			if (!driverMap.containsKey(commanderName)) {
+				log.debug("creating light driver for commander {} on port {} for {} channels", commanderName, ledDriverPort, ledDriverChannels);
+
+				AbstractMultiDacActuator driver = new EtherioMultiDacActuator("Led driver for commander " + commanderName, commander, ledDriverPort, ledDriverChannels);
+
+				driverMap.put(commanderName, driver);
+
+				registerChild(driver);
+			}
+		}
 	}
 
 	private void setupOperations() {
@@ -184,31 +209,6 @@ public class LightingController extends AbstractController {
 				operation.setStatus(OperationStatus.SUCCESSFUL.toString());
 			}
 		});
-	}
-
-	private void setupLedDrivers() {
-		int lightCount = config.getInt("lighting.lightCount");
-
-		log.debug("setting up light drivers for {} lights", lightCount);
-
-		for (int lightNumber = 0; lightNumber < lightCount; lightNumber++) {
-			String commanderName = config.getString("lighting.light." + lightNumber + ".commander");
-
-			int ledDriverPort = config.getInt("lighting.driver." + commanderName + ".port");
-			int ledDriverChannels = config.getInt("lighting.driver." + commanderName + ".channels");
-
-			Commander commander = commanders.get(commanderName);
-
-			if (!driverMap.containsKey(commanderName)) {
-				log.debug("creating light driver for commander {} on port {} for {} channels", commanderName, ledDriverPort, ledDriverChannels);
-
-				AbstractMultiDacActuator driver = new EtherioMultiDacActuator("Led driver for commander " + commanderName, commander, ledDriverPort, ledDriverChannels);
-
-				driverMap.put(commanderName, driver);
-
-				registerChild(driver);
-			}
-		}
 	}
 
 	@Override
