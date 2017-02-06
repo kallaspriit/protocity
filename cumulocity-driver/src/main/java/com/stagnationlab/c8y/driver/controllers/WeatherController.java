@@ -6,6 +6,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.stagnationlab.c8y.driver.constants.ControllerEvent;
 import com.stagnationlab.c8y.driver.measurements.HumidityMeasurement;
 import com.stagnationlab.c8y.driver.measurements.LightMeasurement;
 import com.stagnationlab.c8y.driver.measurements.PressureMeasurement;
@@ -108,7 +109,7 @@ public class WeatherController extends AbstractController {
 
 		updateState(state);
 
-		eventBroker.emitEvent("lightmeter-change", value);
+		eventBroker.emitEvent(ControllerEvent.LIGHTMETER_CHANGE, value);
 	}
 
 	private void handleHygrometerUpdate(float value) {

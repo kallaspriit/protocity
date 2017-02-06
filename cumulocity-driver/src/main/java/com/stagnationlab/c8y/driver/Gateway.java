@@ -14,6 +14,7 @@ import com.cumulocity.rest.representation.operation.OperationRepresentation;
 import com.stagnationlab.c8y.driver.controllers.AbstractController;
 import com.stagnationlab.c8y.driver.controllers.LightingController;
 import com.stagnationlab.c8y.driver.controllers.ParkingController;
+import com.stagnationlab.c8y.driver.controllers.TrainController;
 import com.stagnationlab.c8y.driver.controllers.WeatherController;
 import com.stagnationlab.c8y.driver.devices.AbstractDevice;
 import com.stagnationlab.c8y.driver.services.Config;
@@ -71,7 +72,7 @@ public class Gateway extends AbstractDevice {
 	private void setupCommanders() throws IOException {
 		log.info("setting up commanders");
 
-		List<String> commanderNames = config.getStringArray("commandersNames");
+		List<String> commanderNames = config.getStringArray("commanderNames");
 
 		for (String commanderName : commanderNames) {
 			log.info("creating commander {}", commanderName);
@@ -93,6 +94,10 @@ public class Gateway extends AbstractDevice {
 
 		registerController(
 				new WeatherController("Weather controller", commanders, config, eventBroker)
+		);
+
+		registerController(
+				new TrainController("Train controller", commanders, config, eventBroker)
 		);
 	}
 

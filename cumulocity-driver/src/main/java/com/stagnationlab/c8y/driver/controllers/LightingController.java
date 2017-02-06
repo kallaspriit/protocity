@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import com.cumulocity.model.operation.OperationStatus;
 import com.cumulocity.rest.representation.operation.OperationRepresentation;
+import com.stagnationlab.c8y.driver.constants.ControllerEvent;
 import com.stagnationlab.c8y.driver.devices.AbstractMultiDacActuator;
 import com.stagnationlab.c8y.driver.devices.etherio.EtherioMultiDacActuator;
 import com.stagnationlab.c8y.driver.operations.SetAllChannelsValue;
@@ -51,9 +52,22 @@ public class LightingController extends AbstractController {
 	@Override
 	public void handleEvent(String name, Object info) {
 		switch (name) {
-			case "lightmeter-change":
+			case ControllerEvent.LIGHTMETER_CHANGE:
 				handleLightmeterChangeEvent((float)info);
 				break;
+		}
+	}
+
+	@Override
+	public void start() {
+		super.start();
+
+		log.info("starting lighting controller");
+
+		int lightCount = config.getInt("lighting.lightCount");
+
+		for (int lightNumber = 0; lightNumber < lightCount; lightNumber++) {
+			setLightLevel(lightNumber, 0.0f);
 		}
 	}
 
@@ -246,19 +260,6 @@ public class LightingController extends AbstractController {
 		}
 
 		setLightLevels(channelValueMap);
-	}
-
-	@Override
-	public void start() {
-		super.start();
-
-		log.info("starting lighting controller");
-
-		int lightCount = config.getInt("lighting.lightCount");
-
-		for (int lightNumber = 0; lightNumber < lightCount; lightNumber++) {
-			setLightLevel(lightNumber, 0.0f);
-		}
 	}
 
 	private void setLightLevel(int lightNumber, float value) {
