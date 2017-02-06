@@ -70,7 +70,7 @@ public class ParkingController extends AbstractController {
 			int port = config.getInt("parking.slot." + i + ".port");
 			int ledChannel = config.getInt("parking.slot." + i + ".ledChannel");
 
-			Commander commander = commanders.get(commanderName);
+			Commander commander = getCommanderByName(commanderName);
 			AbstractTagSensor sensor = new EtherioTagSensor("ParkingController slot sensor " + i, commander, port);
 
 			sensorsMap.put(i, sensor);
@@ -90,7 +90,7 @@ public class ParkingController extends AbstractController {
 
 		log.info("setting up parking controller slot indicators on commander {} port {} with {} channels", commanderName, port, channelCount);
 
-		Commander commander = commanders.get(commanderName);
+		Commander commander = getCommanderByName(commanderName);
 		ledDriver = new EtherioMultiDacActuator("ParkingController led driver", commander, port, channelCount);
 
 		registerChild(ledDriver);

@@ -83,7 +83,7 @@ public class LightingController extends AbstractController {
 
 			lastAutomaticLightLevel = outputLightLevel;
 
-			log.info("lightmeter value changed to {}, setting light level to {}", detectedLightLevel, outputLightLevel);
+			log.debug("lightmeter value changed to {}, setting light level to {}", detectedLightLevel, outputLightLevel);
 
 			state.setDetectedLightLevel(detectedLightLevel);
 			state.setOutputLightLevel(outputLightLevel);
@@ -103,7 +103,7 @@ public class LightingController extends AbstractController {
 			int ledDriverPort = config.getInt("lighting.driver." + commanderName + ".port");
 			int ledDriverChannels = config.getInt("lighting.driver." + commanderName + ".channels");
 
-			Commander commander = commanders.get(commanderName);
+			Commander commander = getCommanderByName(commanderName);
 
 			if (!driverMap.containsKey(commanderName)) {
 				log.debug("creating light driver for commander {} on port {} for {} channels", commanderName, ledDriverPort, ledDriverChannels);

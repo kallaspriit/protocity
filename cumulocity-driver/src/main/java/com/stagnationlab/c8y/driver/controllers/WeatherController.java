@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.stagnationlab.c8y.driver.constants.ControllerEvent;
+import com.stagnationlab.c8y.driver.constants.WeatherSensor;
 import com.stagnationlab.c8y.driver.measurements.HumidityMeasurement;
 import com.stagnationlab.c8y.driver.measurements.LightMeasurement;
 import com.stagnationlab.c8y.driver.measurements.PressureMeasurement;
@@ -47,7 +48,7 @@ public class WeatherController extends AbstractController {
 		String commanderName = config.getString("weather.commander");
 		int port = config.getInt("weather.port");
 
-		Commander commander = commanders.get(commanderName);
+		Commander commander = getCommanderByName(commanderName);
 		portController = new PortController(port, commander);
 	}
 
@@ -70,23 +71,23 @@ public class WeatherController extends AbstractController {
 				float value = Float.valueOf(arguments.get(1));
 
 				switch (sensor) {
-					case "thermometer":
+					case WeatherSensor.THERMOMETER:
 						handleThermometerUpdate(value);
 						break;
 
-					case "lightmeter":
+					case WeatherSensor.LIGHTMETER:
 						handleLightmeterUpdate(value);
 						break;
 
-					case "hygrometer":
+					case WeatherSensor.HYGROMETER:
 						handleHygrometerUpdate(value);
 						break;
 
-					case "barometer":
+					case WeatherSensor.BAROMETER:
 						handleBarometerUpdate(value);
 						break;
 
-					case "soundmeter":
+					case WeatherSensor.SOUNDMETER:
 						handleSoundmeterUpdate(value);
 						break;
 				}

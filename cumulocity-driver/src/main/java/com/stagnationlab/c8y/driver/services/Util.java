@@ -1,6 +1,7 @@
 package com.stagnationlab.c8y.driver.services;
 
 import java.math.BigDecimal;
+import java.util.Calendar;
 
 import org.svenson.JSON;
 
@@ -51,6 +52,14 @@ public class Util {
 		}
 
 		return result;
+	}
+
+	public static long now() {
+		return Calendar.getInstance().getTimeInMillis();
+	}
+
+	public static long since(long millis) {
+    	return now() - millis;
 	}
 
 }

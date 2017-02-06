@@ -9,7 +9,7 @@ import com.stagnationlab.etherio.Commander;
 
 public abstract class AbstractController extends AbstractDevice implements EventBroker.EventBrokerListener {
 
-	final Map<String, Commander> commanders;
+	private final Map<String, Commander> commanders;
 	final Config config;
 	final EventBroker eventBroker;
 
@@ -22,6 +22,14 @@ public abstract class AbstractController extends AbstractDevice implements Event
 	}
 
 	public void handleEvent(String name, Object info) {}
+
+	protected Commander getCommanderByName(String name) {
+		if (!commanders.containsKey(name)) {
+			return null;
+		}
+
+		return commanders.get(name);
+	}
 
 
 }
