@@ -12,6 +12,7 @@ import com.stagnationlab.c8y.driver.measurements.PressureMeasurement;
 import com.stagnationlab.c8y.driver.measurements.SoundMeasurement;
 import com.stagnationlab.c8y.driver.measurements.TemperatureMeasurement;
 import com.stagnationlab.c8y.driver.services.Config;
+import com.stagnationlab.c8y.driver.services.EventBroker;
 import com.stagnationlab.etherio.Commander;
 import com.stagnationlab.etherio.PortController;
 
@@ -24,8 +25,8 @@ public class WeatherController extends AbstractController {
 
 	private static final String CAPABILITY = "weather-station";
 
-	public WeatherController(String id, Map<String, Commander> commanders, Config config) {
-		super(id, commanders, config);
+	public WeatherController(String id, Map<String, Commander> commanders, Config config, EventBroker eventBroker) {
+		super(id, commanders, config, eventBroker);
 	}
 
 	@Override
@@ -106,6 +107,8 @@ public class WeatherController extends AbstractController {
 		state.setLightLevel(value);
 
 		updateState(state);
+
+		eventBroker.emitEvent("lightmeter-change", value);
 	}
 
 	private void handleHygrometerUpdate(float value) {

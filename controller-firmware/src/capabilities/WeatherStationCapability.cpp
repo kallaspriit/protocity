@@ -75,7 +75,7 @@ bool WeatherStationCapability::updateThermometerReading(int deltaUs) {
     float current = thermometer->read();
     float diff = fabs(current - thermometerLastRenderedValue);
 
-    if (diff < thermometerRenderChangeThreshold) {
+    if (diff < thermometerRenderChangeThreshold && timeSinceLastReading < forceUpdateInterval) {
         return false;
     }
 
@@ -97,7 +97,7 @@ bool WeatherStationCapability::updateLightmeterReading(int deltaUs) {
     float current = lightmeter->getLuminosity(TSL2561_VISIBLE);
     float diff = fabs(current - lightmeterLastRenderedValue);
 
-    if (diff < lightmeterRenderChangeThreshold) {
+    if (diff < lightmeterRenderChangeThreshold && timeSinceLastReading < forceUpdateInterval) {
         return false;
     }
 
@@ -131,7 +131,7 @@ bool WeatherStationCapability::updateHygrometerReading(int deltaUs) {
     float current = (float)hygrometer->get_humidity() / 1000.0f;
     float diff = fabs(current - hygrometerLastRenderedValue);
 
-    if (diff < hygrometerRenderChangeThreshold) {
+    if (diff < hygrometerRenderChangeThreshold && timeSinceLastReading < forceUpdateInterval) {
         return false;
     }
 
@@ -153,7 +153,7 @@ bool WeatherStationCapability::updateBarometerReading(int deltaUs) {
     float current = (barometer->getPressure() / 1000.0f)  / 0.13332239f;
     float diff = fabs(current - barometerLastRenderedValue);
 
-    if (diff < barometerRenderChangeThreshold) {
+    if (diff < barometerRenderChangeThreshold && timeSinceLastReading < forceUpdateInterval) {
         return false;
     }
 
@@ -166,17 +166,23 @@ bool WeatherStationCapability::updateBarometerReading(int deltaUs) {
 }
 
 bool WeatherStationCapability::updateSoundmeterReading(int deltaUs) {
+    int timeSinceLastReading = soundmeterTimer.read_ms();
+
+    if (soundmeterLastRenderedValue > 0 && timeSinceLastReading < soundmeterIntervalMs) {
+        return false;
+    }
+
     float current = soundmeter->read() * 100.0f;
     float diff = fabs(current - soundmeterLastRenderedValue);
 
-    if (diff < soundmeterRenderChangeThreshold) {
+    if (diff < soundmeterRenderChangeThreshold && timeSinceLastReading < forceUpdateInterval) {
         return false;
     }
 
     renderSoundmeter(current);
-    // drawProgressBar(0, SIZE_Y - 11, SIZE_X - 1, 10, round(current), BLACK, WHITE);
 
     soundmeterLastRenderedValue = current;
+    soundmeterTimer.reset();
 
     return true;
 }
@@ -248,6 +254,7 @@ bool WeatherStationCapability::enable() {
     lightmeterTimer.start();
     hygrometerTimer.start();
     barometerTimer.start();
+    soundmeterTimer.start();
 
 	isEnabled = true;
 
@@ -284,6 +291,7 @@ void WeatherStationCapability::disable() {
     lightmeterTimer.stop();
     hygrometerTimer.stop();
     barometerTimer.stop();
+    soundmeterTimer.stop();
 
 	isEnabled = false;
 }

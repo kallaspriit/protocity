@@ -11,6 +11,7 @@ import com.stagnationlab.c8y.driver.devices.AbstractTagSensor;
 import com.stagnationlab.c8y.driver.devices.etherio.EtherioMultiDacActuator;
 import com.stagnationlab.c8y.driver.devices.etherio.EtherioTagSensor;
 import com.stagnationlab.c8y.driver.services.Config;
+import com.stagnationlab.c8y.driver.services.EventBroker;
 import com.stagnationlab.c8y.driver.services.TextToSpeech;
 import com.stagnationlab.etherio.Commander;
 
@@ -25,8 +26,8 @@ public class ParkingController extends AbstractController {
 	private Map<Integer, String> slotNameMap = new HashMap<>();
 	private int slotCount = 0;
 
-	public ParkingController(String id, Map<String, Commander> commanders, Config config) {
-		super(id, commanders, config);
+	public ParkingController(String id, Map<String, Commander> commanders, Config config, EventBroker eventBroker) {
+		super(id, commanders, config, eventBroker);
 	}
 
 	@Override

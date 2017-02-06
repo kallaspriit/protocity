@@ -1,5 +1,6 @@
 package com.stagnationlab.c8y.driver.fragments;
 
+@SuppressWarnings("unused")
 public class WeatherController {
 
 	private float temperature = 0.0f;

@@ -11,11 +11,13 @@ import org.slf4j.LoggerFactory;
 
 import com.cumulocity.model.operation.OperationStatus;
 import com.cumulocity.rest.representation.operation.OperationRepresentation;
+import com.stagnationlab.c8y.driver.controllers.AbstractController;
 import com.stagnationlab.c8y.driver.controllers.LightingController;
 import com.stagnationlab.c8y.driver.controllers.ParkingController;
 import com.stagnationlab.c8y.driver.controllers.WeatherController;
 import com.stagnationlab.c8y.driver.devices.AbstractDevice;
 import com.stagnationlab.c8y.driver.services.Config;
+import com.stagnationlab.c8y.driver.services.EventBroker;
 import com.stagnationlab.c8y.driver.services.TextToSpeech;
 import com.stagnationlab.etherio.Commander;
 import com.stagnationlab.etherio.MessageTransport;
@@ -31,6 +33,7 @@ public class Gateway extends AbstractDevice {
 	private final com.stagnationlab.c8y.driver.fragments.Gateway gateway = new com.stagnationlab.c8y.driver.fragments.Gateway();
 	private final Config config = new Config();
 	private final Map<String, Commander> commanders = new HashMap<>();
+	private final EventBroker eventBroker = new EventBroker();
 
 	private static final int DEFAULT_CONTROLLER_PORT = 8080;
 	private static final String CONFIG_FILENAME = "config.properties";
@@ -80,16 +83,16 @@ public class Gateway extends AbstractDevice {
 	private void setupControllers() {
 		log.info("setting up controllers");
 
-		registerChild(
-				new ParkingController("Parking controller", commanders, config)
+		registerController(
+				new ParkingController("Parking controller", commanders, config, eventBroker)
 		);
 
-		registerChild(
-				new LightingController("Lighting controller", commanders, config)
+		registerController(
+				new LightingController("Lighting controller", commanders, config, eventBroker)
 		);
 
-		registerChild(
-				new WeatherController("Weather controller", commanders, config)
+		registerController(
+				new WeatherController("Weather controller", commanders, config, eventBroker)
 		);
 	}
 
@@ -124,6 +127,14 @@ public class Gateway extends AbstractDevice {
 		super.start();
 
 		TextToSpeech.INSTANCE.speak("Ready, welcome to Telia Lego City!");
+	}
+
+	private void registerController(AbstractController controller) {
+		log.info("registering controller '{}' ({})", controller.getId(), controller.getClass().getSimpleName());
+
+		eventBroker.addListener(controller);
+
+		registerChild(controller);
 	}
 
 	private Commander createCommander(String name) {

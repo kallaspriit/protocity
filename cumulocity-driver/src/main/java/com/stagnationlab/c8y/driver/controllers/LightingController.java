@@ -14,6 +14,7 @@ import com.stagnationlab.c8y.driver.operations.SetAllChannelsValue;
 import com.stagnationlab.c8y.driver.operations.SetChannelValue;
 import com.stagnationlab.c8y.driver.operations.SetChannelValues;
 import com.stagnationlab.c8y.driver.services.Config;
+import com.stagnationlab.c8y.driver.services.EventBroker;
 import com.stagnationlab.c8y.driver.services.Util;
 import com.stagnationlab.etherio.Commander;
 
@@ -25,9 +26,10 @@ public class LightingController extends AbstractController {
 
 	private final com.stagnationlab.c8y.driver.fragments.LightingController state = new com.stagnationlab.c8y.driver.fragments.LightingController();
 	private final Map<String, AbstractMultiDacActuator> driverMap = new HashMap<>();
+	private float lastAutomaticLightLevel = -1.0f;
 
-	public LightingController(String id, Map<String, Commander> commanders, Config config) {
-		super(id, commanders, config);
+	public LightingController(String id, Map<String, Commander> commanders, Config config, EventBroker eventBroker) {
+		super(id, commanders, config, eventBroker);
 	}
 
 	@Override
@@ -44,6 +46,36 @@ public class LightingController extends AbstractController {
 	protected void setup() throws Exception {
 		setupLedDrivers();
 		setupOperations();
+	}
+
+	@Override
+	public void handleEvent(String name, Object info) {
+		switch (name) {
+			case "lightmeter-change":
+				handleLightmeterChangeEvent((float)info);
+				break;
+		}
+	}
+
+	private void handleLightmeterChangeEvent(float detectedLightLevel) {
+		float outputLightLevel = Util.map(detectedLightLevel, 10.0f, 200.0f, 0.5f, 0.0f);
+
+		if (outputLightLevel < 0.1f) {
+			outputLightLevel = 0.0f;
+		}
+
+		if (Math.abs(outputLightLevel - lastAutomaticLightLevel) > 0.1f) {
+			setAllLightLevels(outputLightLevel);
+
+			lastAutomaticLightLevel = outputLightLevel;
+
+			log.info("lightmeter value changed to {}, setting light level to {}", detectedLightLevel, outputLightLevel);
+
+			state.setDetectedLightLevel(detectedLightLevel);
+			state.setOutputLightLevel(outputLightLevel);
+
+			updateState(state);
+		}
 	}
 
 	private void setupLedDrivers() {
@@ -194,21 +226,26 @@ public class LightingController extends AbstractController {
 					return;
 				}
 
-				log.info("got operation request to set all channels value");
-
 				float value = action.getValue();
-				Map<Integer, Float> channelValueMap = new HashMap<>();
-				int lightCount = config.getInt("lighting.lightCount");
 
-				for (int lightNumber = 0; lightNumber < lightCount; lightNumber++) {
-					channelValueMap.put(lightNumber, value);
-				}
+				log.info("got operation request to set all channels to value: {}", value);
 
-				setLightLevels(channelValueMap);
+				setAllLightLevels(value);
 
 				operation.setStatus(OperationStatus.SUCCESSFUL.toString());
 			}
 		});
+	}
+
+	private void setAllLightLevels(float value) {
+		Map<Integer, Float> channelValueMap = new HashMap<>();
+		int lightCount = config.getInt("lighting.lightCount");
+
+		for (int lightNumber = 0; lightNumber < lightCount; lightNumber++) {
+			channelValueMap.put(lightNumber, value);
+		}
+
+		setLightLevels(channelValueMap);
 	}
 
 	@Override

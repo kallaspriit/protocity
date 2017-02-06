@@ -37,4 +37,20 @@ public class Util {
     	return reference.getCanonicalName().replaceAll("\\.", "_");
 	}
 
+	public static float map(float value, float inMin, float inMax, float outMin, float outMax) {
+    	if (outMax < outMin) {
+    		return map(value, inMax, inMin, outMax, outMin);
+	    }
+
+		float result = (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
+
+		if (result < outMin) {
+			result = outMin;
+		} else if (result > outMax) {
+			result = outMax;
+		}
+
+		return result;
+	}
+
 }

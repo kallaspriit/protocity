@@ -65,6 +65,7 @@ private:
 	Timer lightmeterTimer;
 	Timer hygrometerTimer;
 	Timer barometerTimer;
+	Timer soundmeterTimer;
 
 	int renderFps = 10;
 	int renderInterval = 1000 / renderFps;
@@ -87,6 +88,9 @@ private:
 
 	float soundmeterLastRenderedValue = -100.0f;
 	float soundmeterRenderChangeThreshold = 5.0f;
+	int soundmeterIntervalMs = 1000;
+
+	float forceUpdateInterval = 60000;
 
 };
 
