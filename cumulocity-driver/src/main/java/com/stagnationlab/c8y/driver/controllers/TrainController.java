@@ -84,13 +84,15 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 			eventListeners.forEach((listener) -> listener.onTrainExit(name));
 		}
+
+		public String getName() {
+			return name;
+		}
 	}
 
 	class Train {
 
 		private final Commander commander;
-
-		private long lastSpeedChangeTime = 0;
 		private int normalSpeed = 0;
 
 		private static final String COMMAND_SET_SPEED = "set-speed";
@@ -109,8 +111,6 @@ public class TrainController extends AbstractController implements TrainStopEven
 			speed = Math.min(Math.max(speed, 0), 100);
 
 			commander.sendCommand(COMMAND_SET_SPEED, speed);
-
-			lastSpeedChangeTime = Util.now();
 		}
 
 		void stop() {
@@ -179,6 +179,10 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 		@Override
 		public void onTrainEnter(String stopName) {
+			if (!isStarted) {
+				return;
+			}
+
 			if (stopName.equals(targetStopName)) {
 				log.debug("train entered target stop '{}', stopping train", targetStopName);
 
@@ -266,9 +270,8 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 	@Override
 	protected void setup() throws Exception {
-		setupStops();
 		setupTrain();
-		setupOperations();
+		setupStops();
 	}
 
 	@Override
@@ -354,6 +357,13 @@ public class TrainController extends AbstractController implements TrainStopEven
 		return operations.get(currentOperationIndex);
 	}
 
+	private void setupTrain() {
+		String commanderName = config.getString("train.commander");
+		Commander commander = getCommanderByName(commanderName);
+
+		train = new Train(commander);
+	}
+
 	private void setupStops() {
 		int stopCount = config.getInt("train.stopCount");
 
@@ -364,32 +374,28 @@ public class TrainController extends AbstractController implements TrainStopEven
 		}
 	}
 
-	private void setupTrain() {
-		String commanderName = config.getString("train.commander");
-		Commander commander = getCommanderByName(commanderName);
-
-		train = new Train(commander);
-	}
-
-	private void setupOperations() {
-		registerOperation(
-				new DriveToStopTrainOperation(train, "Central station")
-		);
-
-		registerOperation(
-				new WaitTrainOperation(train, 10000)
-		);
-	}
-
 	private void setupStop(int stopNumber) {
 		String commanderName = config.getString("train.stop." + stopNumber + ".commander");
 		int port = config.getInt("train.stop." + stopNumber + ".port");
+		int waitTime = config.getInt("train.stop." + stopNumber + ".waitTime");
 		String name = config.getString("train.stop." + stopNumber + ".name");
 
 		Commander commander = getCommanderByName(commanderName);
 		TrainStop trainStop = createStop(commander, port, name);
 
 		registerStop(stopNumber, trainStop);
+
+		createTrainStopOperations(train, trainStop, waitTime);
+	}
+
+	private void createTrainStopOperations(Train train, TrainStop trainStop, int waitTime) {
+		registerOperation(
+				new DriveToStopTrainOperation(train, trainStop.getName())
+		);
+
+		registerOperation(
+				new WaitTrainOperation(train, waitTime)
+		);
 	}
 
 	private TrainStop createStop(Commander commander, int port, String name) {

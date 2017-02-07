@@ -120,9 +120,9 @@ void Application::loop(int deltaUs) {
 }
 
 void Application::onTagRead(NfcTag &tag) {
-	/*serial->printf("# read '%s' tag with uid: %s\n", tag.getTagType().c_str(), tag.getUidString().c_str());
+	serial->printf("# read '%s' tag with uid: %s\n", tag.getTagType().c_str(), tag.getUidString().c_str());
 
-	showTagInfo(tag);*/
+	showTagInfo(tag);
 }
 
 void Application::onTagEnter(NfcTag &tag) {
