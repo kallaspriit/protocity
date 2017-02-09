@@ -29,6 +29,7 @@ private:
 	static const PinName PN532_SPI_CHIP_SELECT = p26;
 	static const PinName SERIAL_TX = USBTX;
 	static const PinName SERIAL_RX = USBRX;
+	static const PinName MAIN_LOOP_LED_PIN = p33;
 
 	Serial *serial;
 	SPI spi;
@@ -37,6 +38,7 @@ private:
 	Timer timer;
 
 	std::string activeTagName = "";
+	unsigned long loopIndex = 0;
 
 };
 

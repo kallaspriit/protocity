@@ -36,6 +36,10 @@ class NfcAdapter {
         // reset tag back to factory state
         bool clean();
 
+        // async
+        bool requestTagPresent();
+        bool checkTagPresent();
+
 		uint32_t getVersionInfo();
     private:
         PN532* shield;

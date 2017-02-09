@@ -4,7 +4,7 @@ Application::Application(Serial *serial) :
  	serial(serial),
 	spi(PN532_SPI_MOSI, PN532_SPI_MISO, PN532_SPI_SCK),
 	nfc(spi, PN532_SPI_CHIP_SELECT),
-	led(LED1)
+	led(MAIN_LOOP_LED_PIN)
 {}
 
 void Application::run() {
@@ -37,9 +37,11 @@ void Application::setup() {
 }
 
 void Application::loop(int deltaUs) {
-	led = !led;
+    if (loopIndex % 100 == 0) {
+        float milliseconds = (float)((double)deltaUs / 1000.0);
 
-	// serial->printf("# checking for tag (%d us since last update)\n", deltaUs);
+        serial->printf("# loop %d update took %.2f ms (%d us)\n", loopIndex, milliseconds, deltaUs);
+    }
 
 	nfc.checkForTag();
 
@@ -117,6 +119,9 @@ void Application::loop(int deltaUs) {
 		serial->printf(".");
 	}
 	*/
+
+    led = !led;
+    loopIndex++;
 }
 
 void Application::onTagRead(NfcTag &tag) {

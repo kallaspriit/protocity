@@ -321,6 +321,64 @@ bool PN532::readPassiveTargetID(uint8_t cardbaudrate, uint8_t *uid, uint8_t *uid
     return 1;
 }
 
+bool PN532::requestTagPresent(uint8_t cardbaudrate) {
+    pn532_packetbuffer[0] = PN532_COMMAND_INLISTPASSIVETARGET;
+    pn532_packetbuffer[1] = 1;  // max 1 cards at once (we can set this to 2 later)
+    pn532_packetbuffer[2] = cardbaudrate;
+
+    if (HAL(writeCommand)(pn532_packetbuffer, 3)) {
+        return false;  // command failed
+    }
+
+    return true;
+}
+
+bool PN532::checkTagPresent(uint8_t *uid, uint8_t *uidLength) {
+    // read data packet
+    // if (HAL(readResponse)(pn532_packetbuffer, sizeof(pn532_packetbuffer), timeout) < 0) {
+    if (HAL(readResponse)(pn532_packetbuffer, sizeof(pn532_packetbuffer), 2) < 0) {
+        return false;
+    }
+
+    // check some basic stuff
+    /* ISO14443A card response should be in the following format:
+
+      uint8_t           Description
+      -------------   ------------------------------------------
+      b0              Tags Found
+      b1              Tag Number (only one used in this example)
+      b2..3           SENS_RES
+      b4              SEL_RES
+      b5              NFCID Length
+      b6..NFCIDLen    NFCID
+    */
+
+    if (pn532_packetbuffer[0] != 1) {
+        return false;
+    }
+
+    uint16_t sens_res = pn532_packetbuffer[2];
+    sens_res <<= 8;
+    sens_res |= pn532_packetbuffer[3];
+
+    DMSG("ATQA: 0x%X, SAK: 0x%X\n", sens_res, pn532_packetbuffer[4]);
+
+    /* Card appears to be Mifare Classic */
+    *uidLength = pn532_packetbuffer[5];
+
+    for (uint8_t i = 0; i < pn532_packetbuffer[5]; i++) {
+        uid[i] = pn532_packetbuffer[6 + i];
+    }
+
+    /*
+    if (inlist) {
+        inListedTag = pn532_packetbuffer[1];
+    }
+    */
+
+    return true;
+}
+
 
 /***** Mifare Classic Functions ******/
 

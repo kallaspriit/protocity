@@ -64,6 +64,78 @@ void NFC::checkForTag() {
 	activeTagUid = uid;
 }
 
+void NFC::update() {
+	if (!isCheckScheduled) {
+		scheduleCheck();
+	} else if (isCheckReady()) {
+		performCheck();
+		scheduleCheck();
+	}
+}
+
+bool NFC::scheduleCheck() {
+	if (!adapter.requestTagPresent()) {
+		printf("# NFC: requesting tag present failed\n");
+
+		return false;
+	}
+
+	isCheckScheduled = true;
+	checkScheduleTimer.start();
+
+	printf("# NFC: scheduled check\n");
+
+	return true;
+}
+
+bool NFC::performCheck() {
+	bool isTagPresent = adapter.checkTagPresent();
+
+	printf("# NFC: performed check, tag present: %s\n", isTagPresent ? "yes" : "no");
+
+	isCheckScheduled = false;
+	checkScheduleTimer.stop();
+
+	if (isTagPresent) {
+		NfcTag tag = adapter.read();
+
+		std::string uid = tag.getUidString();
+
+		// always send the read event
+		for (NfcEventListenerList::iterator it = nfcEventListeners.begin(); it != nfcEventListeners.end(); ++it) {
+			(*it)->onTagRead(tag);
+		}
+
+		// only change the enter event if the tag uid has changed (or there was no tag before)
+		if (uid != activeTagUid) {
+			for (NfcEventListenerList::iterator it = nfcEventListeners.begin(); it != nfcEventListeners.end(); ++it) {
+				(*it)->onTagEnter(tag);
+			}
+		}
+
+		activeTagUid = uid;
+
+	} else {
+		bool wasTagPresent = activeTagUid.size() > 0;
+
+		if (wasTagPresent) {
+			for (NfcEventListenerList::iterator it = nfcEventListeners.begin(); it != nfcEventListeners.end(); ++it) {
+				(*it)->onTagExit(activeTagUid);
+			}
+		}
+
+		activeTagUid = "";
+	}
+
+	return isTagPresent;
+}
+
+bool NFC::isCheckReady() {
+	int timeSinceCheckSchedule = checkScheduleTimer.read_ms();
+
+	return timeSinceCheckSchedule >= CHECK_TIME_REQUIRED;
+}
+
 std::string NFC::getRecordPayload(NdefRecord &record) {
 	int payloadLength = record.getPayloadLength();
 

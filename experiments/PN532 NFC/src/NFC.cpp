@@ -31,7 +31,9 @@ void NFC::addEventListener(NfcEventListener *listener) {
 }
 
 void NFC::checkForTag() {
-	if (!adapter.tagPresent()) {
+	unsigned long timeout = 30; // minimum that still works
+
+	if (!adapter.tagPresent(timeout)) {
 		bool wasTagPresent = activeTagUid.size() > 0;
 
 		if (wasTagPresent) {

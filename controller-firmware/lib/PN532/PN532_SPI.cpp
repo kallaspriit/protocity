@@ -41,6 +41,8 @@ void PN532_SPI::wakeup()
 
 int8_t PN532_SPI::writeCommand(const uint8_t *header, uint8_t hlen, const uint8_t *body, uint8_t blen)
 {
+    printf("\n# PN532_SPI::writeCommand\n");
+
     command = header[0];
     writeFrame(header, hlen, body, blen);
 
@@ -62,8 +64,12 @@ int8_t PN532_SPI::writeCommand(const uint8_t *header, uint8_t hlen, const uint8_
 
 int16_t PN532_SPI::readResponse(uint8_t buf[], uint8_t len, uint16_t timeout)
 {
+    printf("\n# PN532_SPI::readResponse checking\n");
+
     uint16_t time = 0;
     while (!isReady()) {
+        printf("# PN532_SPI::readResponse not ready\n");
+
         Thread::wait(1);
         time++;
         if (timeout > 0 && time > timeout) {

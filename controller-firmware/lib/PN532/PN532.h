@@ -143,6 +143,10 @@ public:
     bool readPassiveTargetID(uint8_t cardbaudrate, uint8_t *uid, uint8_t *uidLength, uint16_t timeout = 50, bool inlist = false);
     bool inDataExchange(uint8_t *send, uint8_t sendLength, uint8_t *response, uint8_t *responseLength);
 
+    // async request and read
+    bool requestTagPresent(uint8_t cardbaudrate);
+    bool checkTagPresent(uint8_t *uid, uint8_t *uidLength);
+
     // Mifare Classic functions
     bool mifareclassic_IsFirstBlock (uint32_t uiBlock);
     bool mifareclassic_IsTrailerBlock (uint32_t uiBlock);

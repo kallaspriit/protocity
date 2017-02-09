@@ -42,9 +42,17 @@ public:
 	bool initialize();
 	Version getVersion();
 	void addEventListener(NfcEventListener *listener);
+
 	void checkForTag();
 
+	void update();
+	bool scheduleCheck();
+	bool performCheck();
+	bool isCheckReady();
+
 	std::string getRecordPayload(NdefRecord &record);
+
+	bool isCheckScheduled = false;
 
 private:
 	// dependencies
@@ -54,6 +62,8 @@ private:
 
 	// configuration
 	static const int MAX_PAYLOAD_SIZE = 128;
+	// static const int CHECK_TIME_REQUIRED = 50; // ms
+	static const int CHECK_TIME_REQUIRED = 1000; // ms
 
 	// listeners
 	typedef std::vector<NfcEventListener*> NfcEventListenerList;
@@ -66,6 +76,9 @@ private:
 	// runtime
 	uint8_t payload[MAX_PAYLOAD_SIZE];
 	std::string activeTagUid = "";
+
+	// update
+	Timer checkScheduleTimer;
 
 };
 

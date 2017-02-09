@@ -18,14 +18,14 @@ void PN532Capability::update(int deltaUs) {
 		return;
 	}
 
-	nfc->checkForTag();
+	nfc->update();
 }
 
 CommandManager::Command::Response PN532Capability::handleCommand(CommandManager::Command *command) {
 	if (command->argumentCount < 3) {
         return command->createFailureResponse("no capability action requested");
     }
-	
+
 	std::string action = command->getString(2);
 
 	if (action == "enable") {

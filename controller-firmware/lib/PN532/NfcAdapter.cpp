@@ -52,6 +52,16 @@ bool NfcAdapter::tagPresent(unsigned long timeout)
     return success;
 }
 
+bool NfcAdapter::requestTagPresent() {
+    return shield->requestTagPresent(PN532_MIFARE_ISO14443A);
+}
+
+bool NfcAdapter::checkTagPresent() {
+    uidLength = 0;
+
+    return shield->checkTagPresent(uid, (uint8_t*)&uidLength);
+}
+
 bool NfcAdapter::erase()
 {
     bool success;
