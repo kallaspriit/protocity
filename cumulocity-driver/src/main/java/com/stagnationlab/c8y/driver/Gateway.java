@@ -92,6 +92,7 @@ public class Gateway extends AbstractDevice {
 				new LightingController("Lighting controller", commanders, config, eventBroker)
 		);
 
+
 		registerController(
 				new WeatherController("Weather controller", commanders, config, eventBroker)
 		);

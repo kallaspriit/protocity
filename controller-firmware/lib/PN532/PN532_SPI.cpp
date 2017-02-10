@@ -41,8 +41,6 @@ void PN532_SPI::wakeup()
 
 int8_t PN532_SPI::writeCommand(const uint8_t *header, uint8_t hlen, const uint8_t *body, uint8_t blen)
 {
-    printf("\n# PN532_SPI::writeCommand\n");
-
     command = header[0];
     writeFrame(header, hlen, body, blen);
 
@@ -64,18 +62,31 @@ int8_t PN532_SPI::writeCommand(const uint8_t *header, uint8_t hlen, const uint8_
 
 int16_t PN532_SPI::readResponse(uint8_t buf[], uint8_t len, uint16_t timeout)
 {
-    printf("\n# PN532_SPI::readResponse checking\n");
+    if (timeout == 0 || timeout > 1) {
+        //printf("\n# PN532_SPI::readResponse with timeout: %d\n", timeout);
 
-    uint16_t time = 0;
-    while (!isReady()) {
-        printf("# PN532_SPI::readResponse not ready\n");
+        uint16_t time = 0;
+        while (!isReady()) {
+            Thread::wait(1);
+            time++;
 
-        Thread::wait(1);
-        time++;
-        if (timeout > 0 && time > timeout) {
+            if (timeout > 0 && time >= timeout) {
+                //printf("# PN532_SPI::readResponse timed out after %d ms\n", time);
+
+                return PN532_TIMEOUT;
+            }
+        }
+    } else {
+        //printf("# PN532_SPI::readResponse checking ready without timeout\n");
+
+        if (!isReady()) {
+            //printf("# PN532_SPI::readResponse not ready\n");
+
             return PN532_TIMEOUT;
         }
     }
+
+    //printf("# PN532_SPI::readResponse reading response\n");
 
     _ss = 0;
     Thread::wait(1);

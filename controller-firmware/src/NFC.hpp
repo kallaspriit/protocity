@@ -62,8 +62,8 @@ private:
 
 	// configuration
 	static const int MAX_PAYLOAD_SIZE = 128;
-	// static const int CHECK_TIME_REQUIRED = 50; // ms
-	static const int CHECK_TIME_REQUIRED = 1000; // ms
+	static const int CHECK_TIME_REQUIRED = 50; // ms
+	//static const int CHECK_TIME_REQUIRED = 1000; // ms
 
 	// listeners
 	typedef std::vector<NfcEventListener*> NfcEventListenerList;

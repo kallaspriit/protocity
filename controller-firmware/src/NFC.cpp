@@ -81,17 +81,14 @@ bool NFC::scheduleCheck() {
 	}
 
 	isCheckScheduled = true;
+	checkScheduleTimer.reset();
 	checkScheduleTimer.start();
-
-	printf("# NFC: scheduled check\n");
 
 	return true;
 }
 
 bool NFC::performCheck() {
 	bool isTagPresent = adapter.checkTagPresent();
-
-	printf("# NFC: performed check, tag present: %s\n", isTagPresent ? "yes" : "no");
 
 	isCheckScheduled = false;
 	checkScheduleTimer.stop();

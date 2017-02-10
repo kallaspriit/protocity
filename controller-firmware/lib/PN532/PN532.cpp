@@ -336,7 +336,7 @@ bool PN532::requestTagPresent(uint8_t cardbaudrate) {
 bool PN532::checkTagPresent(uint8_t *uid, uint8_t *uidLength) {
     // read data packet
     // if (HAL(readResponse)(pn532_packetbuffer, sizeof(pn532_packetbuffer), timeout) < 0) {
-    if (HAL(readResponse)(pn532_packetbuffer, sizeof(pn532_packetbuffer), 2) < 0) {
+    if (HAL(readResponse)(pn532_packetbuffer, sizeof(pn532_packetbuffer), 1) < 0) {
         return false;
     }
 

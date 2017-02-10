@@ -160,7 +160,9 @@ void Application::handleClientDataAvailable() {
 }
 
 void Application::handleClientDisconnected() {
-    log("client disconnected");
+    log("client disconnected, stopping motor");
+
+    targetSpeed = 0;
 }
 
 void Application::handleMessage(String message) {
