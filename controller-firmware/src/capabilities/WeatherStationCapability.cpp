@@ -24,10 +24,18 @@ std::string WeatherStationCapability::getName() {
 }
 
 void WeatherStationCapability::update(int deltaUs) {
-    updateLcd(deltaUs);
+	// we're using our own thread not to interrupt the main thread
 }
 
-void WeatherStationCapability::updateLcd(int deltaUs) {
+void WeatherStationCapability::runUpdateThread() {
+	while (isEnabled) {
+		updateLcd();
+
+		Thread::wait(renderInterval);
+	}
+}
+
+void WeatherStationCapability::updateLcd() {
     if (lcd == NULL) {
         return;
     }
@@ -38,34 +46,34 @@ void WeatherStationCapability::updateLcd(int deltaUs) {
         return;
     }
 
-    updateReadings(deltaUs);
+    updateReadings();
 
     renderTimer.reset();
 }
 
-void WeatherStationCapability::updateReadings(int deltaUs) {
-    if (updateThermometerReading(deltaUs)) {
+void WeatherStationCapability::updateReadings() {
+    if (updateThermometerReading()) {
         sendMeasurement("thermometer", thermometerLastRenderedValue);
     }
 
-    if (updateLightmeterReading(deltaUs)) {
+    if (updateLightmeterReading()) {
         sendMeasurement("lightmeter", lightmeterLastRenderedValue);
     }
 
-    if (updateHygrometerReading(deltaUs)) {
+    if (updateHygrometerReading()) {
         sendMeasurement("hygrometer", hygrometerLastRenderedValue);
     }
 
-    if (updateBarometerReading(deltaUs)) {
+    if (updateBarometerReading()) {
         sendMeasurement("barometer", barometerLastRenderedValue);
     }
 
-    if (updateSoundmeterReading(deltaUs)) {
+    if (updateSoundmeterReading()) {
         sendMeasurement("soundmeter", soundmeterLastRenderedValue);
     }
 }
 
-bool WeatherStationCapability::updateThermometerReading(int deltaUs) {
+bool WeatherStationCapability::updateThermometerReading() {
     int timeSinceLastReading = thermometerTimer.read_ms();
 
     if (thermometerLastRenderedValue > 0 && timeSinceLastReading < thermometerIntervalMs) {
@@ -87,7 +95,7 @@ bool WeatherStationCapability::updateThermometerReading(int deltaUs) {
     return true;
 }
 
-bool WeatherStationCapability::updateLightmeterReading(int deltaUs) {
+bool WeatherStationCapability::updateLightmeterReading() {
     int timeSinceLastReading = lightmeterTimer.read_ms();
 
     if (lightmeterLastRenderedValue > 0 && timeSinceLastReading < lightmeterIntervalMs) {
@@ -113,7 +121,7 @@ bool WeatherStationCapability::updateLightmeterReading(int deltaUs) {
     return true;
 }
 
-bool WeatherStationCapability::updateHygrometerReading(int deltaUs) {
+bool WeatherStationCapability::updateHygrometerReading() {
     int timeSinceLastReading = hygrometerTimer.read_ms();
 
     if (hygrometerLastRenderedValue > 0 && timeSinceLastReading < hygrometerIntervalMs) {
@@ -143,7 +151,7 @@ bool WeatherStationCapability::updateHygrometerReading(int deltaUs) {
     return true;
 }
 
-bool WeatherStationCapability::updateBarometerReading(int deltaUs) {
+bool WeatherStationCapability::updateBarometerReading() {
     int timeSinceLastReading = barometerTimer.read_ms();
 
     if (barometerLastRenderedValue > 0 && timeSinceLastReading < barometerIntervalMs) {
@@ -165,7 +173,7 @@ bool WeatherStationCapability::updateBarometerReading(int deltaUs) {
     return true;
 }
 
-bool WeatherStationCapability::updateSoundmeterReading(int deltaUs) {
+bool WeatherStationCapability::updateSoundmeterReading() {
     int timeSinceLastReading = soundmeterTimer.read_ms();
 
     if (soundmeterLastRenderedValue > 0 && timeSinceLastReading < soundmeterIntervalMs) {
@@ -255,6 +263,8 @@ bool WeatherStationCapability::enable() {
     hygrometerTimer.start();
     barometerTimer.start();
     soundmeterTimer.start();
+
+	updateThread.start(this, &WeatherStationCapability::runUpdateThread);
 
 	isEnabled = true;
 

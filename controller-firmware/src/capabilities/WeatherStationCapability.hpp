@@ -34,13 +34,14 @@ private:
 	void renderBarometer(float value);
 	void renderSoundmeter(float value);
 
-	void updateLcd(int deltaUs);
-	void updateReadings(int deltaUs);
-	bool updateThermometerReading(int deltaUs);
-	bool updateLightmeterReading(int deltaUs);
-	bool updateHygrometerReading(int deltaUs);
-	bool updateBarometerReading(int deltaUs);
-	bool updateSoundmeterReading(int deltaUs);
+	void runUpdateThread();
+	void updateLcd();
+	void updateReadings();
+	bool updateThermometerReading();
+	bool updateLightmeterReading();
+	bool updateHygrometerReading();
+	bool updateBarometerReading();
+	bool updateSoundmeterReading();
 
 	std::string leftPad(float value, int targetLength, int decimals = 1);
 	void drawProgressBar(int x, int y, int width, int height, int percentage, int backgroundColor, int barColor);
@@ -59,6 +60,8 @@ private:
 	AnalogIn *soundmeter = NULL;
 
 	bool isEnabled = false;
+
+	Thread updateThread;
 
 	Timer renderTimer;
 	Timer thermometerTimer;
