@@ -7,6 +7,8 @@ public class TrainController {
 	private int chargePercentage = 0;
 	private boolean isObstacleDetected = false;
 	private float obstacleDistance = 0.0f;
+	private float realSpeed = 0.0f;
+	private float targetSpeed = 0.0f;
 
 	public float getBatteryVoltage() {
 		return batteryVoltage;
@@ -38,5 +40,21 @@ public class TrainController {
 
 	public void setObstacleDistance(float obstacleDistance) {
 		this.obstacleDistance = obstacleDistance;
+	}
+
+	public float getRealSpeed() {
+		return realSpeed;
+	}
+
+	public void setRealSpeed(float realSpeed) {
+		this.realSpeed = realSpeed;
+	}
+
+	public float getTargetSpeed() {
+		return targetSpeed;
+	}
+
+	public void setTargetSpeed(float targetSpeed) {
+		this.targetSpeed = targetSpeed;
 	}
 }

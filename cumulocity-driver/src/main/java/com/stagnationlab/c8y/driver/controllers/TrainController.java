@@ -101,6 +101,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 		private static final String COMMAND_GET_BATTERY_VOLTAGE = "get-battery-voltage";
 		private static final String EVENT_OBSTACLE_DETECTED = "obstacle-detected";
 		private static final String EVENT_OBSTACLE_CLEARED = "obstacle-cleared";
+		private static final String EVENT_SPEED_CHANGED = "speed-changed";
 
 		Train(Commander commander) {
 			this.commander = commander;
@@ -141,6 +142,15 @@ public class TrainController extends AbstractController implements TrainStopEven
 			updateState(state);
 		}
 
+		private void handleSpeedUpdate(int realSpeed, int targetSpeed) {
+			log.debug("train real speed is now {} (target: {})", realSpeed, targetSpeed);
+
+			state.setRealSpeed(realSpeed);
+			state.setTargetSpeed(targetSpeed);
+
+			updateState(state);
+		}
+
 		void stop() {
 			log.debug("stopping train");
 
@@ -176,8 +186,29 @@ public class TrainController extends AbstractController implements TrainStopEven
 					case EVENT_OBSTACLE_CLEARED:
 						handleObstacleClearedEvent();
 						break;
+
+					case EVENT_SPEED_CHANGED:
+						int realSpeed = command.getInt(0);
+						int targetSpeed = command.getInt(1);
+
+						handleSpeedChangedEvent(realSpeed, targetSpeed);
+						break;
 				}
 			});
+		}
+
+		private void setupBatteryVoltageListener() {
+			new Thread(() -> {
+				while (isRunning) {
+					requestBatteryVoltage();
+
+					try {
+						Thread.sleep(requestBatteryVoltageInterval);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}).start();
 		}
 
 		private void handleObstacleDetectedEvent(float obstacleDistance) {
@@ -193,18 +224,11 @@ public class TrainController extends AbstractController implements TrainStopEven
 			updateState(state);
 		}
 
-		private void setupBatteryVoltageListener() {
-			new Thread(() -> {
-				while (isRunning) {
-					requestBatteryVoltage();
+		private void handleSpeedChangedEvent(int realSpeed, int targetSpeed) {
+			state.setRealSpeed(realSpeed);
+			state.setTargetSpeed(targetSpeed);
 
-					try {
-						Thread.sleep(requestBatteryVoltageInterval);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
-			}).start();
+			updateState(state);
 		}
 	}
 

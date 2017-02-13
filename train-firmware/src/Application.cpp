@@ -300,7 +300,7 @@ void Application::handleUnsupportedCommand(int requestId, String command, String
     sendErrorMessage(requestId, "unsupported command");
 }
 
-void Application::sendMessage(char *fmt, ...) {
+void Application::sendMessage(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt );
     vsnprintf(logBuffer, LOG_BUFFER_SIZE, fmt, args);
@@ -394,7 +394,7 @@ void Application::sendObstacleClearedEvent() {
     sendEventMessage("obstacle-cleared", String(obstacleDetectedFrames));
 }
 
-void Application::log(char *fmt, ...) {
+void Application::log(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt );
     vsnprintf(logBuffer, LOG_BUFFER_SIZE, fmt, args);
@@ -496,6 +496,8 @@ void Application::setMotorSpeed(int speed) {
         analogWrite(MOTOR_CONTROL_PIN_A, ANALOG_MAX_VALUE - analogOutValue);
         analogWrite(MOTOR_CONTROL_PIN_B, ANALOG_MAX_VALUE);
     }
+
+    sendEventMessage("speed-changed", String(motorSpeed), String(targetSpeed));
 }
 
 void Application::stopMotor() {
@@ -551,7 +553,6 @@ void Application::applyMotorSpeed() {
 }
 
 void Application::handleObstacleDetected() {
-    /*
     // stop the train
     if (motorSpeed != 0) {
         log("obstacle detected, stopping train");
@@ -559,7 +560,6 @@ void Application::handleObstacleDetected() {
         stopMotor();
         //brakeMotor();
     }
-    */
 
     sendObstacleDetectedEvent(obstacleDistance);
 }
@@ -567,12 +567,10 @@ void Application::handleObstacleDetected() {
 void Application::handleObstacleCleared() {
     sendObstacleClearedEvent();
 
-    /*
     // restart the train if it was moving before
     if (targetSpeed != 0) {
         log("obstacle cleared, resuming target speed of %d%%", targetSpeed);
 
         setMotorSpeed(targetSpeed);
     }
-    */
 }

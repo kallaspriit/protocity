@@ -20,7 +20,7 @@
 class Application {
 
 public:
-    const char *version = "1.2.0";
+    const char *version = "1.13.0";
 
     Application();
 
@@ -113,7 +113,7 @@ private:
     void handleUnsupportedCommand(int requestId, String command, String parameters[], int parameterCount);
 
     // send messages and events
-    void sendMessage(char *fmt, ...);
+    void sendMessage(const char *fmt, ...);
     void sendMessage(String message);
     void sendSuccessMessage(int requestId);
     void sendSuccessMessage(int requestId, int value);
@@ -154,7 +154,7 @@ private:
     void applyMotorSpeed();
 
     // log utility
-    void log(char *fmt, ...);
+    void log(const char *fmt, ...);
 };
 
 #endif
