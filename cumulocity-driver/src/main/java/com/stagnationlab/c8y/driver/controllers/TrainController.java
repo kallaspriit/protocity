@@ -12,6 +12,7 @@ import com.stagnationlab.c8y.driver.services.Config;
 import com.stagnationlab.c8y.driver.services.EventBroker;
 import com.stagnationlab.c8y.driver.services.TextToSpeech;
 import com.stagnationlab.c8y.driver.services.Util;
+import com.stagnationlab.etherio.Command;
 import com.stagnationlab.etherio.Commander;
 import com.stagnationlab.etherio.PortController;
 
@@ -93,16 +94,21 @@ public class TrainController extends AbstractController implements TrainStopEven
 	class Train {
 
 		private final Commander commander;
-		private int normalSpeed = 0;
+		private final int normalSpeed;
+		private final int requestBatteryVoltageInterval;
 
 		private static final String COMMAND_SET_SPEED = "set-speed";
+		private static final String COMMAND_GET_BATTERY_VOLTAGE = "get-battery-voltage";
+		private static final String EVENT_OBSTACLE_DETECTED = "obstacle-detected";
+		private static final String EVENT_OBSTACLE_CLEARED = "obstacle-cleared";
 
 		Train(Commander commander) {
 			this.commander = commander;
 
 			normalSpeed = config.getInt("train.normalSpeed");
+			requestBatteryVoltageInterval = config.getInt("train.requestBatteryVoltageInterval");
 
-			// TODO listen for voltage, obstacles..
+			log.debug("train normal speed: {}%, battery voltage update interval: {}ms", normalSpeed, requestBatteryVoltageInterval);
 		}
 
 		void setSpeed(int speed) {
@@ -113,6 +119,28 @@ public class TrainController extends AbstractController implements TrainStopEven
 			commander.sendCommand(COMMAND_SET_SPEED, speed);
 		}
 
+		void requestBatteryVoltage() {
+			log.debug("requesting battery voltage");
+
+			commander.sendCommand(COMMAND_GET_BATTERY_VOLTAGE).thenAccept((Commander.CommandResponse result) -> {
+				float batteryVoltage = result.response.getFloat(0);
+				int chargePercentage = result.response.getInt(1);
+
+				handleBatteryVoltageUpdate(batteryVoltage, chargePercentage);
+			});
+
+			log.debug("completed requesting battery voltage");
+		}
+
+		private void handleBatteryVoltageUpdate(float batteryVoltage, int chargePercentage) {
+			log.debug("battery voltage updated: {} ({}%}", batteryVoltage, chargePercentage);
+
+			state.setBatteryVoltage(batteryVoltage);
+			state.setChargePercentage(chargePercentage);
+
+			updateState(state);
+		}
+
 		void stop() {
 			log.debug("stopping train");
 
@@ -121,6 +149,62 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 		void forward() {
 			setSpeed(normalSpeed);
+		}
+
+		public void start() {
+			setupEventListeners();
+			setupBatteryVoltageListener();
+		}
+
+		private void setupEventListeners() {
+			commander.addSpecialCommandListener((Command command) -> {
+				log.debug("got train special command: {}", command.name);
+
+				List<String> arguments = command.getArguments();
+
+				for (int i = 0; i < arguments.size(); i++) {
+					log.debug("- #{}: {}", i, arguments.get(i));
+				}
+
+				switch (command.name) {
+					case EVENT_OBSTACLE_DETECTED:
+						float obstacleDistance = command.getFloat(0);
+
+						handleObstacleDetectedEvent(obstacleDistance);
+						break;
+
+					case EVENT_OBSTACLE_CLEARED:
+						handleObstacleClearedEvent();
+						break;
+				}
+			});
+		}
+
+		private void handleObstacleDetectedEvent(float obstacleDistance) {
+			state.setIsObstacleDetected(true);
+			state.setObstacleDistance(obstacleDistance);
+
+			updateState(state);
+		}
+
+		private void handleObstacleClearedEvent() {
+			state.setIsObstacleDetected(false);
+
+			updateState(state);
+		}
+
+		private void setupBatteryVoltageListener() {
+			new Thread(() -> {
+				while (isRunning) {
+					requestBatteryVoltage();
+
+					try {
+						Thread.sleep(requestBatteryVoltageInterval);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}).start();
 		}
 	}
 
@@ -305,9 +389,10 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 		log.info("starting first train operation: {}", firstOperation.getName());
 
-		firstOperation.start();
-
 		isRunning = true;
+
+		firstOperation.start();
+		train.start();
 		thread.start();
 	}
 

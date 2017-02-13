@@ -187,6 +187,8 @@ void Application::handleMessage(String message) {
 void Application::handleCommand(int requestId, String command, String parameters[], int parameterCount) {
     if (command == "ping") {
         handlePingCommand(requestId, parameters, parameterCount);
+    } else if (command == "version") {
+        handleVersionCommand(requestId, parameters, parameterCount);
     } else if (command == "set-led") {
         handleSetLedCommand(requestId, parameters, parameterCount);
     } else if (command == "get-led") {
@@ -204,6 +206,10 @@ void Application::handleCommand(int requestId, String command, String parameters
     } else {
         handleUnsupportedCommand(requestId, command, parameters, parameterCount);
     }
+}
+
+void Application::handleVersionCommand(int requestId, String parameters[], int parameterCount) {
+    sendSuccessMessage(requestId, version);
 }
 
 void Application::handlePingCommand(int requestId, String parameters[], int parameterCount) {
