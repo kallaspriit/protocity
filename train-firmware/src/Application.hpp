@@ -47,7 +47,7 @@ private:
     static const int COMMAND_BUFFER_SIZE = 128;
 
     // behaviour config
-    const float OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM = 11.5f;
+    const float OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM = 10.0f;
     static const unsigned long SPEED_DECISION_INTERVAL = 10;
     static const unsigned long BRAKE_DURATION = 250;
 

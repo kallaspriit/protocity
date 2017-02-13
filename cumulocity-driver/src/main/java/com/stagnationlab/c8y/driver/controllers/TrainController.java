@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -142,15 +143,6 @@ public class TrainController extends AbstractController implements TrainStopEven
 			updateState(state);
 		}
 
-		private void handleSpeedUpdate(int realSpeed, int targetSpeed) {
-			log.debug("train real speed is now {} (target: {})", realSpeed, targetSpeed);
-
-			state.setRealSpeed(realSpeed);
-			state.setTargetSpeed(targetSpeed);
-
-			updateState(state);
-		}
-
 		void stop() {
 			log.debug("stopping train");
 
@@ -212,6 +204,8 @@ public class TrainController extends AbstractController implements TrainStopEven
 		}
 
 		private void handleObstacleDetectedEvent(float obstacleDistance) {
+			log.debug("train obstacle was detected at {}cm", obstacleDistance);
+
 			state.setIsObstacleDetected(true);
 			state.setObstacleDistance(obstacleDistance);
 
@@ -219,12 +213,16 @@ public class TrainController extends AbstractController implements TrainStopEven
 		}
 
 		private void handleObstacleClearedEvent() {
+			log.debug("train obstacle was cleared");
+
 			state.setIsObstacleDetected(false);
 
 			updateState(state);
 		}
 
 		private void handleSpeedChangedEvent(int realSpeed, int targetSpeed) {
+			log.debug("train real speed is now {} (target: {})", realSpeed, targetSpeed);
+
 			state.setRealSpeed(realSpeed);
 			state.setTargetSpeed(targetSpeed);
 
@@ -276,6 +274,8 @@ public class TrainController extends AbstractController implements TrainStopEven
 			train.forward();
 
 			TextToSpeech.INSTANCE.speak("Next stop: " + targetStopName, true);
+
+			reportNextStationName(targetStopName);
 		}
 
 		@Override
@@ -299,6 +299,8 @@ public class TrainController extends AbstractController implements TrainStopEven
 				train.stop();
 
 				stopTime = Util.now();
+
+				reportStoppedInStation();
 			}
 		}
 
@@ -418,6 +420,9 @@ public class TrainController extends AbstractController implements TrainStopEven
 		firstOperation.start();
 		train.start();
 		thread.start();
+
+		reportOperations();
+		reportCurrentOperationIndex();
 	}
 
 	@Override
@@ -459,6 +464,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 			log.debug("starting next operation: {}", nextOperation.getName());
 
 			nextOperation.start();
+			reportCurrentOperationIndex();
 		}
 	}
 
@@ -525,6 +531,37 @@ public class TrainController extends AbstractController implements TrainStopEven
 		operations.add(operation);
 	}
 
+	private void reportCurrentOperationIndex() {
+		state.setCurrentOperationIndex(currentOperationIndex);
 
+		updateState(state);
+	}
+
+	private void reportOperations() {
+		List<String> operationsNames = operations
+				.stream()
+				.map(TrainOperation::getName)
+				.collect(Collectors.toList());
+
+		state.setOperations(operationsNames);
+
+		updateState(state);
+	}
+
+	private void reportNextStationName(String nextStationName) {
+		String currentStopName = state.getNextStationName();
+
+		state.setPreviousStationName(currentStopName);
+		state.setNextStationName(nextStationName);
+		state.setIsInStation(false);
+
+		updateState(state);
+	}
+
+	private void reportStoppedInStation() {
+		state.setIsInStation(true);
+
+		updateState(state);
+	}
 
 }

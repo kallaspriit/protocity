@@ -1,5 +1,8 @@
 package com.stagnationlab.c8y.driver.fragments;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @SuppressWarnings("unused")
 public class TrainController {
 
@@ -9,6 +12,12 @@ public class TrainController {
 	private float obstacleDistance = 0.0f;
 	private float realSpeed = 0.0f;
 	private float targetSpeed = 0.0f;
+	private List<String> operations = new ArrayList<>();
+	private int currentOperationIndex = 0;
+	private boolean isInStation = false;
+	private boolean isCharging = false;
+	private String nextStationName = "";
+	private String previousStationName = "";
 
 	public float getBatteryVoltage() {
 		return batteryVoltage;
@@ -56,5 +65,53 @@ public class TrainController {
 
 	public void setTargetSpeed(float targetSpeed) {
 		this.targetSpeed = targetSpeed;
+	}
+
+	public List<String> getOperations() {
+		return operations;
+	}
+
+	public void setOperations(List<String> operations) {
+		this.operations = operations;
+	}
+
+	public int getCurrentOperationIndex() {
+		return currentOperationIndex;
+	}
+
+	public void setCurrentOperationIndex(int currentOperationIndex) {
+		this.currentOperationIndex = currentOperationIndex;
+	}
+
+	public boolean getIsInStation() {
+		return isInStation;
+	}
+
+	public void setIsInStation(boolean isInStation) {
+		this.isInStation = isInStation;
+	}
+
+	public boolean isCharging() {
+		return isCharging;
+	}
+
+	public void setCharging(boolean charging) {
+		isCharging = charging;
+	}
+
+	public String getNextStationName() {
+		return nextStationName;
+	}
+
+	public void setNextStationName(String nextStationName) {
+		this.nextStationName = nextStationName;
+	}
+
+	public String getPreviousStationName() {
+		return previousStationName;
+	}
+
+	public void setPreviousStationName(String previousStationName) {
+		this.previousStationName = previousStationName;
 	}
 }
