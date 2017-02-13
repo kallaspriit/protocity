@@ -62,6 +62,10 @@ bool NfcAdapter::checkTagPresent() {
     return shield->checkTagPresent(uid, (uint8_t*)&uidLength);
 }
 
+bool NfcAdapter::isReady() {
+    return shield->isReady();
+}
+
 bool NfcAdapter::erase()
 {
     bool success;

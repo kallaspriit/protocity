@@ -146,6 +146,7 @@ public:
     // async request and read
     bool requestTagPresent(uint8_t cardbaudrate);
     bool checkTagPresent(uint8_t *uid, uint8_t *uidLength);
+    bool isReady();
 
     // Mifare Classic functions
     bool mifareclassic_IsFirstBlock (uint32_t uiBlock);

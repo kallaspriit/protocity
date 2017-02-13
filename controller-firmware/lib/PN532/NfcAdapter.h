@@ -39,6 +39,7 @@ class NfcAdapter {
         // async
         bool requestTagPresent();
         bool checkTagPresent();
+        bool isReady();
 
 		uint32_t getVersionInfo();
     private:

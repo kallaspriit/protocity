@@ -128,6 +128,12 @@ bool NFC::performCheck() {
 }
 
 bool NFC::isCheckReady() {
+	if (!isCheckScheduled) {
+		return false;
+	}
+
+	//return adapter.isReady();
+
 	int timeSinceCheckSchedule = checkScheduleTimer.read_ms();
 
 	return timeSinceCheckSchedule >= CHECK_TIME_REQUIRED;

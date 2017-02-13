@@ -379,6 +379,10 @@ bool PN532::checkTagPresent(uint8_t *uid, uint8_t *uidLength) {
     return true;
 }
 
+bool PN532::isReady() {
+    return HAL(isReady)();
+}
+
 
 /***** Mifare Classic Functions ******/
 
