@@ -24,9 +24,13 @@ private:
 	bool enable();
 	void disable();
 
+	//void runUpdateThread();
+
 	void onTagRead(NfcTag &tag) override;
 	void onTagEnter(NfcTag &tag) override;
 	void onTagExit(std::string lastTagUid) override;
+
+	//Thread updateThread;
 
 	const PinName mosiPin;
 	const PinName misoPin;

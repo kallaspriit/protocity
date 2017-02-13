@@ -21,6 +21,15 @@ void PN532Capability::update(int deltaUs) {
 	nfc->update();
 }
 
+/*
+void PN532Capability::runUpdateThread() {
+	while (isEnabled) {
+		//nfc->update();
+		nfc->checkForTag();
+	}
+}
+*/
+
 CommandManager::Command::Response PN532Capability::handleCommand(CommandManager::Command *command) {
 	if (command->argumentCount < 3) {
         return command->createFailureResponse("no capability action requested");
@@ -68,6 +77,8 @@ bool PN532Capability::enable() {
 	}
 
 	isEnabled = true;
+
+	//updateThread.start(this, &PN532Capability::runUpdateThread);
 
 	return true;
 }
@@ -117,7 +128,7 @@ void PN532Capability::onTagEnter(NfcTag &tag) {
 		}
 	}
 
-	if (tagName.size() > 0) {
+	if (tagName.size() > 0 && tagName != activeTagName) {
 		// printf("# '%s' (%s) ENTER\n", tagName.c_str(), tag.getUidString().c_str());
 
 		snprintf(sendBuffer, SEND_BUFFER_SIZE, "enter:%s", tagName.c_str());

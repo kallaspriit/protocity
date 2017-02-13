@@ -264,9 +264,9 @@ bool WeatherStationCapability::enable() {
     barometerTimer.start();
     soundmeterTimer.start();
 
-	updateThread.start(this, &WeatherStationCapability::runUpdateThread);
-
 	isEnabled = true;
+
+	updateThread.start(this, &WeatherStationCapability::runUpdateThread);
 
 	return true;
 }

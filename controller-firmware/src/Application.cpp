@@ -28,7 +28,6 @@ Application::Application(Config *config, Serial *serial) :
 void Application::run() {
 	setup();
 	testSetup();
-	sendReadyEvent();
 
 	while (true) {
 		loop();
@@ -55,12 +54,6 @@ void Application::loop() {
 	updateHeartbeat(deltaUs);
 
 	mainLoopLed = !mainLoopLed;
-}
-
-void Application::sendReadyEvent() {
-	snprintf(sendBuffer, SEND_BUFFER_SIZE, "0:READY:%s\n", config->version.c_str());
-
-	enqueueMessage(std::string(sendBuffer));
 }
 
 void Application::setupSerial() {

@@ -93,6 +93,10 @@ private:
     void handleClientDisconnected();
     void handleMessage(String message);
 
+    // obstacle detection
+    void handleObstacleDetected();
+    void handleObstacleCleared();
+
     // handle commands
     void handleCommand(int requestId, String command, String parameters[], int parameterCount);
     void handlePingCommand(int requestId, String parameters[], int parameterCount);

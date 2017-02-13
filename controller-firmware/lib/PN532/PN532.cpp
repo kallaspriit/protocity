@@ -749,7 +749,9 @@ bool PN532::inDataExchange(uint8_t *send, uint8_t sendLength, uint8_t *response,
         return false;
     }
 
-    int16_t status = HAL(readResponse)(response, *responseLength, 100);
+    int16_t status = HAL(readResponse)(response, *responseLength, 1000);
+    // int16_t status = HAL(readResponse)(response, *responseLength, 100);
+
     if (status < 0) {
         return false;
     }

@@ -526,26 +526,13 @@ void Application::applyMotorSpeed() {
         if (!wasObstacleDetected) {
             wasObstacleDetected = true;
 
-            if (motorSpeed != 0) {
-                log("obstacle detected, stopping train");
-
-                stopMotor();
-                //brakeMotor();
-            }
-
-            sendObstacleDetectedEvent(obstacleDistance);
+            handleObstacleDetected();
         }
 
         obstacleDetectedFrames++;
     } else {
         if (wasObstacleDetected) {
-            sendObstacleClearedEvent();
-
-            if (targetSpeed != 0) {
-                log("obstacle cleared, resuming target speed of %d%%", targetSpeed);
-
-                setMotorSpeed(targetSpeed);
-            }
+            handleObstacleCleared();
 
             wasObstacleDetected = false;
             obstacleDetectedFrames = 0;
@@ -555,4 +542,31 @@ void Application::applyMotorSpeed() {
             setMotorSpeed(targetSpeed);
         }
     }
+}
+
+void Application::handleObstacleDetected() {
+    /*
+    // stop the train
+    if (motorSpeed != 0) {
+        log("obstacle detected, stopping train");
+
+        stopMotor();
+        //brakeMotor();
+    }
+    */
+
+    sendObstacleDetectedEvent(obstacleDistance);
+}
+
+void Application::handleObstacleCleared() {
+    sendObstacleClearedEvent();
+
+    /*
+    // restart the train if it was moving before
+    if (targetSpeed != 0) {
+        log("obstacle cleared, resuming target speed of %d%%", targetSpeed);
+
+        setMotorSpeed(targetSpeed);
+    }
+    */
 }

@@ -36,7 +36,6 @@ private:
 	// main lifecycle methods
 	void setup();					// sets up the system
 	void loop();					// main loop that gets continuously called
-	void sendReadyEvent();
 
 	// application setup methods
 	void setupSerial();

@@ -31,7 +31,8 @@ void NFC::addEventListener(NfcEventListener *listener) {
 }
 
 void NFC::checkForTag() {
-	if (!adapter.tagPresent()) {
+	// if (!adapter.tagPresent()) {
+	if (!adapter.tagPresent(100)) {
 		bool wasTagPresent = activeTagUid.size() > 0;
 
 		if (wasTagPresent) {
@@ -87,6 +88,18 @@ bool NFC::scheduleCheck() {
 	return true;
 }
 
+bool NFC::isCheckReady() {
+	if (!isCheckScheduled) {
+		return false;
+	}
+
+	//return adapter.isReady();
+
+	int timeSinceCheckSchedule = checkScheduleTimer.read_ms();
+
+	return timeSinceCheckSchedule >= CHECK_TIME_REQUIRED;
+}
+
 bool NFC::performCheck() {
 	bool isTagPresent = adapter.checkTagPresent();
 
@@ -125,18 +138,6 @@ bool NFC::performCheck() {
 	}
 
 	return isTagPresent;
-}
-
-bool NFC::isCheckReady() {
-	if (!isCheckScheduled) {
-		return false;
-	}
-
-	//return adapter.isReady();
-
-	int timeSinceCheckSchedule = checkScheduleTimer.read_ms();
-
-	return timeSinceCheckSchedule >= CHECK_TIME_REQUIRED;
 }
 
 std::string NFC::getRecordPayload(NdefRecord &record) {
