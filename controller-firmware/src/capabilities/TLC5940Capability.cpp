@@ -123,7 +123,7 @@ CommandManager::Command::Response TLC5940Capability::handleValuesCommand(Command
 		int channel = atoi(channelValueTokens.at(0).c_str());
 		float value = atof(channelValueTokens.at(1).c_str());
 
-		printf("#  - %s > %d:%f\n", channelValuePair.c_str(), channel, value);
+		printf("#  setting channel %d to %f\n", channelValuePair.c_str(), channel, value);
 
 		if (!setChannelValue(channel, value)) {
 			return command->createFailureResponse("setting requested values failed, check parameters");
@@ -168,6 +168,13 @@ bool TLC5940Capability::enable() {
 	tlc5940 = new TLC5940(sclkPin, mosiPin, gsclkPin, blankPin, portController->getPinName(), vprgPin, chainLength);
 
 	isEnabled = true;
+
+	int channelCount = chainLength * CHANNEL_COUNT;
+
+	// initialize all channels to off state
+	for (int channel = 0; channel < channelCount; channel++) {
+		setChannelValue(channel, 0.0f);
+	}
 
 	return true;
 }

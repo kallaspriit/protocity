@@ -24,10 +24,13 @@ import c8y.lx.driver.OperationExecutor;
 public class LightingController extends AbstractController {
 
 	private static final Logger log = LoggerFactory.getLogger(LightingController.class);
+	public static final float LIGHT_LEVEL_CHANGE_THRESHOLD = 0.01f;
+	public static final float LIGHT_LEVEL_TURN_ON_THRESHOLD = 0.2f;
+	public static final float LIGHT_LEVEL_TURN_OFF_THRESHOLD = 0.1f;
 
 	private final com.stagnationlab.c8y.driver.fragments.LightingController state = new com.stagnationlab.c8y.driver.fragments.LightingController();
 	private final Map<String, AbstractMultiDacActuator> driverMap = new HashMap<>();
-	private float lastAutomaticLightLevel = -1.0f;
+	private float lastAutomaticLightLevel = 0.0f;
 
 	public LightingController(String id, Map<String, Commander> commanders, Config config, EventBroker eventBroker) {
 		super(id, commanders, config, eventBroker);
@@ -63,22 +66,29 @@ public class LightingController extends AbstractController {
 		super.start();
 
 		log.info("starting lighting controller");
-
-		int lightCount = config.getInt("lighting.lightCount");
-
-		for (int lightNumber = 0; lightNumber < lightCount; lightNumber++) {
-			setLightLevel(lightNumber, 0.0f);
-		}
 	}
 
 	private void handleLightmeterChangeEvent(float detectedLightLevel) {
 		float outputLightLevel = Util.map(detectedLightLevel, 10.0f, 200.0f, 0.5f, 0.0f);
+		boolean areLightsCurrentlyOn = lastAutomaticLightLevel > 0.0f;
+		boolean forceUpdate = false;
 
-		if (outputLightLevel < 0.1f) {
+		// avoid flickering the light on and off, require a certain threshold for turning it on
+		if (
+				(!areLightsCurrentlyOn && outputLightLevel < LIGHT_LEVEL_TURN_ON_THRESHOLD)
+				|| (areLightsCurrentlyOn && outputLightLevel <= LIGHT_LEVEL_TURN_OFF_THRESHOLD)
+		) {
 			outputLightLevel = 0.0f;
-		}
 
-		if (Math.abs(outputLightLevel - lastAutomaticLightLevel) > 0.1f) {
+			if (outputLightLevel != lastAutomaticLightLevel) {
+				forceUpdate = true;
+			}
+		}
+		
+		boolean isChangeSignificant = Math.abs(outputLightLevel - lastAutomaticLightLevel) >= LIGHT_LEVEL_CHANGE_THRESHOLD;
+
+		// only change the output level if the change is larger than some threshold or update is forced
+		if (forceUpdate || isChangeSignificant) {
 			setAllLightLevels(outputLightLevel);
 
 			lastAutomaticLightLevel = outputLightLevel;
