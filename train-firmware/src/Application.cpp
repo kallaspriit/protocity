@@ -1,33 +1,25 @@
 #include "Application.hpp"
 
-Application::Application() :
-    server(SERVER_PORT),
+Application::Application(int port) :
+    SocketApplication(port),
     adc(ADC_SLAVE_SELECT_PIN)
 {}
 
 void Application::setup() {
-    setupSerial();
+    SocketApplication::setup();
+
     setupPinModes();
     setupAdc();
     setupMotorController();
-    setupWifiConnection();
     setupBatteryMonitor();
-    setupServer();
 }
 
-void Application::setupSerial() {
-    Serial.begin(115200);
-    delay(100);
-    Serial.print("\n\n");
-}
 
 void Application::setupPinModes() {
     log("setting up pin-modes");
 
-    pinMode(DEBUG_LED_PIN, OUTPUT);
     pinMode(MOTOR_CONTROL_PIN_A, OUTPUT);
     pinMode(MOTOR_CONTROL_PIN_B, OUTPUT);
-    pinMode(BATTERY_VOLTAGE_PIN, INPUT);
 }
 
 void Application::setupAdc() {
@@ -44,81 +36,16 @@ void Application::setupMotorController() {
     stopMotor();
 }
 
-void Application::setupWifiConnection() {
-    log("setting up wifi connection");
-
-    WiFiManager wifiManager;
-    wifiManager.setDebugOutput(false);
-    wifiManager.autoConnect();
-
-    log("wifi connection established");
-
-    // show some diagnostics information
-    //WiFi.printDiag(Serial);
-}
-
 void Application::setupBatteryMonitor() {
     initialBatteryVoltage = getBatteryVoltage();
 
     log("setting up battery monitor, initial voltage: %sV", String(initialBatteryVoltage).c_str());
 }
 
-void Application::setupServer() {
-    log("setting up server.. ");
-
-    // start tcp socket server
-    server.begin();
-
-    log("server started on %s:%d", WiFi.localIP().toString().c_str(), SERVER_PORT);
-}
-
 void Application::loop() {
-    loopSerial();
-    loopServer();
+    SocketApplication::loop();
+
     loopMotorController();
-}
-
-void Application::loopSerial() {
-    while (Serial.available() > 0) {
-        char character = Serial.read();
-
-        if (character == '\n') {
-            commandBuffer[commandLength++] = '\0';
-
-            handleMessage(String(commandBuffer));
-
-            commandLength = 0;
-        } else {
-            commandBuffer[commandLength++] = character;
-        }
-
-        // avoid buffer overflow
-        if (commandLength == COMMAND_BUFFER_SIZE -1) {
-            break;
-        }
-    }
-}
-
-void Application::loopServer() {
-    if (!client.connected()) {
-        if (wasClientConnected) {
-            handleClientDisconnected();
-
-            wasClientConnected = false;
-        }
-
-        client = server.available();
-
-        if (client.connected()) {
-            handleClientConnected();
-
-            wasClientConnected = true;
-        }
-    } else {
-        if (client.available() > 0) {
-            handleClientDataAvailable();
-        }
-    }
 }
 
 void Application::loopMotorController() {
@@ -132,70 +59,18 @@ void Application::loopMotorController() {
     }
 }
 
-void Application::handleClientConnected() {
-    log("client connected, remote ip: %s", client.remoteIP().toString().c_str());
-}
-
-void Application::handleClientDataAvailable() {
-    while (client.available()) {
-        char character = client.read();
-
-        if (character == '\n') {
-            receiveBuffer[receiveLength++] = '\0';
-
-            handleMessage(String(receiveBuffer));
-
-            //client.flush();
-
-            receiveLength = 0;
-        } else {
-            receiveBuffer[receiveLength++] = character;
-        }
-
-        // avoid buffer overflow
-        if (receiveLength == RECEIVE_BUFFER_SIZE -1) {
-            break;
-        }
-    }
-}
-
 void Application::handleClientDisconnected() {
-    log("client disconnected, stopping motor");
+    SocketApplication::handleClientDisconnected();
 
     targetSpeed = 0;
 }
 
-void Application::handleMessage(String message) {
-    if (message.length() == 0) {
-        return;
+bool Application::handleCommand(int requestId, String command, String parameters[], int parameterCount) {
+    if (SocketApplication::handleCommand(requestId, command, parameters, parameterCount)) {
+        return true;
     }
 
-    Serial.print("< ");
-    Serial.print(message + String("\n"));
-
-    commander.parseCommand(message);
-
-    if (commander.isValid) {
-        handleCommand(commander.id, commander.command, commander.parameters, commander.parameterCount);
-    } else {
-        log("got incomplete command message '%s', expected something like 1:command:arg1:arg2", message.c_str());
-
-        sendErrorMessage(commander.id, "incomplete command");
-    }
-}
-
-void Application::handleCommand(int requestId, String command, String parameters[], int parameterCount) {
-    if (command == "ping") {
-        handlePingCommand(requestId, parameters, parameterCount);
-    } else if (command == "version") {
-        handleVersionCommand(requestId, parameters, parameterCount);
-    } else if (command == "set-led") {
-        handleSetLedCommand(requestId, parameters, parameterCount);
-    } else if (command == "get-led") {
-        handleGetLedCommand(requestId, parameters, parameterCount);
-    } else if (command == "toggle-led") {
-        handleToggleLedCommand(requestId, parameters, parameterCount);
-    } else if (command == "set-speed") {
+    if (command == "set-speed") {
         handleSetSpeedCommand(requestId, parameters, parameterCount);
     } else if (command == "get-speed") {
         handleGetSpeedCommand(requestId, parameters, parameterCount);
@@ -205,53 +80,11 @@ void Application::handleCommand(int requestId, String command, String parameters
         handleGetObstacleDistanceCommand(requestId, parameters, parameterCount);
     } else {
         handleUnsupportedCommand(requestId, command, parameters, parameterCount);
-    }
-}
 
-void Application::handleVersionCommand(int requestId, String parameters[], int parameterCount) {
-    sendSuccessMessage(requestId, version);
-}
-
-void Application::handlePingCommand(int requestId, String parameters[], int parameterCount) {
-    sendSuccessMessage(requestId, "pong");
-}
-
-void Application::handleSetLedCommand(int requestId, String parameters[], int parameterCount) {
-    if (parameterCount != 1) {
-        return sendErrorMessage(requestId, "expected 1 parameter, for example '1:set-led:1'");
+        return false;
     }
 
-    int state = parameters[0].toInt() == 1 ? HIGH : LOW;
-
-    setDebugLed(state);
-
-    if (state) {
-        log("turning debug led on");
-    } else {
-        log("turning debug led off");
-    }
-
-    sendLedState(requestId);
-}
-
-void Application::handleGetLedCommand(int requestId, String parameters[], int parameterCount) {
-    if (parameterCount != 0) {
-        return sendErrorMessage(requestId, "expected no parameters, for example '1:get-led'");
-    }
-
-    sendLedState(requestId);
-}
-
-void Application::handleToggleLedCommand(int requestId, String parameters[], int parameterCount) {
-    if (parameterCount != 0) {
-        return sendErrorMessage(requestId, "expected no parameters, for example '1:toggle-led'");
-    }
-
-    toggleDebugLed();
-
-    log("toggling debug led");
-
-    sendLedState(requestId);
+    return true;
 }
 
 void Application::handleSetSpeedCommand(int requestId, String parameters[], int parameterCount) {
@@ -290,85 +123,6 @@ void Application::handleGetObstacleDistanceCommand(int requestId, String paramet
     sendObstacleDistance(requestId);
 }
 
-void Application::handleUnsupportedCommand(int requestId, String command, String parameters[], int parameterCount) {
-    log("got command #%d '%s' with %d parameters:", requestId, command.c_str(), parameterCount);
-
-    for (int i = 0; i < parameterCount; i++) {
-        log("  %d: %s", i, parameters[i].c_str());
-    }
-
-    sendErrorMessage(requestId, "unsupported command");
-}
-
-void Application::sendMessage(const char *fmt, ...) {
-    va_list args;
-    va_start(args, fmt );
-    vsnprintf(logBuffer, LOG_BUFFER_SIZE, fmt, args);
-    va_end(args);
-
-    if (client.connected()) {
-        client.print(String(logBuffer) + String("\n"));
-
-        Serial.print(String("> ") + String(logBuffer) + String("\n"));
-    } else {
-        Serial.print(String("> ") + String(logBuffer) + String(" (no client connected)\n"));
-    }
-}
-
-void Application::sendMessage(String message) {
-    if (client.connected()) {
-        client.print(message + String("\n"));
-
-        Serial.print(String("> ") + message + String("\n"));
-    } else {
-        Serial.print(String("> ") + message + String(" (no client connected)\n"));
-    }
-}
-
-void Application::sendSuccessMessage(int requestId) {
-    sendMessage("%d:OK", requestId);
-}
-
-void Application::sendSuccessMessage(int requestId, int value) {
-    sendMessage("%d:OK:%d", requestId, value);
-}
-
-void Application::sendSuccessMessage(int requestId, int value1, int value2) {
-    sendMessage("%d:OK:%d:%d", requestId, value1, value2);
-}
-
-void Application::sendSuccessMessage(int requestId, String info) {
-    sendMessage("%d:OK:%s", requestId, info.c_str());
-}
-
-void Application::sendSuccessMessage(int requestId, String info1, String info2) {
-    sendMessage("%d:OK:%s:%s", requestId, info1.c_str(), info2.c_str());
-}
-
-void Application::sendErrorMessage(int requestId) {
-    sendMessage("%d:ERROR", requestId);
-}
-
-void Application::sendEventMessage(String event) {
-    sendMessage("0:%s", event.c_str());
-}
-
-void Application::sendEventMessage(String event, String info) {
-    sendMessage("0:%s:%s", event.c_str(), info.c_str());
-}
-
-void Application::sendEventMessage(String event, String info1, String info2) {
-    sendMessage("0:%s:%s:%s", event.c_str(), info1.c_str(), info2.c_str());
-}
-
-void Application::sendErrorMessage(int requestId, String reason) {
-    sendMessage("%d:ERROR:%s", requestId, reason.c_str());
-}
-
-void Application::sendLedState(int requestId) {
-    sendSuccessMessage(requestId, digitalRead(DEBUG_LED_PIN) == HIGH ? 1 : 0);
-}
-
 void Application::sendMotorSpeed(int requestId) {
     sendSuccessMessage(requestId, motorSpeed, targetSpeed);
 }
@@ -392,14 +146,6 @@ void Application::sendObstacleDetectedEvent(float distance) {
 
 void Application::sendObstacleClearedEvent() {
     sendEventMessage("obstacle-cleared", String(obstacleDetectedFrames));
-}
-
-void Application::log(const char *fmt, ...) {
-    va_list args;
-    va_start(args, fmt );
-    vsnprintf(logBuffer, LOG_BUFFER_SIZE, fmt, args);
-    va_end(args);
-    Serial.print(String("# ") + String(logBuffer) + String("\n"));
 }
 
 float Application::getBatteryVoltage() {
@@ -462,14 +208,6 @@ bool Application::isObstacleDetected() {
     obstacleDistance = getObstacleDistance();
 
     return obstacleDistance < OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM;
-}
-
-void Application::toggleDebugLed() {
-    setDebugLed(digitalRead(DEBUG_LED_PIN) == HIGH ? LOW : HIGH);
-}
-
-void Application::setDebugLed(int state) {
-    digitalWrite(DEBUG_LED_PIN, state == HIGH ? HIGH : LOW);
 }
 
 void Application::setMotorSpeed(int speed) {

@@ -1,6 +1,6 @@
 #include "Application.hpp"
 
-Application application = Application();
+Application application = Application(8080);
 
 void setup() {
     application.setup();

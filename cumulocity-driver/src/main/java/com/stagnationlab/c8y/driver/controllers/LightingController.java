@@ -84,7 +84,7 @@ public class LightingController extends AbstractController {
 				forceUpdate = true;
 			}
 		}
-		
+
 		boolean isChangeSignificant = Math.abs(outputLightLevel - lastAutomaticLightLevel) >= LIGHT_LEVEL_CHANGE_THRESHOLD;
 
 		// only change the output level if the change is larger than some threshold or update is forced

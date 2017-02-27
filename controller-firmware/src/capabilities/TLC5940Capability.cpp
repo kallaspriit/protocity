@@ -123,7 +123,7 @@ CommandManager::Command::Response TLC5940Capability::handleValuesCommand(Command
 		int channel = atoi(channelValueTokens.at(0).c_str());
 		float value = atof(channelValueTokens.at(1).c_str());
 
-		printf("#  setting channel %d to %f\n", channelValuePair.c_str(), channel, value);
+		printf("#  setting channel %d to %f\n", channel, value);
 
 		if (!setChannelValue(channel, value)) {
 			return command->createFailureResponse("setting requested values failed, check parameters");
