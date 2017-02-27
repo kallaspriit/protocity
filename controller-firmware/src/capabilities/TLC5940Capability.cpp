@@ -12,9 +12,9 @@ TLC5940Capability::TLC5940Capability(Serial *serial, PortController *portControl
 	gsclkPin(gsclkPin),
 	chainLength(chainLength)
 {
-	values = new unsigned short[chainLength * 16];
+	values = new unsigned short[chainLength * CHANNEL_COUNT];
 
-	for (int i = 0; i < chainLength * 16; i++) {
+	for (int i = 0; i < chainLength * CHANNEL_COUNT; i++) {
 		values[i] = 0x0000;
 	}
 }
@@ -35,7 +35,7 @@ CommandManager::Command::Response TLC5940Capability::handleCommand(CommandManage
 	if (command->argumentCount < 3) {
         return command->createFailureResponse("no capability action requested");
     }
-	
+
 	std::string action = command->getString(2);
 
 	if (action == "enable") {
@@ -46,6 +46,8 @@ CommandManager::Command::Response TLC5940Capability::handleCommand(CommandManage
 		return handleValueCommand(command);
 	} else if (action == "values") {
 		return handleValuesCommand(command);
+	} else if (action == "test") {
+		return handleTestCommand(command);
 	} else {
 		return command->createFailureResponse("invalid capability action requested");
 	}
@@ -85,6 +87,8 @@ CommandManager::Command::Response TLC5940Capability::handleValueCommand(CommandM
 		return command->createFailureResponse("setting requested value failed, check parameters");
 	}
 
+	printf("# set channel %d to %f\n", channel, value);
+
 	return command->createSuccessResponse();
 }
 
@@ -103,7 +107,7 @@ CommandManager::Command::Response TLC5940Capability::handleValuesCommand(Command
 
 	std::string values = command->getString(3);
 
-	printf("#requested to set values: %s\n", values.c_str());
+	printf("# requested to set values: %s\n", values.c_str());
 
 	std::vector<std::string> channelValuePairs = Util::split(values, ',');
 
@@ -124,6 +128,31 @@ CommandManager::Command::Response TLC5940Capability::handleValuesCommand(Command
 		if (!setChannelValue(channel, value)) {
 			return command->createFailureResponse("setting requested values failed, check parameters");
 		}
+	}
+
+	return command->createSuccessResponse();
+}
+
+CommandManager::Command::Response TLC5940Capability::handleTestCommand(CommandManager::Command *command) {
+	if (!isEnabled) {
+		printf("# test requested but enable not called, enabling led driver\n");
+
+		if (!enable()) {
+			return command->createFailureResponse("enabling TLC5940 led driver failed");
+		}
+	}
+
+	int channelCount = chainLength * CHANNEL_COUNT;
+
+	// fade all channels in and out once, blocks the thread!
+	for (int i = 0; i <= 200; i++) {
+		float value = (float)(i < 100 ? i : 200 - i) / 100.0f;
+
+		for (int channel = 0; channel < channelCount; channel++) {
+			setChannelValue(channel, value);
+		}
+
+		Thread::wait(10);
 	}
 
 	return command->createSuccessResponse();
@@ -161,7 +190,7 @@ bool TLC5940Capability::setChannelValue(int channel, float value) {
 		return false;
 	}
 
-	int maxChannel = chainLength * 16 - 1;
+	int maxChannel = chainLength * CHANNEL_COUNT - 1;
 
 	if (channel < 0 || channel > maxChannel) {
 		return false;
@@ -176,8 +205,6 @@ bool TLC5940Capability::setChannelValue(int channel, float value) {
 	values[channel] = rawValue;
 
 	tlc5940->setNewGSData(values);
-
-	printf("# set channel %d to %f (%d)\n", channel, value, rawValue);
 
 	return true;
 }
