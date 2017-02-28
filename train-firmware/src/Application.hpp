@@ -17,13 +17,12 @@ public:
 private:
 
     // provide version number
-    virtual String getVersion() { return "2.2.0"; };
+    virtual String getVersion() { return "2.3.0"; };
 
     // setup additional dependecies
     void setupPinModes();
     void setupAdc();
     void setupMotorController();
-    void setupBatteryMonitor();
 
     // application-specific loop handlers
     void loopMotorController();
@@ -67,19 +66,22 @@ private:
     void applyMotorSpeed();
 
     // configure pins
-    static const int MOTOR_CONTROL_PIN_A    = 0;
-    static const int MOTOR_CONTROL_PIN_B    = 4;
-    static const int ADC_SLAVE_SELECT_PIN   = 2;
+    const int MOTOR_CONTROL_PIN_A    = 0;
+    const int MOTOR_CONTROL_PIN_B    = 4;
+    const int ADC_SLAVE_SELECT_PIN   = 2;
 
     // environment config
-    static const int ANALOG_MAX_VALUE = 1023;
+    const int ANALOG_MAX_VALUE = 1023;
     const float MAX_ADC_READING_VOLTAGE = 3.3f; // Vcc/Vref pin
-    static const int MAX_ADC_READING_VALE = 4095;
+    const int MAX_ADC_READING_VALUE = 4095;
 
     // behaviour config
     const float OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM = 10.0f;
-    static const unsigned long SPEED_DECISION_INTERVAL = 10;
-    static const unsigned long BRAKE_DURATION = 250;
+    const unsigned long SPEED_DECISION_INTERVAL = 10;
+    const unsigned long BRAKE_DURATION = 250;
+    const float BATTERY_VOLTAGE_DIVIDER_RESISTOR_1 = 8200.0f;       // between input and output
+    const float BATTERY_VOLTAGE_DIVIDER_RESISTOR_2 = 15000.0f;      // between input and ground
+    const float BATTERY_VOLTAGE_CALIBRATION_MULTIPLIER = 0.99f;     // multimeter-measured voltage / reported voltage
 
     // dependencies
     MCP320X adc;
@@ -94,7 +96,6 @@ private:
     float obstacleDistance = 0.0f;
     int obstacleDetectedFrames = 0;
     bool wasObstacleDetected = false;
-    float initialBatteryVoltage = 0.0f;
 };
 
 #endif

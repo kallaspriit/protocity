@@ -11,7 +11,6 @@ void Application::setup() {
     setupPinModes();
     setupAdc();
     setupMotorController();
-    setupBatteryMonitor();
 }
 
 
@@ -34,12 +33,6 @@ void Application::setupMotorController() {
 
     // make the motor brake by default
     stopMotor();
-}
-
-void Application::setupBatteryMonitor() {
-    initialBatteryVoltage = getBatteryVoltage();
-
-    log("setting up battery monitor, initial voltage: %sV", String(initialBatteryVoltage).c_str());
 }
 
 void Application::loop() {
@@ -149,13 +142,16 @@ void Application::sendObstacleClearedEvent() {
 }
 
 float Application::getBatteryVoltage() {
-    float resistor1 = 8200.0; // between input and output
-    float resistor2 = 15000.0f; // between input and ground
-    float calibrationMultiplier = 0.99f; // multimeter-measured voltage / reported voltage
-
     int reading = adc.read12(adc.SINGLE_CH0);
 
-    float actualVoltage = calculateAdcVoltage(reading, MAX_ADC_READING_VALE, MAX_ADC_READING_VOLTAGE, resistor1, resistor2, calibrationMultiplier);
+    float actualVoltage = calculateAdcVoltage(
+        reading,
+        MAX_ADC_READING_VALUE,
+        MAX_ADC_READING_VOLTAGE,
+        BATTERY_VOLTAGE_DIVIDER_RESISTOR_1,
+        BATTERY_VOLTAGE_DIVIDER_RESISTOR_2,
+        BATTERY_VOLTAGE_CALIBRATION_MULTIPLIER
+    );
 
     return actualVoltage;
 }
@@ -198,7 +194,7 @@ int Application::getBatteryChargePercentage(float voltage) {
 float Application::getObstacleDistance() {
     int reading = adc.read12(adc.SINGLE_CH1);
 
-    float voltage = calculateAdcVoltage(reading, MAX_ADC_READING_VALE, MAX_ADC_READING_VOLTAGE, 0, 1, 1.0);
+    float voltage = calculateAdcVoltage(reading, MAX_ADC_READING_VALUE, MAX_ADC_READING_VOLTAGE, 0, 1, 1.0);
     float distance = max(min(13.0f * pow(voltage, -1), 30.0f), 4.0f);
 
     return distance;
