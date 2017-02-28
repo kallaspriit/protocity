@@ -213,7 +213,7 @@ void Application::setMotorSpeed(int speed) {
 
     speed = min(max(speed, -100), 100);
 
-    int analogOutValue = (int)(((float)abs(speed) / 100.0f) * (float)ANALOG_MAX_VALUE);
+    int analogOutValue = (int)(((float)abs(speed) / 100.0f) * (float)ANALOG_OUT_RANGE);
 
     log("setting motor to %s at %d%% speed", speed > 0 ? "move forward" : speed < 0 ? "move in reverse" : "stop", speed);
 
@@ -221,14 +221,14 @@ void Application::setMotorSpeed(int speed) {
 
     // set outputs
     if (speed == 0) {
-        analogWrite(MOTOR_CONTROL_PIN_A, ANALOG_MAX_VALUE);
-        analogWrite(MOTOR_CONTROL_PIN_B, ANALOG_MAX_VALUE);
+        analogWrite(MOTOR_CONTROL_PIN_A, ANALOG_OUT_RANGE);
+        analogWrite(MOTOR_CONTROL_PIN_B, ANALOG_OUT_RANGE);
     } else if (speed > 0) {
-        analogWrite(MOTOR_CONTROL_PIN_A, ANALOG_MAX_VALUE);
-        analogWrite(MOTOR_CONTROL_PIN_B, ANALOG_MAX_VALUE - analogOutValue);
+        analogWrite(MOTOR_CONTROL_PIN_A, ANALOG_OUT_RANGE);
+        analogWrite(MOTOR_CONTROL_PIN_B, ANALOG_OUT_RANGE - analogOutValue);
     } else {
-        analogWrite(MOTOR_CONTROL_PIN_A, ANALOG_MAX_VALUE - analogOutValue);
-        analogWrite(MOTOR_CONTROL_PIN_B, ANALOG_MAX_VALUE);
+        analogWrite(MOTOR_CONTROL_PIN_A, ANALOG_OUT_RANGE - analogOutValue);
+        analogWrite(MOTOR_CONTROL_PIN_B, ANALOG_OUT_RANGE);
     }
 
     sendEventMessage("speed-changed", String(motorSpeed), String(targetSpeed));

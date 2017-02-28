@@ -71,7 +71,9 @@ private:
     const int ADC_SLAVE_SELECT_PIN   = 2;
 
     // environment config
-    const int ANALOG_MAX_VALUE = 1023;
+    const int ANALOG_OUT_RANGE = 1023;
+
+    // analog-to-digital converter config
     const float MAX_ADC_READING_VOLTAGE = 3.3f; // Vcc/Vref pin
     const int MAX_ADC_READING_VALUE = 4095;
 
@@ -79,6 +81,8 @@ private:
     const float OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM = 10.0f;
     const unsigned long SPEED_DECISION_INTERVAL = 10;
     const unsigned long BRAKE_DURATION = 250;
+
+    // battery voltage detection config
     const float BATTERY_VOLTAGE_DIVIDER_RESISTOR_1 = 8200.0f;       // between input and output
     const float BATTERY_VOLTAGE_DIVIDER_RESISTOR_2 = 15000.0f;      // between input and ground
     const float BATTERY_VOLTAGE_CALIBRATION_MULTIPLIER = 0.99f;     // multimeter-measured voltage / reported voltage
