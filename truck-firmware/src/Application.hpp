@@ -24,7 +24,7 @@ private:
     };
 
     // provide version number
-    virtual String getVersion() { return "2.6.0"; };
+    virtual String getVersion() { return "2.8.0"; };
 
     // setup additional dependecies
     void setupPinModes();

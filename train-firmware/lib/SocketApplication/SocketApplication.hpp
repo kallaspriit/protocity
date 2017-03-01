@@ -58,10 +58,12 @@ protected:
     virtual void sendSuccessMessage(int requestId, int value1, int value2);
     virtual void sendSuccessMessage(int requestId, String info);
     virtual void sendSuccessMessage(int requestId, String info1, String info2);
+    virtual void sendSuccessMessage(int requestId, String info1, String info2, String info3);
     virtual void sendErrorMessage(int requestId);
     virtual void sendEventMessage(String event);
     virtual void sendEventMessage(String event, String info);
     virtual void sendEventMessage(String event, String info1, String info2);
+    virtual void sendEventMessage(String event, String info1, String info2, String info3);
     virtual void sendErrorMessage(int requestId, String reason);
 
     // debug led handling

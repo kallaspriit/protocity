@@ -7,7 +7,7 @@ import java.util.List;
 public class TrainController {
 
 	private float batteryVoltage = 0.0f;
-	private int chargePercentage = 0;
+	private int batteryChargePercentage = 0;
 	private boolean isObstacleDetected = false;
 	private float obstacleDistance = 0.0f;
 	private float realSpeed = 0.0f;
@@ -27,12 +27,12 @@ public class TrainController {
 		this.batteryVoltage = batteryVoltage;
 	}
 
-	public int getChargePercentage() {
-		return chargePercentage;
+	public int getBatteryChargePercentage() {
+		return batteryChargePercentage;
 	}
 
-	public void setChargePercentage(int chargePercentage) {
-		this.chargePercentage = chargePercentage;
+	public void setBatteryChargePercentage(int batteryChargePercentage) {
+		this.batteryChargePercentage = batteryChargePercentage;
 	}
 
 	public boolean getIsObstacleDetected() {

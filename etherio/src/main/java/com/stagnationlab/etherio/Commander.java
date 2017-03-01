@@ -103,7 +103,7 @@ public class Commander implements MessageTransport.MessageListener {
 		try {
 			handleResponse(responseCommand);
 		} catch (Exception e) {
-			log.warn("handling command '{}' failed ({})", responseCommand.toString(), e.getMessage());
+			log.warn("handling command '{}' failed ({} - {})", responseCommand.toString(), e.getClass().getSimpleName(), e.getMessage());
 		}
 	}
 

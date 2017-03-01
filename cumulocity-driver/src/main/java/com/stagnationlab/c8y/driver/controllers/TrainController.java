@@ -103,6 +103,8 @@ public class TrainController extends AbstractController implements TrainStopEven
 		private static final String EVENT_OBSTACLE_DETECTED = "obstacle-detected";
 		private static final String EVENT_OBSTACLE_CLEARED = "obstacle-cleared";
 		private static final String EVENT_SPEED_CHANGED = "speed-changed";
+		private static final String EVENT_BATTERY_CHARGE_STATE_CHANGED = "battery-charge-state-changed";
+		private static final String EVENT_BATTERY_VOLTAGE_CHANGED = "battery-voltage-changed";
 
 		Train(Commander commander) {
 			this.commander = commander;
@@ -122,23 +124,21 @@ public class TrainController extends AbstractController implements TrainStopEven
 		}
 
 		void requestBatteryVoltage() {
-			log.debug("requesting battery voltage");
-
 			commander.sendCommand(COMMAND_GET_BATTERY_VOLTAGE).thenAccept((Commander.CommandResponse result) -> {
-				float batteryVoltage = result.response.getFloat(0);
-				int chargePercentage = result.response.getInt(1);
+				boolean isCharging = result.response.getInt(0) == 1;
+				float batteryVoltage = result.response.getFloat(1);
+				int chargePercentage = result.response.getInt(2);
 
-				handleBatteryVoltageUpdate(batteryVoltage, chargePercentage);
+				handleBatteryVoltageUpdate(isCharging, batteryVoltage, chargePercentage);
 			});
-
-			log.debug("completed requesting battery voltage");
 		}
 
-		private void handleBatteryVoltageUpdate(float batteryVoltage, int chargePercentage) {
-			log.debug("battery voltage updated: {} ({}%}", batteryVoltage, chargePercentage);
+		private void handleBatteryVoltageUpdate(boolean isCharging, float batteryVoltage, int chargePercentage) {
+			log.debug("battery is {} with voltage: {} ({}%}", isCharging ? "charging" : "not charging", batteryVoltage, chargePercentage);
 
+			state.setIsCharging(isCharging);
 			state.setBatteryVoltage(batteryVoltage);
-			state.setChargePercentage(chargePercentage);
+			state.setBatteryChargePercentage(chargePercentage);
 
 			updateState(state);
 		}
@@ -160,7 +160,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 		private void setupEventListeners() {
 			commander.addSpecialCommandListener((Command command) -> {
-				log.debug("got train special command: {}", command.name);
+				log.debug("got train event: {}", command.name);
 
 				List<String> arguments = command.getArguments();
 
@@ -169,21 +169,45 @@ public class TrainController extends AbstractController implements TrainStopEven
 				}
 
 				switch (command.name) {
-					case EVENT_OBSTACLE_DETECTED:
+					case EVENT_OBSTACLE_DETECTED: {
 						float obstacleDistance = command.getFloat(0);
 
 						handleObstacleDetectedEvent(obstacleDistance);
 						break;
+					}
 
-					case EVENT_OBSTACLE_CLEARED:
+					case EVENT_OBSTACLE_CLEARED: {
 						handleObstacleClearedEvent();
 						break;
+					}
 
-					case EVENT_SPEED_CHANGED:
+					case EVENT_SPEED_CHANGED: {
 						int realSpeed = command.getInt(0);
 						int targetSpeed = command.getInt(1);
 
 						handleSpeedChangedEvent(realSpeed, targetSpeed);
+						break;
+					}
+
+					case EVENT_BATTERY_CHARGE_STATE_CHANGED: {
+						boolean isCharging = command.getInt(0) == 1;
+						float batteryVoltage = command.getFloat(1);
+						int batteryChargePercentage = command.getInt(2);
+
+						handleBatteryChargeStateChanged(isCharging, batteryVoltage, batteryChargePercentage);
+						break;
+					}
+
+					case EVENT_BATTERY_VOLTAGE_CHANGED: {
+						float batteryVoltage = command.getFloat(0);
+						int batteryChargePercentage = command.getInt(1);
+
+						handleBatteryVoltageChanged(batteryVoltage, batteryChargePercentage);
+						break;
+					}
+
+					default:
+						log.warn("train event '{}' is not handled", command.name);
 						break;
 				}
 			});
@@ -201,6 +225,25 @@ public class TrainController extends AbstractController implements TrainStopEven
 					}
 				}
 			}).start();
+		}
+
+		private void handleBatteryChargeStateChanged(boolean isCharging, float batteryVoltage, int batteryChargePercentage) {
+			log.debug("train is now {}, battery voltage: {}V ({})", isCharging ? "charging" : "not charging", batteryVoltage, batteryChargePercentage);
+
+			state.setIsCharging(isCharging);
+			state.setBatteryVoltage(batteryVoltage);
+			state.setBatteryChargePercentage(batteryChargePercentage);
+
+			updateState(state);
+		}
+
+		private void handleBatteryVoltageChanged(float batteryVoltage, int batteryChargePercentage) {
+			log.debug("train battery voltage is now {}V ({})", batteryVoltage, batteryChargePercentage);
+
+			state.setBatteryVoltage(batteryVoltage);
+			state.setBatteryChargePercentage(batteryChargePercentage);
+
+			updateState(state);
 		}
 
 		private void handleObstacleDetectedEvent(float obstacleDistance) {

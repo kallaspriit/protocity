@@ -77,9 +77,9 @@ void Application::loopBatteryMonitor() {
     // check for charge state change
     if (batteryChargeState != lastBatteryChargeState) {
         if (batteryChargeState == BatteryChargeState::CHARGE_STATE_CHARGING) {
-            sendEventMessage("battery-charging", String(batteryVoltage), String(chargePercentage));
+            sendEventMessage("battery-charge-state-changed", String(1), String(batteryVoltage), String(chargePercentage));
         } else if (batteryChargeState == BatteryChargeState::CHARGE_STATE_NOT_CHARGING) {
-            sendEventMessage("battery-not-charging", String(batteryVoltage), String(chargePercentage));
+            sendEventMessage("battery-charge-state-changed", String(0), String(batteryVoltage), String(chargePercentage));
         }
 
         lastBatteryChargeState = batteryChargeState;
@@ -164,10 +164,16 @@ void Application::sendMotorSpeed(int requestId) {
 }
 
 void Application::sendBatteryVoltage(int requestId) {
+    BatteryChargeState batteryChargeState = getBatteryChargeState();
     float voltage = getBatteryVoltage();
     int chargePercentage = getBatteryChargePercentage(voltage);
 
-    sendSuccessMessage(requestId, String(voltage), String(chargePercentage));
+    sendSuccessMessage(
+        requestId,
+        String(batteryChargeState == BatteryChargeState::CHARGE_STATE_CHARGING ? 1 : 0),
+        String(voltage),
+        String(chargePercentage)
+    );
 }
 
 void Application::sendObstacleDistance(int requestId) {
@@ -207,7 +213,7 @@ float Application::calculateAdcVoltage(int reading, int maxReading, float maxRea
 }
 
 int Application::getBatteryChargePercentage(float voltage) {
-    if (voltage >= 4.20f) {
+    if (voltage >= 4.19f) {
         return 100;
     } else if (voltage >= 4.15f) {
         return 90;

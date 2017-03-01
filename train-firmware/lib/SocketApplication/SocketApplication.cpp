@@ -217,6 +217,10 @@ void SocketApplication::sendSuccessMessage(int requestId, String info1, String i
     sendMessage("%d:OK:%s:%s", requestId, info1.c_str(), info2.c_str());
 }
 
+void SocketApplication::sendSuccessMessage(int requestId, String info1, String info2, String info3) {
+    sendMessage("%d:OK:%s:%s:%s", requestId, info1.c_str(), info2.c_str(), info3.c_str());
+}
+
 void SocketApplication::sendErrorMessage(int requestId) {
     sendMessage("%d:ERROR", requestId);
 }
@@ -231,6 +235,10 @@ void SocketApplication::sendEventMessage(String event, String info) {
 
 void SocketApplication::sendEventMessage(String event, String info1, String info2) {
     sendMessage("0:%s:%s:%s", event.c_str(), info1.c_str(), info2.c_str());
+}
+
+void SocketApplication::sendEventMessage(String event, String info1, String info2, String info3) {
+    sendMessage("0:%s:%s:%s:%s", event.c_str(), info1.c_str(), info2.c_str(), info3.c_str());
 }
 
 void SocketApplication::sendErrorMessage(int requestId, String reason) {
