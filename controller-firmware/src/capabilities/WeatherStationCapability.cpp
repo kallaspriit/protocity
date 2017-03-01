@@ -251,7 +251,11 @@ bool WeatherStationCapability::enable() {
     barometer = new MPL3115A2(sdaPin, sclPin, 0x60 << 1);
     soundmeter = new AnalogIn(portController->getPinName());
 
-    // configure sensors
+	// configure lightmeter
+	lightmeter->setGain(TSL2561_GAIN_0X);
+	lightmeter->setTiming(TSL2561_INTEGRATIONTIME_402MS);
+
+    // configure barometer
     barometer->Oversample_Ratio(OVERSAMPLE_RATIO_32);
 	barometer->Barometric_Mode();
 

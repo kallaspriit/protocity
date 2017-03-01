@@ -6,9 +6,11 @@ Application::Application(int port) :
 {}
 
 void Application::setup() {
+    setupPinModes();
+
     SocketApplication::setup();
 
-    setupPinModes();
+    setupChargeDetection();
     setupAdc();
     setupMotorController();
 }
@@ -19,6 +21,12 @@ void Application::setupPinModes() {
 
     pinMode(MOTOR_CONTROL_PIN_A, OUTPUT);
     pinMode(MOTOR_CONTROL_PIN_B, OUTPUT);
+}
+
+void Application::setupChargeDetection() {
+    log("setting up charge detection");
+
+    pinMode(CHARGE_DETECTION_PIN, INPUT);
 }
 
 void Application::setupAdc() {
@@ -39,6 +47,7 @@ void Application::loop() {
     SocketApplication::loop();
 
     loopMotorController();
+    loopBatteryMonitor();
 }
 
 void Application::loopMotorController() {
@@ -50,6 +59,40 @@ void Application::loopMotorController() {
 
         lastSpeedDecisionTime = currentTime;
     }
+}
+
+void Application::loopBatteryMonitor() {
+    unsigned long currentTime = millis();
+    unsigned long timeSinceLastCheck = currentTime - lastBatteryMonitorCheckTime;
+
+    // perform the check periodically without stopping the loop
+    if (timeSinceLastCheck < BATTERY_MONITOR_INTERVAL_MS) {
+        return;
+    }
+
+    BatteryChargeState batteryChargeState = getBatteryChargeState();
+    float batteryVoltage = getBatteryVoltage();
+    int chargePercentage = getBatteryChargePercentage(batteryVoltage);
+
+    // check for charge state change
+    if (batteryChargeState != lastBatteryChargeState) {
+        if (batteryChargeState == BatteryChargeState::CHARGE_STATE_CHARGING) {
+            sendEventMessage("battery-charging", String(batteryVoltage), String(chargePercentage));
+        } else if (batteryChargeState == BatteryChargeState::CHARGE_STATE_NOT_CHARGING) {
+            sendEventMessage("battery-not-charging", String(batteryVoltage), String(chargePercentage));
+        }
+
+        lastBatteryChargeState = batteryChargeState;
+    }
+
+    // check for battery voltage change
+    if (fabs(batteryVoltage - lastBatteryVoltage) >= BATTERY_VOLTAGE_CHANGE_THRESHOLD) {
+        sendEventMessage("battery-voltage-changed", String(batteryVoltage), String(chargePercentage));
+
+        lastBatteryVoltage = batteryVoltage;
+    }
+
+    lastBatteryMonitorCheckTime = currentTime;
 }
 
 void Application::handleClientDisconnected() {
@@ -188,6 +231,16 @@ int Application::getBatteryChargePercentage(float voltage) {
         return 5;
     } else {
         return 1;
+    }
+}
+
+Application::BatteryChargeState Application::getBatteryChargeState() {
+    int chargingState = digitalRead(CHARGE_DETECTION_PIN);
+
+    if (chargingState == HIGH) {
+        return BatteryChargeState::CHARGE_STATE_NOT_CHARGING;
+    } else {
+        return BatteryChargeState::CHARGE_STATE_CHARGING;
     }
 }
 

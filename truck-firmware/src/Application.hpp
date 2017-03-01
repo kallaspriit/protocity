@@ -24,7 +24,7 @@ private:
     };
 
     // provide version number
-    virtual String getVersion() { return "2.5.0"; };
+    virtual String getVersion() { return "2.6.0"; };
 
     // setup additional dependecies
     void setupPinModes();
@@ -49,15 +49,15 @@ private:
     int getBatteryChargePercentage(float voltage);
     BatteryChargeState getBatteryChargeState();
 
-    // configure pins
+    // pins config
     const int BATTERY_VOLTAGE_PIN = A0;
     const int CHARGE_DETECTION_PIN = 4;
 
-    // environment config
+    // analog-to-digital converter config
     const float MAX_ADC_READING_VOLTAGE = 1.0f; // Vcc/Vref pin
     const int MAX_ADC_READING_VALUE = 1023;
 
-    // behaviour config
+    // battery voltage detection config
     const unsigned long BATTERY_MONITOR_INTERVAL_MS = 500;
     const float BATTERY_VOLTAGE_CHANGE_THRESHOLD = 0.01f;
     const float BATTERY_VOLTAGE_DIVIDER_RESISTOR_1 = 8200.0f;       // between input and output

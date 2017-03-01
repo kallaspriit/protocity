@@ -91,11 +91,11 @@ public class TrainController {
 		this.isInStation = isInStation;
 	}
 
-	public boolean isCharging() {
+	public boolean getIsCharging() {
 		return isCharging;
 	}
 
-	public void setCharging(boolean charging) {
+	public void setIsCharging(boolean charging) {
 		isCharging = charging;
 	}
 

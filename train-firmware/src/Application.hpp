@@ -16,16 +16,25 @@ public:
 
 private:
 
+    // battery charge states
+    enum BatteryChargeState {
+        CHARGE_STATE_UNKNOWN,
+        CHARGE_STATE_CHARGING,
+        CHARGE_STATE_NOT_CHARGING
+    };
+
     // provide version number
-    virtual String getVersion() { return "2.3.0"; };
+    virtual String getVersion() { return "2.5.0"; };
 
     // setup additional dependecies
     void setupPinModes();
+    void setupChargeDetection();
     void setupAdc();
     void setupMotorController();
 
     // application-specific loop handlers
     void loopMotorController();
+    void loopBatteryMonitor();
 
     // handle events
     virtual void handleClientDisconnected();
@@ -43,6 +52,10 @@ private:
     void handleObstacleDetected();
     void handleObstacleCleared();
 
+    // disable debug led functionality (pin used for charge detection)
+    virtual void toggleDebugLed() {};
+    virtual void setDebugLed(int state) {};
+
     // send state to client
     void sendMotorSpeed(int requestId);
     void sendBatteryVoltage(int requestId);
@@ -54,6 +67,7 @@ private:
     float getBatteryVoltage();
     float calculateAdcVoltage(int reading, int maxReading, float maxReadingVoltage, float resistor1, float resistor2, float calibrationMultiplier);
     int getBatteryChargePercentage(float voltage);
+    BatteryChargeState getBatteryChargeState();
 
     // obstacle handling
     float getObstacleDistance();
@@ -66,9 +80,10 @@ private:
     void applyMotorSpeed();
 
     // configure pins
-    const int MOTOR_CONTROL_PIN_A    = 0;
-    const int MOTOR_CONTROL_PIN_B    = 4;
-    const int ADC_SLAVE_SELECT_PIN   = 2;
+    const int MOTOR_CONTROL_PIN_A = 0;
+    const int ADC_SLAVE_SELECT_PIN = 2;
+    const int MOTOR_CONTROL_PIN_B = 4;
+    const int CHARGE_DETECTION_PIN = 5; // also used by builtin led
 
     // environment config
     const int ANALOG_OUT_RANGE = 1023;
@@ -83,6 +98,8 @@ private:
     const unsigned long BRAKE_DURATION = 250;
 
     // battery voltage detection config
+    const unsigned long BATTERY_MONITOR_INTERVAL_MS = 500;
+    const float BATTERY_VOLTAGE_CHANGE_THRESHOLD = 0.01f;
     const float BATTERY_VOLTAGE_DIVIDER_RESISTOR_1 = 8200.0f;       // between input and output
     const float BATTERY_VOLTAGE_DIVIDER_RESISTOR_2 = 15000.0f;      // between input and ground
     const float BATTERY_VOLTAGE_CALIBRATION_MULTIPLIER = 0.99f;     // multimeter-measured voltage / reported voltage
@@ -100,6 +117,9 @@ private:
     float obstacleDistance = 0.0f;
     int obstacleDetectedFrames = 0;
     bool wasObstacleDetected = false;
+    unsigned long lastBatteryMonitorCheckTime = 0;
+    BatteryChargeState lastBatteryChargeState = BatteryChargeState::CHARGE_STATE_UNKNOWN;
+    float lastBatteryVoltage = 0.0f;
 };
 
 #endif

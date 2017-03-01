@@ -5,9 +5,9 @@ Application::Application(int port) :
 {}
 
 void Application::setup() {
-    SocketApplication::setup();
-
     setupPinModes();
+
+    SocketApplication::setup();
 }
 
 
