@@ -67,16 +67,18 @@ task deploy(dependsOn: 'jar') {
         throw new GradleException('Please set "CUMULOCITY_AGENT_HOME" environment variable to the Cumulocity agent root directory (C:/cumulocity-agent etc)')
     }
 
-    // copy the driver library
-    copy {
-        from 'build/libs'
-        into "${System.env.CUMULOCITY_AGENT_HOME}/lib"
-    }
+    doLast {
+        // copy the driver library
+        copy {
+            from 'build/libs'
+            into "${System.env.CUMULOCITY_AGENT_HOME}/lib"
+        }
 
-    // copy dependencies as well
-    copy {
-        from 'libs'
-        into "${System.env.CUMULOCITY_AGENT_HOME}/lib"
+        // copy dependencies as well
+        copy {
+            from 'libs'
+            into "${System.env.CUMULOCITY_AGENT_HOME}/lib"
+        }
     }
 }
 

@@ -19,6 +19,7 @@ import com.stagnationlab.etherio.PortController;
 
 interface TrainStopEventListener {
 	void onTrainEnter(String stopName);
+
 	void onTrainExit(String stopName);
 }
 
@@ -282,18 +283,24 @@ public class TrainController extends AbstractController implements TrainStopEven
 		}
 
 		public abstract void start();
+
 		public abstract void reset();
+
 		public abstract String getName();
+
 		public abstract boolean isComplete();
 
 		@SuppressWarnings("unused")
-		void step(long dt) {}
+		void step(long dt) {
+		}
 
 		@Override
-		public void onTrainEnter(String stopName) {}
+		public void onTrainEnter(String stopName) {
+		}
 
 		@Override
-		public void onTrainExit(String stopName) {}
+		public void onTrainExit(String stopName) {
+		}
 
 	}
 
@@ -348,7 +355,8 @@ public class TrainController extends AbstractController implements TrainStopEven
 		}
 
 		@Override
-		public void onTrainExit(String stopName) {}
+		public void onTrainExit(String stopName) {
+		}
 
 		public String getName() {
 			return "Drive to stop '" + targetStopName + "'";

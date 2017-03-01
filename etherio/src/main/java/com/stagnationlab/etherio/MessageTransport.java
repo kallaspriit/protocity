@@ -7,6 +7,7 @@ public interface MessageTransport {
         void onSocketOpen();
         void onSocketClose();
         void onSocketMessageReceived(String message);
+        void onSocketConnectionFailed(Exception e);
     }
 
     void addMessageListener(MessageListener messageListener);

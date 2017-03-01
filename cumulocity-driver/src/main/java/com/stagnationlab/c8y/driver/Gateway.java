@@ -19,7 +19,6 @@ import com.stagnationlab.c8y.driver.controllers.WeatherController;
 import com.stagnationlab.c8y.driver.devices.AbstractDevice;
 import com.stagnationlab.c8y.driver.services.Config;
 import com.stagnationlab.c8y.driver.services.EventBroker;
-import com.stagnationlab.c8y.driver.services.TextToSpeech;
 import com.stagnationlab.etherio.Commander;
 import com.stagnationlab.etherio.MessageTransport;
 import com.stagnationlab.etherio.SocketClient;
@@ -38,6 +37,8 @@ public class Gateway extends AbstractDevice {
 
 	private static final int DEFAULT_CONTROLLER_PORT = 8080;
 	private static final String CONFIG_FILENAME = "config.properties";
+	private static final int CONNECT_TIMEOUT = 3000;
+	private static final int RECONNECT_TIMEOUT = 5000;
 
 	public Gateway() {
 		super("Gateway");
@@ -147,19 +148,22 @@ public class Gateway extends AbstractDevice {
 		String host = config.getString("commander." + name + ".host");
 		int port = config.getInt("commander.\" + id + \".port", DEFAULT_CONTROLLER_PORT);
 
-		log.info("connecting to controller commander {} at {}:{}", name, host, port);
+		log.info("connecting to controller commander '{}' at {}:{}", name, host, port);
 
-		SocketClient socketClient = new SocketClient(host, port);
+		SocketClient socketClient = new SocketClient(host, port, RECONNECT_TIMEOUT);
+		Commander commander = new Commander(socketClient);
 
 		socketClient.addMessageListener(new MessageTransport.MessageListener() {
 			@Override
 			public void onSocketOpen() {
-				log.info("socket of controller {} at {}:{} was opened", name, host, port);
+				log.info("socket of controller '{}' at {}:{} was opened, requesting version", name, host, port);
+
+				commander.sendCommand("version").thenAccept(commandResponse -> log.info("commander '{}' version: {}", name, commandResponse.response.getString(0)));
 			}
 
 			@Override
 			public void onSocketClose() {
-				log.info("socket of controller {} at {}:{} was closed", name, host, port);
+				log.info("socket of controller '{}' at {}:{} was closed", name, host, port);
 			}
 
 			@Override
@@ -169,19 +173,16 @@ public class Gateway extends AbstractDevice {
 					return;
 				}
 
-				log.debug("got controller {} message: '{}'", name, message);
+				log.debug("got controller '{}' message: '{}'", name, message);
+			}
+
+			@Override
+			public void onSocketConnectionFailed(Exception e) {
+				log.debug("socket connection of controller '{}' to {}:{} failed ({} - {})", name, host, port, e.getClass().getSimpleName(), e.getMessage());
 			}
 		});
 
-		Commander commander = new Commander(socketClient);
-
-		try {
-			socketClient.connect();
-		} catch (IOException e) {
-			log.warn("connecting to controller {} at {}:{} failed ({} - {})", name, host, port, e.getClass().getSimpleName(), e.getMessage());
-		}
-
-		commander.sendCommand("version").thenAccept(commandResponse -> log.info("got commander {} version: {}", name, commandResponse.response.getString(0)));
+		socketClient.connect(CONNECT_TIMEOUT);
 
 		return commander;
 	}

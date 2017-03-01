@@ -107,6 +107,11 @@ public class Commander implements MessageTransport.MessageListener {
 		}
 	}
 
+	@Override
+	public void onSocketConnectionFailed(Exception e) {
+		log.warn("connecting to socket failed ({} - {})", e.getClass().getSimpleName(), e.getMessage());
+	}
+
 	private void handleResponse(Command responseCommand) {
 		if (responseCommand.id == 0) {
 			handleSpecialCommand(responseCommand);
