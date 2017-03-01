@@ -4,6 +4,7 @@ package com.stagnationlab.etherio;
 public interface MessageTransport {
 
     interface MessageListener {
+        void onSocketConnecting(boolean isReconnecting);
         void onSocketOpen();
         void onSocketClose();
         void onSocketMessageReceived(String message);

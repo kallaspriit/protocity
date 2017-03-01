@@ -155,6 +155,11 @@ public class Gateway extends AbstractDevice {
 
 		socketClient.addMessageListener(new MessageTransport.MessageListener() {
 			@Override
+			public void onSocketConnecting(boolean b) {
+				log.info("connecting to socket of controller '{}' at {}:{}", name, host, port);
+			}
+
+			@Override
 			public void onSocketOpen() {
 				log.info("socket of controller '{}' at {}:{} was opened, requesting version", name, host, port);
 

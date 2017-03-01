@@ -79,6 +79,11 @@ public class Commander implements MessageTransport.MessageListener {
 	}
 
 	@Override
+	public void onSocketConnecting(boolean isReconnecting) {
+		log.info("connecting to socket");
+	}
+
+	@Override
 	public void onSocketOpen() {
 		log.info("socket connection opened");
 	}
