@@ -3,8 +3,6 @@ package com.stagnationlab.c8y.driver.devices.etherio;
 import com.stagnationlab.c8y.driver.devices.AbstractRelayActuator;
 import com.stagnationlab.etherio.Commander;
 import com.stagnationlab.etherio.PortController;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class EtherioRelayActuator extends AbstractRelayActuator {
 

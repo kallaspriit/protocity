@@ -30,7 +30,7 @@ import com.cumulocity.sdk.client.measurement.MeasurementApi;
 public abstract class MeasurementPollingDriver extends PollingDriver {
 
     private MeasurementApi measurements;
-    private MeasurementRepresentation measurementRep = new MeasurementRepresentation();
+    private final MeasurementRepresentation measurementRep = new MeasurementRepresentation();
 
     public MeasurementPollingDriver(String measurementType, String pollingProp,
                                     long defaultPollingInterval) {

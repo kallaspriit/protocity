@@ -1,12 +1,12 @@
 package com.stagnationlab.c8y.driver.devices.simulated;
 
+import lombok.extern.slf4j.Slf4j;
+
 import com.stagnationlab.c8y.driver.devices.AbstractRelayActuator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("unused")
+@Slf4j
 public class SimulatedRelayActuator extends AbstractRelayActuator {
-
-    private static final Logger log = LoggerFactory.getLogger(SimulatedRelayActuator.class);
 
     public SimulatedRelayActuator(String id) {
         super(id);

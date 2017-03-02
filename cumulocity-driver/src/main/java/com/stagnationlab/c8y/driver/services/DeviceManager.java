@@ -1,21 +1,21 @@
 package com.stagnationlab.c8y.driver.services;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
+
+import com.cumulocity.model.ID;
+import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
+import com.cumulocity.sdk.client.Platform;
+
 import c8y.Hardware;
 import c8y.lx.driver.DeviceManagedObject;
 import c8y.lx.driver.OperationExecutor;
 import c8y.lx.driver.OpsUtil;
-import com.cumulocity.model.ID;
-import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
-import com.cumulocity.sdk.client.Platform;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-
+@Slf4j
 public class DeviceManager {
-
-    private static final Logger log = LoggerFactory.getLogger(DeviceManager.class);
 
     public static ManagedObjectRepresentation create(
             String id,

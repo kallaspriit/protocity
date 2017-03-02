@@ -2,8 +2,7 @@ package com.stagnationlab.c8y.driver.devices;
 
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import com.cumulocity.model.operation.OperationStatus;
 import com.cumulocity.rest.representation.operation.OperationRepresentation;
@@ -13,9 +12,8 @@ import com.stagnationlab.c8y.driver.services.Util;
 
 import c8y.lx.driver.OperationExecutor;
 
+@Slf4j
 public abstract class AbstractMultiDacActuator extends AbstractDevice {
-
-	private static final Logger log = LoggerFactory.getLogger(AbstractMultiDacActuator.class);
 
 	private final MultiDacActuator multiDacActuator;
 

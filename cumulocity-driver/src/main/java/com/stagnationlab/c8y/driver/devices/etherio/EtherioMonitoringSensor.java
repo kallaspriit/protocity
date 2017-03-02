@@ -18,23 +18,17 @@ public class EtherioMonitoringSensor extends AbstractMonitoringSensor {
 
 	@Override
 	public void start() {
-		setInterval(() -> {
-			commander.sendCommand("memory").thenAccept(
-					commandResponse -> {
-						int freeMemoryBytes = commandResponse.response.getInt(0);
+		setInterval(() -> commander.sendCommand("memory").thenAccept(
+				commandResponse -> {
+					int freeMemoryBytes = commandResponse.response.getInt(0);
 
-						MonitoringMeasurement monitoringMeasurement = new MonitoringMeasurement(
-								TOTAL_MEMORY_BYTES,
-								freeMemoryBytes
-						);
+					MonitoringMeasurement monitoringMeasurement = new MonitoringMeasurement(
+							TOTAL_MEMORY_BYTES,
+							freeMemoryBytes
+					);
 
-						reportMeasurement(monitoringMeasurement);
-					}
-			);
-
-
-
-
-		}, 5000);
+					reportMeasurement(monitoringMeasurement);
+				}
+		), 5000);
 	}
 }

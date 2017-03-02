@@ -15,7 +15,7 @@
 		</encoder>
 	</appender>
 
-	<!--logger name="com.stagnationlab" level="DEBUG"/-->
+	<logger name="com.stagnationlab" level="TRACE"/>
 
 	<root level="ERROR">
 		<appender-ref ref="STDOUT" />

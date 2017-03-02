@@ -6,8 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import com.stagnationlab.c8y.driver.services.Config;
 import com.stagnationlab.c8y.driver.services.EventBroker;
@@ -15,14 +14,15 @@ import com.stagnationlab.c8y.driver.services.TextToSpeech;
 import com.stagnationlab.c8y.driver.services.Util;
 import com.stagnationlab.etherio.Command;
 import com.stagnationlab.etherio.Commander;
+import com.stagnationlab.etherio.MessageTransport;
 import com.stagnationlab.etherio.PortController;
 
 interface TrainStopEventListener {
 	void onTrainEnter(String stopName);
-
 	void onTrainExit(String stopName);
 }
 
+@Slf4j
 public class TrainController extends AbstractController implements TrainStopEventListener, Runnable {
 
 	class TrainStop {
@@ -155,12 +155,19 @@ public class TrainController extends AbstractController implements TrainStopEven
 		}
 
 		public void start() {
+			commander.getMessageTransport().addEventListener(new MessageTransport.EventListener() {
+				@Override
+				public void onOpen() {
+					log.info("train commander transport has been opened");
+				}
+			});
+
 			setupEventListeners();
 			setupBatteryVoltageListener();
 		}
 
 		private void setupEventListeners() {
-			commander.addSpecialCommandListener((Command command) -> {
+			commander.addRemoteCommandListener((Command command) -> {
 				log.debug("got train event: {}", command.name);
 
 				List<String> arguments = command.getArguments();
@@ -290,23 +297,27 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 		public abstract boolean isComplete();
 
-		@SuppressWarnings("unused")
+		@SuppressWarnings({ "unused", "EmptyMethod" })
 		void step(long dt) {
+			// nothing by default
 		}
 
 		@Override
 		public void onTrainEnter(String stopName) {
+			// nothing to do
 		}
 
+		@SuppressWarnings("EmptyMethod")
 		@Override
 		public void onTrainExit(String stopName) {
+			// nothing to do
 		}
 
 	}
 
 	class DriveToStopTrainOperation extends TrainOperation {
 
-		private String targetStopName;
+		private final String targetStopName;
 		private boolean hasEnteredStop = false;
 		private boolean isStarted = false;
 		private long stopTime = 0;
@@ -403,13 +414,11 @@ public class TrainController extends AbstractController implements TrainStopEven
 		}
 	}
 
-	private static final Logger log = LoggerFactory.getLogger(TrainController.class);
-
 	private final com.stagnationlab.c8y.driver.fragments.TrainController state = new com.stagnationlab.c8y.driver.fragments.TrainController();
 	private final List<TrainOperation> operations = new ArrayList<>();
 	private final Map<Integer, TrainStop> stopMap = new HashMap<>();
 	private Train train;
-	private Thread thread;
+	private final Thread thread;
 	private int currentOperationIndex = 0;
 	private boolean isRunning = false;
 
@@ -435,9 +444,10 @@ public class TrainController extends AbstractController implements TrainStopEven
 		setupStops();
 	}
 
+	@SuppressWarnings("EmptyMethod")
 	@Override
 	public void handleEvent(String name, Object info) {
-
+		// nothing to do
 	}
 
 	@Override

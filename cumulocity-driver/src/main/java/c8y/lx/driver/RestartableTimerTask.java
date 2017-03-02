@@ -7,9 +7,10 @@ import java.util.TimerTask;
  * rescheduled. Pass a Runnable into this and create a new instance of this
  * class instead of creating a new instance of the Runnable.
  */
+@SuppressWarnings("WeakerAccess")
 public class RestartableTimerTask extends TimerTask {
 
-	private Runnable runnable;
+	private final Runnable runnable;
 
 	public RestartableTimerTask(Runnable runnable) {
 		this.runnable = runnable;

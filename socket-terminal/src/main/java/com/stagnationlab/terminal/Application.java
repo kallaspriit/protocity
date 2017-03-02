@@ -1,10 +1,15 @@
+package com.stagnationlab.terminal;
+
 import java.util.Scanner;
+
+import lombok.extern.slf4j.Slf4j;
 
 import com.stagnationlab.etherio.MessageTransport;
 import com.stagnationlab.etherio.SocketClient;
 
 @SuppressWarnings("SameParameterValue")
-public class Application implements MessageTransport.MessageListener, SocketClient.PingSender {
+@Slf4j
+public class Application implements MessageTransport.EventListener, SocketClient.PingStrategy {
 
 	// runtime configuration
 	private String hostName = "127.0.0.1";
@@ -25,6 +30,8 @@ public class Application implements MessageTransport.MessageListener, SocketClie
 	}
 
 	private void start() {
+		log.info("starting socket terminal");
+
 		scanner = new Scanner(System.in);
 		scanner.useDelimiter("");
 
@@ -32,8 +39,10 @@ public class Application implements MessageTransport.MessageListener, SocketClie
         portNumber = Integer.parseInt(askFor("Enter port", Integer.toString(portNumber)));
 
         socketClient = new SocketClient(hostName, portNumber, RECONNECT_TIMEOUT);
-        socketClient.addMessageListener(this);
-        socketClient.setPingSender(this, PING_INTERVAL);
+
+        socketClient.addEventListener(this);
+        socketClient.setPingStrategy(this, PING_INTERVAL);
+
 		socketClient.connect(CONNECT_TIMEOUT);
     }
 
@@ -58,7 +67,7 @@ public class Application implements MessageTransport.MessageListener, SocketClie
     }
 
 	@Override
-	public void onSocketConnecting(boolean isReconnecting) {
+	public void onConnecting(boolean isReconnecting) {
 		if (isReconnecting) {
 			System.out.printf("# reconnecting%n");
 		} else {
@@ -67,7 +76,7 @@ public class Application implements MessageTransport.MessageListener, SocketClie
 	}
 
 	@Override
-	public void onSocketOpen() {
+	public void onOpen() {
 		System.out.printf("# socket connection opened%n");
 
 		if (inputThread == null) {
@@ -80,7 +89,7 @@ public class Application implements MessageTransport.MessageListener, SocketClie
 					}
 
 					if (userInput.equals("quit")) {
-						System.out.printf("# quitting%n");
+						System.out.printf("# quitting, this can take a few seconds..%n");
 
 						didUserQuit = true;
 
@@ -106,22 +115,17 @@ public class Application implements MessageTransport.MessageListener, SocketClie
 	}
 
 	@Override
-	public void onSocketClose() {
+	public void onClose() {
 		System.out.printf("# socket connection closed%n");
 	}
 
 	@Override
-	public void onSocketMessageReceived(String message) {
-		// don't display heartbeat messages
-		if (message.length() >= 13 && message.substring(0, 11).equals("0:HEARTBEAT")) {
-			return;
-		}
-
+	public void onMessageReceived(String message) {
 		System.out.printf("< %s%n", message);
 	}
 
 	@Override
-	public void onSocketConnectionFailed(Exception e) {
+	public void onConnectionFailed(Exception e) {
 		System.out.printf("# connecting failed (%s - %s)%n", e.getClass().getSimpleName(), e.getMessage());
 	}
 

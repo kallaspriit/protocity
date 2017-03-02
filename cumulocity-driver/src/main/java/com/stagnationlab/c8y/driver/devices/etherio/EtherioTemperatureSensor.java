@@ -2,16 +2,15 @@ package com.stagnationlab.c8y.driver.devices.etherio;
 
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import com.stagnationlab.c8y.driver.devices.AbstractTemperatureSensor;
 import com.stagnationlab.etherio.Commander;
 import com.stagnationlab.etherio.PortController;
 
+@SuppressWarnings("unused")
+@Slf4j
 public class EtherioTemperatureSensor extends AbstractTemperatureSensor {
-
-	private static final Logger log = LoggerFactory.getLogger(EtherioTemperatureSensor.class);
 
 	private final Commander commander;
 	private final int portNumber;

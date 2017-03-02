@@ -1,10 +1,6 @@
 package com.stagnationlab.c8y.driver.measurements;
 
-import java.math.BigDecimal;
-
 import com.cumulocity.model.measurement.MeasurementValue;
-import com.cumulocity.model.measurement.StateType;
-import com.cumulocity.model.measurement.ValueType;
 import com.stagnationlab.c8y.driver.services.Util;
 
 @SuppressWarnings({ "WeakerAccess", "unused" })

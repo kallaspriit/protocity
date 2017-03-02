@@ -1,15 +1,14 @@
 package com.stagnationlab.c8y.driver.devices.etherio;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import com.stagnationlab.c8y.driver.devices.AbstractMotionSensor;
 import com.stagnationlab.etherio.Commander;
 import com.stagnationlab.etherio.PortController;
 
+@SuppressWarnings("unused")
+@Slf4j
 public class EtherioMotionSensor extends AbstractMotionSensor {
-
-	private static final Logger log = LoggerFactory.getLogger(EtherioMotionSensor.class);
 
 	private final Commander commander;
 	private final int portNumber;

@@ -3,8 +3,7 @@ package com.stagnationlab.c8y.driver.controllers;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import com.stagnationlab.c8y.driver.devices.AbstractMultiDacActuator;
 import com.stagnationlab.c8y.driver.devices.AbstractTagSensor;
@@ -15,15 +14,14 @@ import com.stagnationlab.c8y.driver.services.EventBroker;
 import com.stagnationlab.c8y.driver.services.TextToSpeech;
 import com.stagnationlab.etherio.Commander;
 
+@Slf4j
 public class ParkingController extends AbstractController {
-
-	private static final Logger log = LoggerFactory.getLogger(ParkingController.class);
 
 	private final com.stagnationlab.c8y.driver.fragments.ParkingController state = new com.stagnationlab.c8y.driver.fragments.ParkingController();
 	private AbstractMultiDacActuator ledDriver;
-	private Map<Integer, AbstractTagSensor> sensorsMap = new HashMap<>();
-	private Map<Integer, Integer> ledChannelMap = new HashMap<>();
-	private Map<Integer, String> slotNameMap = new HashMap<>();
+	private final Map<Integer, AbstractTagSensor> sensorsMap = new HashMap<>();
+	private final Map<Integer, Integer> ledChannelMap = new HashMap<>();
+	private final Map<Integer, String> slotNameMap = new HashMap<>();
 	private int slotCount = 0;
 
 	public ParkingController(String id, Map<String, Commander> commanders, Config config, EventBroker eventBroker) {

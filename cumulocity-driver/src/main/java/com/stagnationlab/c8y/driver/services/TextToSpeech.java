@@ -8,18 +8,16 @@ import java.net.URLEncoder;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import javazoom.jl.player.Player;
 
+@Slf4j
 class PlayMessageTask implements Runnable {
 
 	interface Callback {
 		void onPlayMessageComplete();
 	}
-
-	private static final Logger log = LoggerFactory.getLogger(PlayMessageTask.class);
 
 	private final String message;
 	private final Callback callback;
@@ -88,10 +86,9 @@ class PlayMessageTask implements Runnable {
 }
 
 @SuppressWarnings("SameParameterValue")
+@Slf4j
 public enum TextToSpeech {
 	INSTANCE;
-
-	private static final Logger log = LoggerFactory.getLogger(TextToSpeech.class);
 
 	private final Queue<String> messageQueue = new LinkedList<>();
 	private PlayMessageTask playMessageTask = null;
@@ -123,10 +120,12 @@ public enum TextToSpeech {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	public void speak(String message) {
 		speak(message, false);
 	}
 
+	@SuppressWarnings("WeakerAccess")
 	public boolean isPlaying() {
 		return playMessageTask != null;
 	}
@@ -166,6 +165,7 @@ public enum TextToSpeech {
 		*/
 	}
 
+	@SuppressWarnings("WeakerAccess")
 	public void stop() {
 		try {
 			if (playMessageTask != null) {

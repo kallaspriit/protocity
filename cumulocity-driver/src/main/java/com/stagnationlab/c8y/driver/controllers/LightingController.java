@@ -3,8 +3,7 @@ package com.stagnationlab.c8y.driver.controllers;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import com.cumulocity.model.operation.OperationStatus;
 import com.cumulocity.rest.representation.operation.OperationRepresentation;
@@ -21,12 +20,12 @@ import com.stagnationlab.etherio.Commander;
 
 import c8y.lx.driver.OperationExecutor;
 
+@Slf4j
 public class LightingController extends AbstractController {
 
-	private static final Logger log = LoggerFactory.getLogger(LightingController.class);
-	public static final float LIGHT_LEVEL_CHANGE_THRESHOLD = 0.01f;
-	public static final float LIGHT_LEVEL_TURN_ON_THRESHOLD = 0.2f;
-	public static final float LIGHT_LEVEL_TURN_OFF_THRESHOLD = 0.1f;
+	private static final float LIGHT_LEVEL_CHANGE_THRESHOLD = 0.01f;
+	private static final float LIGHT_LEVEL_TURN_ON_THRESHOLD = 0.2f;
+	private static final float LIGHT_LEVEL_TURN_OFF_THRESHOLD = 0.1f;
 
 	private final com.stagnationlab.c8y.driver.fragments.LightingController state = new com.stagnationlab.c8y.driver.fragments.LightingController();
 	private final Map<String, AbstractMultiDacActuator> driverMap = new HashMap<>();

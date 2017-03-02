@@ -4,7 +4,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
-public class PortController implements Commander.SpecialCommandListener {
+public class PortController implements Commander.RemoteCommandListener {
 
     public enum PortMode {
         UNUSED,
@@ -68,7 +68,7 @@ public class PortController implements Commander.SpecialCommandListener {
         this.commander = commander;
         this.portEventListeners = new ArrayList<>();
 
-        commander.addSpecialCommandListener(this);
+        commander.addRemoteCommandListener(this);
     }
 
     public void addEventListener(PortEventListener listener) {
@@ -173,7 +173,7 @@ public class PortController implements Commander.SpecialCommandListener {
     }
 
     @Override
-    public void handleSpecialCommand(Command command) {
+    public void handleRemoteCommand(Command command) {
         String[] handledCommands = {
                 EVENT_INTERRUPT_CHANGE,
                 EVENT_INTERRUPT_RISE,

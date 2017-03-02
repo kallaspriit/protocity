@@ -3,15 +3,15 @@ package com.stagnationlab.etherio;
 @SuppressWarnings({"WeakerAccess", "unused"})
 public interface MessageTransport {
 
-    interface MessageListener {
-        void onSocketConnecting(boolean isReconnecting);
-        void onSocketOpen();
-        void onSocketClose();
-        void onSocketMessageReceived(String message);
-        void onSocketConnectionFailed(Exception e);
+    interface EventListener {
+        default void onConnecting(boolean isReconnecting) {}
+	    default void onOpen() {}
+	    default void onClose() {}
+	    default void onMessageReceived(String message) {}
+	    default void onConnectionFailed(Exception e) {}
     }
 
-    void addMessageListener(MessageListener messageListener);
+    void addEventListener(EventListener eventListener);
 
     boolean sendMessage(String format, Object...arguments);
 
@@ -20,5 +20,7 @@ public interface MessageTransport {
     String getMessage();
 
     int getNextMessageId();
+
+    boolean isConnected();
 
 }

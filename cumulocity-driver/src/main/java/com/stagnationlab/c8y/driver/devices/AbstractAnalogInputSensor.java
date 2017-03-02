@@ -6,7 +6,7 @@ import com.stagnationlab.c8y.driver.measurements.AnalogMeasurement;
 public class AbstractAnalogInputSensor extends AbstractDevice {
 
 	private final AnalogInputSensor analogInputSensor = new AnalogInputSensor();
-	private String unit;
+	private final String unit;
 
 	protected AbstractAnalogInputSensor(String id, String unit) {
 		super(id);

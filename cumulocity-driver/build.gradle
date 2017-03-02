@@ -1,15 +1,13 @@
 apply plugin: 'java'
-apply plugin: 'maven'
 apply plugin: 'application'
 apply plugin: 'idea'
-
-group 'com.stagnationlab.c8y.driver'
-version '1.0.0'
+//apply plugin: 'maven'
 
 
 //noinspection GroovyUnusedAssignment
 sourceCompatibility = 1.8
-
+group 'com.stagnationlab.c8y.driver'
+version '1.0.0'
 //noinspection GroovyUnusedAssignment
 mainClassName = "com.stagnationlab.c8y.agent.App"
 
@@ -22,23 +20,25 @@ repositories {
 
     flatDir {
         dirs 'libs'
-        //dirs $/../etherio/build/libs/$
     }
 }
 
 dependencies {
+    // lombok
+    compileOnly "org.projectlombok:lombok:1.16.10"
+
     // cumulocity
     compile group: 'com.nsn.cumulocity.clients-java', name: 'java-client', version: '6.4.0'
     compile group: 'com.nsn.cumulocity.model', name: 'device-capability-model', version: '6.4.0'
 
-    // EtherIO
+    // etherio socket client
     compile name: 'etherio-1.0.0'
 
     // audio player
     compile name: 'jl1.0'
 
     // logging
-    //compile group: 'org.slf4j', name: 'slf4j-simple', version: 'latest.release'
+    compile group: 'org.slf4j', name: 'slf4j-simple', version: 'latest.release'
     compile group: 'ch.qos.logback', name: 'logback-classic', version: 'latest.release'
 
     // testing

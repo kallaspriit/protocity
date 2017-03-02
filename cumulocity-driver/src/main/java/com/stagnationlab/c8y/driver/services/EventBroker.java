@@ -9,7 +9,7 @@ public class EventBroker {
 		void handleEvent(String name, Object info);
 	}
 
-	private List<EventBrokerListener> listeners = new ArrayList<>();
+	private final List<EventBrokerListener> listeners = new ArrayList<>();
 
 	public void addListener(EventBrokerListener listener) {
 		listeners.add(listener);

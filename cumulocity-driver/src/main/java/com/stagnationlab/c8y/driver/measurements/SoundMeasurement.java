@@ -7,7 +7,7 @@ import com.stagnationlab.c8y.driver.services.Util;
 public class SoundMeasurement {
 
 	private float value;
-	private String unit;
+	private final String unit;
 
 	public SoundMeasurement(float value, String unit) {
 		this.value = value;

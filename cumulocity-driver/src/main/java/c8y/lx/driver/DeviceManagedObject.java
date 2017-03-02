@@ -33,6 +33,7 @@ import com.cumulocity.sdk.client.inventory.InventoryApi;
  * A utility class that simplifies handling devices and their associated
  * external IDs.
  */
+@SuppressWarnings("WeakerAccess")
 public class DeviceManagedObject {
 
     private final IdentityApi registry;

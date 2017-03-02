@@ -6,8 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import com.cumulocity.model.operation.OperationStatus;
 import com.cumulocity.rest.representation.operation.OperationRepresentation;
@@ -26,19 +25,15 @@ import com.stagnationlab.etherio.SocketClient;
 import c8y.lx.driver.OperationExecutor;
 
 @SuppressWarnings({ "unused", "SameParameterValue" })
+@Slf4j
 public class Gateway extends AbstractDevice {
-
-	private static final Logger log = LoggerFactory.getLogger(Gateway.class);
 
 	private final com.stagnationlab.c8y.driver.fragments.Gateway gateway = new com.stagnationlab.c8y.driver.fragments.Gateway();
 	private final Config config = new Config();
 	private final Map<String, Commander> commanders = new HashMap<>();
 	private final EventBroker eventBroker = new EventBroker();
 
-	private static final int DEFAULT_CONTROLLER_PORT = 8080;
 	private static final String CONFIG_FILENAME = "config.properties";
-	private static final int CONNECT_TIMEOUT = 3000;
-	private static final int RECONNECT_TIMEOUT = 5000;
 
 	public Gateway() {
 		super("Gateway");
@@ -129,13 +124,6 @@ public class Gateway extends AbstractDevice {
 		});
 	}
 
-	@Override
-	public void start() {
-		super.start();
-
-		// TextToSpeech.INSTANCE.speak("Ready, welcome to Telia Lego City!");
-	}
-
 	private void registerController(AbstractController controller) {
 		log.info("registering controller '{}' ({})", controller.getId(), controller.getClass().getSimpleName());
 
@@ -146,33 +134,42 @@ public class Gateway extends AbstractDevice {
 
 	private Commander createCommander(String name) {
 		String host = config.getString("commander." + name + ".host");
-		int port = config.getInt("commander.\" + id + \".port", DEFAULT_CONTROLLER_PORT);
+		int defaultPort = config.getInt("socket.defaultPort");
+		int port = config.getInt("commander.\" + id + \".port", defaultPort);
+		int reconnectTimeout = config.getInt("socket.reconnectTimeout");
+		int pingInterval = config.getInt("socket.pingInterval");
+		int connectTimeout = config.getInt("socket.connectTimeout");
 
 		log.info("connecting to controller commander '{}' at {}:{}", name, host, port);
 
-		SocketClient socketClient = new SocketClient(host, port, RECONNECT_TIMEOUT);
+		SocketClient socketClient = new SocketClient(host, port, reconnectTimeout);
 		Commander commander = new Commander(socketClient);
 
-		socketClient.addMessageListener(new MessageTransport.MessageListener() {
+		// listen for socket events
+		socketClient.addEventListener(new MessageTransport.EventListener() {
 			@Override
-			public void onSocketConnecting(boolean b) {
-				log.info("connecting to socket of controller '{}' at {}:{}", name, host, port);
+			public void onConnecting(boolean isReconnecting) {
+				if (isReconnecting) {
+					log.info("reconnecting to socket of controller '{}' at {}:{}", name, host, port);
+				} else {
+					log.info("connecting to socket of controller '{}' at {}:{}", name, host, port);
+				}
 			}
 
 			@Override
-			public void onSocketOpen() {
+			public void onOpen() {
 				log.info("socket of controller '{}' at {}:{} was opened, requesting version", name, host, port);
 
 				commander.sendCommand("version").thenAccept(commandResponse -> log.info("commander '{}' version: {}", name, commandResponse.response.getString(0)));
 			}
 
 			@Override
-			public void onSocketClose() {
-				log.info("socket of controller '{}' at {}:{} was closed", name, host, port);
+			public void onClose() {
+				log.warn("socket of controller '{}' at {}:{} was closed", name, host, port);
 			}
 
 			@Override
-			public void onSocketMessageReceived(String message) {
+			public void onMessageReceived(String message) {
 				// don't log heartbeat messages
 				if (message.length() >= 11 && message.substring(0, 11).equals("0:HEARTBEAT")) {
 					return;
@@ -182,12 +179,32 @@ public class Gateway extends AbstractDevice {
 			}
 
 			@Override
-			public void onSocketConnectionFailed(Exception e) {
-				log.debug("socket connection of controller '{}' to {}:{} failed ({} - {})", name, host, port, e.getClass().getSimpleName(), e.getMessage());
+			public void onConnectionFailed(Exception e) {
+				log.warn("socket connection of controller '{}' at {}:{} failed ({} - {})", name, host, port, e.getClass().getSimpleName(), e.getMessage());
 			}
 		});
 
-		socketClient.connect(CONNECT_TIMEOUT);
+		// set ping strategy to use
+		socketClient.setPingStrategy(new SocketClient.PingStrategy() {
+			@Override
+			public String getPingMessage() {
+				return "0:ping\n";
+			}
+
+			@Override
+			public boolean isPingResponse(String response) {
+				return response.equals("0:OK:pong");
+			}
+		}, pingInterval);
+
+		log.debug("connecting to socket of controller '{}'", name);
+
+		// attempt to connect to the socket (errors will be sent to the listener)
+		if (socketClient.connect(connectTimeout)) {
+			log.debug("connected to socket of controller '{}'", name);
+		} else {
+			log.warn("connecting to socket of controller '{}' failed", name);
+		}
 
 		return commander;
 	}

@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SocketClient implements MessageTransport {
 
-	public interface PingSender {
+	public interface PingStrategy {
 		String getPingMessage();
 		boolean isPingResponse(String message);
 	}
@@ -30,10 +30,10 @@ public class SocketClient implements MessageTransport {
     private PrintWriter socketOut;
     private Thread inputThread;
     private Thread pingThread;
-	private PingSender pingSender = null;
+	private PingStrategy pingStrategy = null;
     private final Queue<String> inputQueue = new LinkedList<>();
 	//private final Queue<Integer> latencies = new LinkedList<>();
-    private final List<MessageListener> messageListeners = new ArrayList<>();
+    private final List<EventListener> eventListeners = new ArrayList<>();
     private int messageCounter = 1;
     private boolean wasEverConnected = false;
 	private volatile boolean isConnecting = false;
@@ -61,19 +61,19 @@ public class SocketClient implements MessageTransport {
 	}
 
 	@SuppressWarnings("unused")
-	public void setPingSender(PingSender pingSender, int pingInterval) {
-		this.pingSender = pingSender;
+	public void setPingStrategy(PingStrategy pingStrategy, int pingInterval) {
+		this.pingStrategy = pingStrategy;
 		this.pingInterval = pingInterval;
 	}
 
     @SuppressWarnings({ "SameParameterValue", "WeakerAccess" })
-    public void connect(int connectionTimeout) {
+    public boolean connect(int connectionTimeout) {
 	    log.debug("connecting to {}:{}", hostName, portNumber);
 
 	    lastConnectionTimeout = connectionTimeout;
 
-	    for (MessageListener messageListener : messageListeners) {
-		    messageListener.onSocketConnecting(wasEverConnected);
+	    for (EventListener eventListener : eventListeners) {
+		    eventListener.onConnecting(wasEverConnected);
 	    }
 
 	    try {
@@ -87,7 +87,7 @@ public class SocketClient implements MessageTransport {
 		    inputThread = new Thread(getInputThreadTask(), "InputThread");
 		    inputThread.start();
 
-		    if (pingSender != null) {
+		    if (pingStrategy != null) {
 			    pingThread = new Thread(getPingThreadTask(), "PingThread");
 			    pingThread.start();
 		    }
@@ -98,12 +98,14 @@ public class SocketClient implements MessageTransport {
 
 		    log.debug("connected to {}:{}", hostName, portNumber);
 
-		    for (MessageListener messageListener : messageListeners) {
-			    messageListener.onSocketOpen();
+		    for (EventListener eventListener : eventListeners) {
+			    eventListener.onOpen();
 		    }
+
+		    return true;
 	    } catch (IOException e) {
-		    for (MessageListener messageListener : messageListeners) {
-			    messageListener.onSocketConnectionFailed(e);
+		    for (EventListener eventListener : eventListeners) {
+			    eventListener.onConnectionFailed(e);
 		    }
 
 	    	if (wasEverConnected && reconnectTimeout >= 0) {
@@ -113,23 +115,32 @@ public class SocketClient implements MessageTransport {
 		    } else {
 			    log.warn("connecting to {}:{} failed", hostName, portNumber);
 		    }
+
+		    return false;
 	    }
     }
 
-    public void addMessageListener(MessageListener messageListener) {
-        messageListeners.add(messageListener);
+    public void addEventListener(EventListener eventListener) {
+        eventListeners.add(eventListener);
+
+        // call the onOpen event if the socket is already connected
+        if (isConnected()) {
+        	eventListener.onOpen();
+        }
     }
 
     public boolean sendMessage(String format, Object...arguments) {
+	    String message = String.format(format, arguments);
+
     	if (socketOut == null) {
-		    log.warn("requested sending message '{}' but the output stream is not available", format);
+		    log.warn("requested sending message '{}' to {}:{} but the output stream is not available", message.replace("\n", "\\n"), hostName, portNumber);
 
     		return false;
 	    }
 
-	    log.trace("sending message: '{}'", format);
+	    log.trace("sending message: '{}'", message.replace("\n", "\\n"));
 
-        socketOut.format(format, arguments);
+        socketOut.print(message);
 
         return !socketOut.checkError();
     }
@@ -150,6 +161,7 @@ public class SocketClient implements MessageTransport {
         return message;
     }
 
+    @Override
     @SuppressWarnings("unused")
     public boolean isConnected() {
 		return isConnected;
@@ -187,7 +199,7 @@ public class SocketClient implements MessageTransport {
 		try {
 			socket.close();
 		} catch (IOException e) {
-			log.warn("closing socket failed ({} - {})", e.getClass().getSimpleName(), e.getMessage());
+			log.warn("closing socket to {}:{} failed ({} - {})", hostName, portNumber, e.getClass().getSimpleName(), e.getMessage());
 
 			e.printStackTrace();
 		}
@@ -219,8 +231,8 @@ public class SocketClient implements MessageTransport {
 			e.printStackTrace();
 		}
 
-	    for (MessageListener messageListener : messageListeners) {
-		    messageListener.onSocketClose();
+	    for (EventListener eventListener : eventListeners) {
+		    eventListener.onClose();
 	    }
 
 	    log.debug("socket to {}:{} has been closed", hostName, portNumber);
@@ -231,7 +243,7 @@ public class SocketClient implements MessageTransport {
 		if (timeout == 0) {
 			reconnect();
 		} else if (timeout > 0) {
-			log.debug("scheduling reconnect in {}ms", timeout);
+			log.debug("scheduling reconnect to {}:{} in {}ms", hostName, portNumber, timeout);
 
 			isReconnectScheduled = true;
 
@@ -255,7 +267,7 @@ public class SocketClient implements MessageTransport {
 			close();
 		}
 
-		log.debug("attempting to reconnect");
+		log.debug("attempting to reconnect to {}:{}", hostName, portNumber);
 
 		connect(lastConnectionTimeout);
 	}
@@ -277,7 +289,7 @@ public class SocketClient implements MessageTransport {
 					if (message != null) {
 						log.trace("received message: '{}'", message);
 
-						if (pingSender != null && pingSender.isPingResponse(message)) {
+						if (pingStrategy != null && pingStrategy.isPingResponse(message)) {
 							log.trace("got ping response '{}'", message);
 
 							isExpectingPingResponse = false;
@@ -285,8 +297,8 @@ public class SocketClient implements MessageTransport {
 							inputQueue.add(message);
 
 							synchronized (this) {
-								for (MessageListener messageListener : messageListeners) {
-									messageListener.onSocketMessageReceived(message);
+								for (EventListener eventListener : eventListeners) {
+									eventListener.onMessageReceived(message);
 								}
 							}
 						}
@@ -325,6 +337,8 @@ public class SocketClient implements MessageTransport {
 		return () -> {
 			log.debug("starting ping thread");
 
+			isExpectingPingResponse = false;
+
 			boolean pingResponseNotReceived = false;
 
 			while (isConnected) {
@@ -353,7 +367,7 @@ public class SocketClient implements MessageTransport {
 
 				log.trace("sending ping message");
 
-				String pingMessage = pingSender.getPingMessage();
+				String pingMessage = pingStrategy.getPingMessage();
 
 				sendMessage(pingMessage);
 
@@ -363,9 +377,9 @@ public class SocketClient implements MessageTransport {
 			log.debug("ping thread completed");
 
 			if (pingResponseNotReceived) {
-				log.warn("ping response was not received in {}ms, connection must have died, reconnecting", pingInterval);
+				log.warn("ping response from {}:{} was not received in {}ms, connection must have died, reconnecting in {}ms", hostName, portNumber, pingInterval, reconnectTimeout);
 
-				reconnect();
+				scheduleReconnect(reconnectTimeout);
 			}
 		};
 	}

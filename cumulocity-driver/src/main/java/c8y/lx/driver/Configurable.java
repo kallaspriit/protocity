@@ -21,6 +21,7 @@ package c8y.lx.driver;
 
 import java.util.Properties;
 
+@SuppressWarnings("ALL")
 public interface Configurable {
 
     /**

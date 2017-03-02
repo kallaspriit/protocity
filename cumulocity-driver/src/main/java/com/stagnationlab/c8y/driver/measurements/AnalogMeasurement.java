@@ -6,8 +6,9 @@ import com.stagnationlab.c8y.driver.services.Util;
 public class AnalogMeasurement {
 
 	private float value;
-	private String unit;
+	private final String unit;
 
+	@SuppressWarnings("unused")
 	public AnalogMeasurement() {
 		value = 0.0f;
 		unit = "";

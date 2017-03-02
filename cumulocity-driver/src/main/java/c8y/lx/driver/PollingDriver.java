@@ -39,6 +39,7 @@ import com.cumulocity.sdk.client.Platform;
  * functionality to regularly poll for readings and to configure polling
  * intervals from device management.
  */
+@SuppressWarnings("WeakerAccess")
 public abstract class PollingDriver implements Driver, Configurable, Runnable {
 
     protected static final Logger logger = LoggerFactory.getLogger(PollingDriver.class);

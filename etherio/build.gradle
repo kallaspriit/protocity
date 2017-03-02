@@ -22,11 +22,13 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }
 
+/*
 jar {
     from {
         configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
+*/
 
 task deploy(dependsOn: 'jar') {
 

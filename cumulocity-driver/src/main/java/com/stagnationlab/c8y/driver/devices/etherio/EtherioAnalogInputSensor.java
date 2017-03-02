@@ -38,13 +38,11 @@ public class EtherioAnalogInputSensor extends AbstractAnalogInputSensor {
 		});
 
 		// also report periodically
-		setInterval(() -> {
-			portController.getAnalogValue().thenAccept(commandResponse -> {
-				float currentValue = commandResponse.response.getFloat(0);
+		setInterval(() -> portController.getAnalogValue().thenAccept(commandResponse -> {
+			float currentValue = commandResponse.response.getFloat(0);
 
-				setValue(getTransformedValue(currentValue));
-			});
-		}, 60000);
+			setValue(getTransformedValue(currentValue));
+		}), 60000);
 	}
 
 	private float getTransformedValue(float value) {

@@ -10,8 +10,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import com.cumulocity.model.idtype.GId;
 import com.cumulocity.rest.representation.event.EventRepresentation;
@@ -39,9 +38,8 @@ import c8y.lx.driver.OperationExecutor;
  * 5. start()
  */
 @SuppressWarnings("WeakerAccess")
+@Slf4j
 public abstract class AbstractDevice implements Driver {
-
-    private static final Logger log = LoggerFactory.getLogger(AbstractDevice.class);
 
     protected Platform platform;
     protected MeasurementApi measurementApi;
@@ -70,6 +68,7 @@ public abstract class AbstractDevice implements Driver {
         return null;
     }
 
+    @SuppressWarnings("SameReturnValue")
     protected Hardware getHardware() {
         return null;
     }
@@ -232,6 +231,7 @@ public abstract class AbstractDevice implements Driver {
         return measurementRepresentation;
     }
 
+	@SuppressWarnings("UnusedReturnValue")
 	protected MeasurementRepresentation reportMeasurement(Object measurement) {
 		return reportMeasurement(measurement, measurement.getClass().getSimpleName());
 	}
@@ -244,6 +244,7 @@ public abstract class AbstractDevice implements Driver {
         eventApi.create(eventRepresentation);
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     protected ManagedObjectRepresentation updateState(Object... properties) {
         log.debug("updating state of {}: {}", id, Util.stringify(properties));
 
@@ -259,7 +260,7 @@ public abstract class AbstractDevice implements Driver {
         return managedObjectRepresentation;
     }
 
-    @SuppressWarnings("SameParameterValue")
+    @SuppressWarnings({ "SameParameterValue", "UnusedReturnValue" })
     protected ScheduledFuture<?> setInterval(Runnable runnable, long intervalMs) {
         log.info("creating an interval for {} every {}ms", id, intervalMs);
 

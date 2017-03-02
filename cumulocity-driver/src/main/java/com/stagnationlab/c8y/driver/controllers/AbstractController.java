@@ -23,7 +23,7 @@ public abstract class AbstractController extends AbstractDevice implements Event
 
 	public void handleEvent(String name, Object info) {}
 
-	protected Commander getCommanderByName(String name) {
+	Commander getCommanderByName(String name) {
 		if (!commanders.containsKey(name)) {
 			return null;
 		}

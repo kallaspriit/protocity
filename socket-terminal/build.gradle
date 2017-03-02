@@ -6,19 +6,26 @@ apply plugin: 'idea'
 sourceCompatibility = 1.8
 group 'com.stagnationlab.socket'
 version '1.0.0'
-mainClassName = "Application"
+mainClassName = "com.stagnationlab.terminal.Application"
 
 repositories {
     flatDir {
         dirs 'libs'
-        //dirs $/../etherio/build/libs/$
     }
 
     mavenCentral()
 }
 
 dependencies {
+    // socket communication
     compile name: 'etherio-1.0.0'
+
+    // lombok
+    compileOnly "org.projectlombok:lombok:1.16.10"
+
+    // logging
+    compile group: 'org.slf4j', name: 'slf4j-simple', version: 'latest.release'
+    compile group: 'ch.qos.logback', name: 'logback-classic', version: 'latest.release'
 
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }

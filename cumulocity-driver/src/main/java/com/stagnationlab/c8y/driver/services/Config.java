@@ -50,6 +50,6 @@ public class Config extends Properties {
 	public List<String> getStringArray(String name) {
 		String values = getString(name);
 
-		return Arrays.stream(values.split(",")).map(value -> value.trim()).collect(Collectors.toList());
+		return Arrays.stream(values.split(",")).map(String::trim).collect(Collectors.toList());
 	}
 }

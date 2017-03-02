@@ -5,8 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import org.svenson.JSONProperty;
-
 @SuppressWarnings({ "unused", "WeakerAccess" })
 public class MultiDacActuator implements Serializable {
 

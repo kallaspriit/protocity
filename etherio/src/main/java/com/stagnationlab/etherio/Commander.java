@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @SuppressWarnings({ "WeakerAccess", "unused" })
 @Slf4j
-public class Commander implements MessageTransport.MessageListener {
+public class Commander implements MessageTransport.EventListener {
 
 	public class CommandResponse {
 		public final Command command;
@@ -26,8 +26,8 @@ public class Commander implements MessageTransport.MessageListener {
 		}
 	}
 
-	public interface SpecialCommandListener {
-		void handleSpecialCommand(Command command);
+	public interface RemoteCommandListener {
+		void handleRemoteCommand(Command command);
 	}
 
 	private class CommandPromise {
@@ -42,18 +42,18 @@ public class Commander implements MessageTransport.MessageListener {
 
 	private final MessageTransport messageTransport;
 	private final Map<Integer, CommandPromise> commandPromises;
-	private final List<SpecialCommandListener> specialCommandListeners;
+	private final List<RemoteCommandListener> remoteCommandListeners;
 
 	public Commander(MessageTransport messageTransport) {
 		this.messageTransport = messageTransport;
 		this.commandPromises = new HashMap<>();
-		this.specialCommandListeners = new ArrayList<>();
+		this.remoteCommandListeners = new ArrayList<>();
 
-		messageTransport.addMessageListener(this);
+		messageTransport.addEventListener(this);
 	}
 
-	public void addSpecialCommandListener(SpecialCommandListener listener) {
-		specialCommandListeners.add(listener);
+	public void addRemoteCommandListener(RemoteCommandListener listener) {
+		remoteCommandListeners.add(listener);
 	}
 
 	public CompletableFuture<Commander.CommandResponse> sendCommand(String name, Object... arguments) {
@@ -63,13 +63,22 @@ public class Commander implements MessageTransport.MessageListener {
 	}
 
 	public CompletableFuture<CommandResponse> sendCommand(Command command) {
+		String message = command.toString();
+
+		if (!messageTransport.isConnected()) {
+			log.warn("sending message '{}' requested but message transport is not connected", message);
+
+			CompletableFuture<CommandResponse> promise = new CompletableFuture<>();
+			promise.cancel(false);
+
+			return promise;
+		}
+
 		CompletableFuture<CommandResponse> promise = new CompletableFuture<>();
 		CommandResponse commandResponse = new CommandResponse(command);
 		CommandPromise commandPromise = new CommandPromise(commandResponse, promise);
 
 		commandPromises.put(command.id, commandPromise);
-
-		String message = command.toString();
 
 		log.debug("< {}", message);
 
@@ -79,22 +88,22 @@ public class Commander implements MessageTransport.MessageListener {
 	}
 
 	@Override
-	public void onSocketConnecting(boolean isReconnecting) {
+	public void onConnecting(boolean isReconnecting) {
 		log.info("connecting to socket");
 	}
 
 	@Override
-	public void onSocketOpen() {
+	public void onOpen() {
 		log.info("socket connection opened");
 	}
 
 	@Override
-	public void onSocketClose() {
+	public void onClose() {
 		log.warn("socket connection closed");
 	}
 
 	@Override
-	public void onSocketMessageReceived(String message) {
+	public void onMessageReceived(String message) {
 		Command responseCommand;
 
 		try {
@@ -113,8 +122,16 @@ public class Commander implements MessageTransport.MessageListener {
 	}
 
 	@Override
-	public void onSocketConnectionFailed(Exception e) {
+	public void onConnectionFailed(Exception e) {
 		log.warn("connecting to socket failed ({} - {})", e.getClass().getSimpleName(), e.getMessage());
+	}
+
+	public MessageTransport getMessageTransport() {
+		return messageTransport;
+	}
+
+	public boolean isConnected() {
+		return messageTransport.isConnected();
 	}
 
 	private void handleResponse(Command responseCommand) {
@@ -137,8 +154,8 @@ public class Commander implements MessageTransport.MessageListener {
 
 	private void handleSpecialCommand(Command responseCommand) {
 		synchronized (this) {
-			for (SpecialCommandListener listener : specialCommandListeners) {
-				listener.handleSpecialCommand(responseCommand);
+			for (RemoteCommandListener listener : remoteCommandListeners) {
+				listener.handleRemoteCommand(responseCommand);
 			}
 		}
 	}

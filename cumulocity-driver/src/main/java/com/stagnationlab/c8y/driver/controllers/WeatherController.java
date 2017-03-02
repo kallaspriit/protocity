@@ -3,8 +3,7 @@ package com.stagnationlab.c8y.driver.controllers;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import com.stagnationlab.c8y.driver.constants.ControllerEvent;
 import com.stagnationlab.c8y.driver.constants.WeatherSensor;
@@ -18,9 +17,8 @@ import com.stagnationlab.c8y.driver.services.EventBroker;
 import com.stagnationlab.etherio.Commander;
 import com.stagnationlab.etherio.PortController;
 
+@Slf4j
 public class WeatherController extends AbstractController {
-
-	private static final Logger log = LoggerFactory.getLogger(WeatherController.class);
 
 	private final com.stagnationlab.c8y.driver.fragments.WeatherController state = new com.stagnationlab.c8y.driver.fragments.WeatherController();
 	private PortController portController;

@@ -108,7 +108,7 @@ private:
 	static const int MAX_COMMAND_LENGTH = 1024;
 	static const int SEND_BUFFER_SIZE = 1024;
 	static const int COMMAND_BUFFER_SIZE = MAX_COMMAND_LENGTH + 1;
-	static const int HEATBEAT_INTERVAL_US = 1000000;
+	static const int HEATBEAT_INTERVAL_US = 10000000; // 10 seconds
 
 	// services
 	Config *config = NULL;
