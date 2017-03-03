@@ -18,6 +18,7 @@ import com.stagnationlab.c8y.driver.controllers.WeatherController;
 import com.stagnationlab.c8y.driver.devices.AbstractDevice;
 import com.stagnationlab.c8y.driver.services.Config;
 import com.stagnationlab.c8y.driver.services.EventBroker;
+import com.stagnationlab.c8y.driver.services.TextToSpeech;
 import com.stagnationlab.etherio.Commander;
 import com.stagnationlab.etherio.MessageTransport;
 import com.stagnationlab.etherio.SocketClient;
@@ -157,8 +158,8 @@ public class Gateway extends AbstractDevice {
 			}
 
 			@Override
-			public void onOpen() {
-				log.info("socket of controller '{}' at {}:{} was opened, requesting version", name, host, port);
+			public void onOpen(boolean wasReconnected) {
+				log.info("socket of controller '{}' at {}:{} was {}, requesting version", name, host, port, wasReconnected ? "reconnected" : "opened");
 
 				commander.sendCommand("version").thenAccept(commandResponse -> log.info("commander '{}' version: {}", name, commandResponse.response.getString(0)));
 			}
@@ -179,8 +180,14 @@ public class Gateway extends AbstractDevice {
 			}
 
 			@Override
-			public void onConnectionFailed(Exception e) {
-				log.warn("socket connection of controller '{}' at {}:{} failed ({} - {})", name, host, port, e.getClass().getSimpleName(), e.getMessage());
+			public void onConnectionFailed(Exception e, boolean wasEverConnected) {
+				if (wasEverConnected) {
+					log.debug("reconnecting to controller '{}' at {}:{} failed ({} - {})", name, host, port, e.getClass().getSimpleName(), e.getMessage());
+				} else {
+					log.warn("connecting to controller '{}' at {}:{} failed ({} - {})", name, host, port, e.getClass().getSimpleName(), e.getMessage());
+
+					TextToSpeech.INSTANCE.speak("Connecting to controller \"" + name + "\" failed, some functionality will be disabled");
+				}
 			}
 		});
 

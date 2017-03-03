@@ -2,20 +2,24 @@
 	<appender name="STDOUT"  class="ch.qos.logback.core.ConsoleAppender">
 		<encoder>
 			<charset>UTF-8</charset>
-			<pattern>%d{HH:mm:ss} %-5level %-40logger{20} - %msg%n</pattern>
+			<pattern>%-20thread | %d{HH:mm:ss} | %highlight(%-5level) | %-40logger{40} | %msg%n</pattern>
 		</encoder>
+		<!--filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>INFO</level>
+		</filter-->
 	</appender>
 
 	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
 		<file>debug.log.txt</file>
 		<append>false</append>
+		<immediateFlush>true</immediateFlush>
 		<encoder>
 			<charset>UTF-8</charset>
-			<pattern>%d{HH:mm:ss} %-5level %-40logger{20} - %msg%n</pattern>
+			<pattern>%-20thread | %d{HH:mm:ss} %-5level %-20logger{20} - %msg%n</pattern>
 		</encoder>
 	</appender>
 
-	<logger name="com.stagnationlab" level="TRACE"/>
+	<!--logger name="com.stagnationlab" level="TRACE"/-->
 
 	<root level="ERROR">
 		<appender-ref ref="STDOUT" />

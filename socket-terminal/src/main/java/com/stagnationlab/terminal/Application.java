@@ -2,13 +2,10 @@ package com.stagnationlab.terminal;
 
 import java.util.Scanner;
 
-import lombok.extern.slf4j.Slf4j;
-
 import com.stagnationlab.etherio.MessageTransport;
 import com.stagnationlab.etherio.SocketClient;
 
 @SuppressWarnings("SameParameterValue")
-@Slf4j
 public class Application implements MessageTransport.EventListener, SocketClient.PingStrategy {
 
 	// runtime configuration
@@ -26,12 +23,14 @@ public class Application implements MessageTransport.EventListener, SocketClient
 	private boolean didUserQuit = false;
 
 	public static void main(String[] args) {
+		// debug logback
+		// LoggerContext loggerContext = (LoggerContext)LoggerFactory.getILoggerFactory();
+		// StatusPrinter.print(loggerContext);
+
 		(new Application()).start();
 	}
 
 	private void start() {
-		log.info("starting socket terminal");
-
 		scanner = new Scanner(System.in);
 		scanner.useDelimiter("");
 
@@ -76,8 +75,8 @@ public class Application implements MessageTransport.EventListener, SocketClient
 	}
 
 	@Override
-	public void onOpen() {
-		System.out.printf("# socket connection opened%n");
+	public void onOpen(boolean wasReconnected) {
+		System.out.printf("# socket connection %s%n", wasReconnected ? "reconnected" : "opened");
 
 		if (inputThread == null) {
 			inputThread = new Thread(() -> {
@@ -89,7 +88,7 @@ public class Application implements MessageTransport.EventListener, SocketClient
 					}
 
 					if (userInput.equals("quit")) {
-						System.out.printf("# quitting, this can take a few seconds..%n");
+						System.out.printf("# quitting%n");
 
 						didUserQuit = true;
 
@@ -125,8 +124,8 @@ public class Application implements MessageTransport.EventListener, SocketClient
 	}
 
 	@Override
-	public void onConnectionFailed(Exception e) {
-		System.out.printf("# connecting failed (%s - %s)%n", e.getClass().getSimpleName(), e.getMessage());
+	public void onConnectionFailed(Exception e, boolean wasEverOpened) {
+		System.out.printf("# %s failed (%s - %s)%n", wasEverOpened ? "reconnecting" : "connecting", e.getClass().getSimpleName(), e.getMessage());
 	}
 
 	@Override

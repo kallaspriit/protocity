@@ -89,12 +89,12 @@ public class Commander implements MessageTransport.EventListener {
 
 	@Override
 	public void onConnecting(boolean isReconnecting) {
-		log.info("connecting to socket");
+		log.debug("{} to socket", isReconnecting ? "reconnecting" : "connecting");
 	}
 
 	@Override
-	public void onOpen() {
-		log.info("socket connection opened");
+	public void onOpen(boolean wasReconnected) {
+		log.info("{} to socket", wasReconnected ? "reconnected" : "connected");
 	}
 
 	@Override
@@ -122,8 +122,12 @@ public class Commander implements MessageTransport.EventListener {
 	}
 
 	@Override
-	public void onConnectionFailed(Exception e) {
-		log.warn("connecting to socket failed ({} - {})", e.getClass().getSimpleName(), e.getMessage());
+	public void onConnectionFailed(Exception e, boolean wasEverOpened) {
+		if (wasEverOpened) {
+			log.debug("reconnecting to socket failed ({} - {})", e.getClass().getSimpleName(), e.getMessage());
+		} else {
+			log.warn("connecting to socket failed ({} - {})", e.getClass().getSimpleName(), e.getMessage());
+		}
 	}
 
 	public MessageTransport getMessageTransport() {

@@ -98,7 +98,7 @@ public class ParkingController extends AbstractController {
 		parkingSlotSensor.addTagEventListener(new AbstractTagSensor.TagEventListener() {
 			@Override
 			public void onTagEnter(String tagName) {
-				log.info("vehicle entered slot {}: {}", index, tagName);
+				log.debug("vehicle entered slot {}: {}", index, tagName);
 
 				setSlotFree(index, false);
 				playSlotTakenSound(index, tagName);

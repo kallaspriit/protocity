@@ -107,6 +107,9 @@ public class TrainController extends AbstractController implements TrainStopEven
 		private static final String EVENT_BATTERY_CHARGE_STATE_CHANGED = "battery-charge-state-changed";
 		private static final String EVENT_BATTERY_VOLTAGE_CHANGED = "battery-voltage-changed";
 
+		private boolean areEventListenersAdded = false;
+		private Thread batteryMonitorThread = null;
+
 		Train(Commander commander) {
 			this.commander = commander;
 
@@ -154,26 +157,36 @@ public class TrainController extends AbstractController implements TrainStopEven
 			setSpeed(normalSpeed);
 		}
 
-		public void start() {
-			commander.getMessageTransport().addEventListener(new MessageTransport.EventListener() {
-				@Override
-				public void onOpen() {
-					log.info("train commander transport has been opened");
-				}
-			});
+		void start() {
+			log.debug("starting the train");
 
 			setupEventListeners();
-			setupBatteryVoltageListener();
+			setupBatteryMonitor();
+		}
+
+		void kill() {
+			log.debug("killing the train");
+
+			if (batteryMonitorThread != null) {
+				log.debug("interrupting train battery monitor thread");
+
+				batteryMonitorThread.interrupt();
+			}
 		}
 
 		private void setupEventListeners() {
+			// only add the listeners once
+			if (areEventListenersAdded) {
+				return;
+			}
+
 			commander.addRemoteCommandListener((Command command) -> {
-				log.debug("got train event: {}", command.name);
+				log.trace("got train event: {}", command.name);
 
 				List<String> arguments = command.getArguments();
 
 				for (int i = 0; i < arguments.size(); i++) {
-					log.debug("- #{}: {}", i, arguments.get(i));
+					log.trace("- #{}: {}", i, arguments.get(i));
 				}
 
 				switch (command.name) {
@@ -219,20 +232,24 @@ public class TrainController extends AbstractController implements TrainStopEven
 						break;
 				}
 			});
+
+			areEventListenersAdded = true;
 		}
 
-		private void setupBatteryVoltageListener() {
-			new Thread(() -> {
+		private void setupBatteryMonitor() {
+			batteryMonitorThread = new Thread(() -> {
 				while (isRunning) {
 					requestBatteryVoltage();
 
 					try {
 						Thread.sleep(requestBatteryVoltageInterval);
 					} catch (InterruptedException e) {
-						e.printStackTrace();
+						log.trace("battery monitor sleep was interrupted");
 					}
 				}
-			}).start();
+			}, "BatteryMonitor");
+
+			batteryMonitorThread.start();
 		}
 
 		private void handleBatteryChargeStateChanged(boolean isCharging, float batteryVoltage, int batteryChargePercentage) {
@@ -418,14 +435,12 @@ public class TrainController extends AbstractController implements TrainStopEven
 	private final List<TrainOperation> operations = new ArrayList<>();
 	private final Map<Integer, TrainStop> stopMap = new HashMap<>();
 	private Train train;
-	private final Thread thread;
+	private Thread thread;
 	private int currentOperationIndex = 0;
 	private boolean isRunning = false;
 
 	public TrainController(String id, Map<String, Commander> commanders, Config config, EventBroker eventBroker) {
 		super(id, commanders, config, eventBroker);
-
-		thread = new Thread(this);
 	}
 
 	@Override
@@ -466,29 +481,67 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 		log.info("starting train controller");
 
-		for (int stopNumber : stopMap.keySet()) {
-			TrainStop stop = stopMap.get(stopNumber);
+		train.commander.getMessageTransport().addEventListener(new MessageTransport.EventListener() {
+			@Override
+			public void onOpen(boolean wasReconnected) {
+				log.info("train commander transport has been {}", wasReconnected ? "reconnected" : "opened");
 
-			stop.initialize();
-		}
+				boolean isFirstConnect = !wasReconnected;
 
-		TrainOperation firstOperation = getCurrentOperation();
+				// only perform some operations on first connect
+				if (isFirstConnect) {
+					log.debug("initializing train stops");
 
-		log.info("starting first train operation: {}", firstOperation.getName());
+					for (int stopNumber : stopMap.keySet()) {
+						TrainStop stop = stopMap.get(stopNumber);
 
-		isRunning = true;
+						stop.initialize();
+					}
+				}
 
-		firstOperation.start();
-		train.start();
-		thread.start();
+				TrainOperation trainOperation = getCurrentOperation();
 
-		reportOperations();
-		reportCurrentOperationIndex();
+				log.info("starting post-connect train operation: {}", trainOperation.getName());
+
+				isRunning = true;
+
+				trainOperation.start();
+
+				train.start();
+
+				thread = new Thread(TrainController.this, "TrainController");
+				thread.start();
+
+				reportOperations();
+			}
+
+			@Override
+			public void onClose() {
+				log.info("train commander transport has been closed");
+
+				TextToSpeech.INSTANCE.speak("Wireless connection to the train was lost, attempting to reestablish");
+
+				train.kill();
+
+				isRunning = false;
+
+				if (thread != null) {
+					try {
+						thread.join();
+						thread = null;
+					} catch (InterruptedException e) {
+						log.warn("waiting for train thread to join failed ({} - {})", e.getClass().getSimpleName(), e.getMessage());
+					}
+				}
+
+				log.debug("stopped train controller");
+			}
+		});
 	}
 
 	@Override
 	public void run() {
-		log.info("starting thread");
+		log.info("starting train update thread");
 
 		long lastStepTime = Util.now();
 
@@ -503,9 +556,11 @@ public class TrainController extends AbstractController implements TrainStopEven
 			try {
 				Thread.sleep(16); // around 60 FPS
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				log.debug("train thread was interrupted");
 			}
 		}
+
+		log.debug("stopped train update thread");
 	}
 
 	private void step(long dt) {
@@ -605,6 +660,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 				.collect(Collectors.toList());
 
 		state.setOperations(operationsNames);
+		state.setCurrentOperationIndex(currentOperationIndex);
 
 		updateState(state);
 	}

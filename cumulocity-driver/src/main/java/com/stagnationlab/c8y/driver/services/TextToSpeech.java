@@ -64,7 +64,7 @@ class PlayMessageTask implements Runnable {
 				return;
 			}
 
-			log.info("playing message '{}'", message);
+			log.debug("playing message '{}'", message);
 
 			player = new Player(bufferedInputStream);
 			player.play();
@@ -155,7 +155,7 @@ public enum TextToSpeech {
 				playNextMessage();
 			});
 
-			playMessageThread = new Thread(playMessageTask);
+			playMessageThread = new Thread(playMessageTask, "TextToSpeech");
 			playMessageThread.start();
 		}
 
