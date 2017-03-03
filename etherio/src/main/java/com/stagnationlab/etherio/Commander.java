@@ -99,7 +99,7 @@ public class Commander implements MessageTransport.EventListener {
 
 	@Override
 	public void onClose() {
-		log.warn("socket connection closed");
+		log.info("socket connection closed");
 	}
 
 	@Override

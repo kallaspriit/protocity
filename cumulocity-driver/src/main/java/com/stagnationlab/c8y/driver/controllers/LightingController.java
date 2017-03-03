@@ -1,6 +1,8 @@
 package com.stagnationlab.c8y.driver.controllers;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +31,9 @@ public class LightingController extends AbstractController {
 
 	private final com.stagnationlab.c8y.driver.fragments.LightingController state = new com.stagnationlab.c8y.driver.fragments.LightingController();
 	private final Map<String, AbstractMultiDacActuator> driverMap = new HashMap<>();
+	private final List<Commander> lightCommanders = new ArrayList<>();
 	private float lastAutomaticLightLevel = 0.0f;
+	private boolean isRunning = false;
 
 	public LightingController(String id, Map<String, Commander> commanders, Config config, EventBroker eventBroker) {
 		super(id, commanders, config, eventBroker);
@@ -47,17 +51,10 @@ public class LightingController extends AbstractController {
 
 	@Override
 	protected void setup() throws Exception {
+		log.debug("setting up lighting controller");
+
 		setupLedDrivers();
 		setupOperations();
-	}
-
-	@Override
-	public void handleEvent(String name, Object info) {
-		switch (name) {
-			case ControllerEvent.LIGHTMETER_CHANGE:
-				handleLightmeterChangeEvent((float)info);
-				break;
-		}
 	}
 
 	@Override
@@ -65,6 +62,25 @@ public class LightingController extends AbstractController {
 		super.start();
 
 		log.info("starting lighting controller");
+
+		isRunning = true;
+	}
+
+	@Override
+	public void handleEvent(String name, Object info) {
+		if (!isRunning) {
+			log.debug("got event '{}' but light controller is not running, ignoring it", name);
+
+			return;
+		}
+
+		log.trace("got event '{}'", name);
+
+		switch (name) {
+			case ControllerEvent.LIGHTMETER_CHANGE:
+				handleLightmeterChangeEvent((float)info);
+				break;
+		}
 	}
 
 	private void handleLightmeterChangeEvent(float detectedLightLevel) {
@@ -80,19 +96,23 @@ public class LightingController extends AbstractController {
 			outputLightLevel = 0.0f;
 
 			if (outputLightLevel != lastAutomaticLightLevel) {
+				log.debug("forcing light output to {}", outputLightLevel);
+
 				forceUpdate = true;
 			}
 		}
 
 		boolean isChangeSignificant = Math.abs(outputLightLevel - lastAutomaticLightLevel) >= LIGHT_LEVEL_CHANGE_THRESHOLD;
 
+		log.trace("light level change from {} to {} is {}, the update is {}", lastAutomaticLightLevel, outputLightLevel, isChangeSignificant ? "significant" : "not significant", forceUpdate ? "forced" : "not forced");
+
 		// only change the output level if the change is larger than some threshold or update is forced
 		if (forceUpdate || isChangeSignificant) {
+			log.debug("reacting to detected light level change to {} by setting output power to {}", detectedLightLevel, outputLightLevel);
+
 			setAllLightLevels(outputLightLevel);
 
 			lastAutomaticLightLevel = outputLightLevel;
-
-			log.debug("lightmeter value changed to {}, setting light level to {}", detectedLightLevel, outputLightLevel);
 
 			state.setDetectedLightLevel(detectedLightLevel);
 			state.setOutputLightLevel(outputLightLevel);
@@ -123,16 +143,24 @@ public class LightingController extends AbstractController {
 
 				registerChild(driver);
 			}
+
+			if (lightCommanders.contains(commander)) {
+				lightCommanders.add(commander);
+			}
 		}
 	}
 
 	private void setupOperations() {
+		log.debug("setting up operations");
+
 		setupSetChannelValueOperation();
 		setupSetChannelValuesOperation();
 		setupSetAllChannelsValueOperation();
 	}
 
 	private void setupSetChannelValueOperation() {
+		log.debug("setting up set channel value operation");
+
 		registerOperationExecutor(new OperationExecutor() {
 			@Override
 			public String supportedOperationType() {
@@ -171,6 +199,8 @@ public class LightingController extends AbstractController {
 	}
 
 	private void setupSetChannelValuesOperation() {
+		log.debug("setting up set channel values operation");
+
 		registerOperationExecutor(new OperationExecutor() {
 			@Override
 			public String supportedOperationType() {
@@ -221,6 +251,8 @@ public class LightingController extends AbstractController {
 	}
 
 	private void setupSetAllChannelsValueOperation() {
+		log.debug("setting up set all channel values operation");
+
 		registerOperationExecutor(new OperationExecutor() {
 			@Override
 			public String supportedOperationType() {
@@ -261,6 +293,8 @@ public class LightingController extends AbstractController {
 	}
 
 	private void setAllLightLevels(float value) {
+		log.debug("setting all light levels to {}", value);
+
 		Map<Integer, Float> channelValueMap = new HashMap<>();
 		int lightCount = config.getInt("lighting.lightCount");
 
@@ -277,7 +311,7 @@ public class LightingController extends AbstractController {
 			int channelIndex = config.getInt("lighting.light." + lightNumber + ".channel");
 			AbstractMultiDacActuator driver = driverMap.get(commanderName);
 
-			log.debug("setting light {} to {} on commander {} channel {}", lightNumber, value, commanderName, channelIndex);
+			log.trace("setting light {} to {} on commander {} channel {}", lightNumber, value, commanderName, channelIndex);
 
 			driver.setChannelValue(channelIndex, value);
 		} catch (Exception e) {
@@ -299,6 +333,8 @@ public class LightingController extends AbstractController {
 				if (!commanderChannelValueMap.containsKey(commanderName)) {
 					commanderChannelValueMap.put(commanderName, new HashMap<>());
 				}
+
+				log.trace("setting light {} to {} on commander {} channel {}", lightNumber, value, commanderName, channelIndex);
 
 				commanderChannelValueMap.get(commanderName).put(channelIndex, value);
 			} catch (Exception e) {

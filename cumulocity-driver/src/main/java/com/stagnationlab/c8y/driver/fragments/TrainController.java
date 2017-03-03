@@ -1,6 +1,7 @@
 package com.stagnationlab.c8y.driver.fragments;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @SuppressWarnings("unused")
@@ -19,6 +20,8 @@ public class TrainController {
 	private int currentOperationIndex = 0;
 	private String nextStationName = "";
 	private String previousStationName = "";
+	private long chargeStartTimestamp = 0;
+	// TODO keep track of number of tickets bought
 
 	public float getBatteryVoltage() {
 		return batteryVoltage;
@@ -104,8 +107,12 @@ public class TrainController {
 		return isCharging;
 	}
 
-	public void setIsCharging(boolean charging) {
-		isCharging = charging;
+	public void setIsCharging(boolean isCharging) {
+		if (isCharging && !this.isCharging) {
+			chargeStartTimestamp = (new Date()).getTime();
+		}
+
+		this.isCharging = isCharging;
 	}
 
 	public String getNextStationName() {
@@ -122,5 +129,13 @@ public class TrainController {
 
 	public void setPreviousStationName(String previousStationName) {
 		this.previousStationName = previousStationName;
+	}
+
+	public long getChargeStartTimestamp() {
+		return chargeStartTimestamp;
+	}
+
+	public void setChargeStartTimestamp(long chargeStartTimestamp) {
+		this.chargeStartTimestamp = chargeStartTimestamp;
 	}
 }
