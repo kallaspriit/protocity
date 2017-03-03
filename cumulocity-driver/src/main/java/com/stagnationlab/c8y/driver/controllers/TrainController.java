@@ -481,6 +481,8 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 		log.info("starting train controller");
 
+		reportConnectionStatus();
+
 		train.commander.getMessageTransport().addEventListener(new MessageTransport.EventListener() {
 			@Override
 			public void onOpen(boolean wasReconnected) {
@@ -513,6 +515,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 				thread.start();
 
 				reportOperations();
+				reportConnectionStatus();
 			}
 
 			@Override
@@ -535,6 +538,8 @@ public class TrainController extends AbstractController implements TrainStopEven
 				}
 
 				log.debug("stopped train controller");
+
+				reportConnectionStatus();
 			}
 		});
 	}
@@ -649,6 +654,12 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 	private void reportCurrentOperationIndex() {
 		state.setCurrentOperationIndex(currentOperationIndex);
+
+		updateState(state);
+	}
+
+	private void reportConnectionStatus() {
+		state.setIsConnected(isRunning);
 
 		updateState(state);
 	}

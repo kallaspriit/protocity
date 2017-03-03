@@ -8,14 +8,15 @@ public class TrainController {
 
 	private float batteryVoltage = 0.0f;
 	private int batteryChargePercentage = 0;
+	private boolean isConnected = false;
+	private boolean isCharging = false;
 	private boolean isObstacleDetected = false;
+	private boolean isInStation = false;
 	private float obstacleDistance = 0.0f;
 	private float realSpeed = 0.0f;
 	private float targetSpeed = 0.0f;
 	private List<String> operations = new ArrayList<>();
 	private int currentOperationIndex = 0;
-	private boolean isInStation = false;
-	private boolean isCharging = false;
 	private String nextStationName = "";
 	private String previousStationName = "";
 
@@ -35,12 +36,20 @@ public class TrainController {
 		this.batteryChargePercentage = batteryChargePercentage;
 	}
 
+	public boolean getIsConnected() {
+		return isConnected;
+	}
+
+	public void setIsConnected(boolean isConnected) {
+		this.isConnected = isConnected;
+	}
+
 	public boolean getIsObstacleDetected() {
 		return isObstacleDetected;
 	}
 
-	public void setIsObstacleDetected(boolean obstacleDetected) {
-		isObstacleDetected = obstacleDetected;
+	public void setIsObstacleDetected(boolean isObstacleDetected) {
+		this.isObstacleDetected = isObstacleDetected;
 	}
 
 	public float getObstacleDistance() {
