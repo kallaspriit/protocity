@@ -74,7 +74,7 @@ private:
 	int renderInterval = 1000 / renderFps;
 
 	float thermometerLastRenderedValue = -100.0f;
-	float thermometerRenderChangeThreshold = 0.1f;
+	float thermometerRenderChangeThreshold = 0.01f;
 	int thermometerIntervalMs = 1000;
 
 	float lightmeterLastRenderedValue = -100.0f;

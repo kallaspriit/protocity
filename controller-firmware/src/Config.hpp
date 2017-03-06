@@ -8,7 +8,7 @@
 class Config {
 
 public:
-	std::string version = "1.21.0";
+	std::string version = "1.22.0";
 
 	// serial
 	PinName serialTxPin = USBTX;
