@@ -22,6 +22,12 @@ public class EtherioRelayActuator extends AbstractRelayActuator {
         super.initialize();
 
         portController = new PortController(portNumber, commander);
+    }
+
+    @Override
+    public void start() {
+        super.start();
+
         portController.setPortMode(PortController.PortMode.DIGITAL_OUT);
     }
 

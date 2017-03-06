@@ -75,8 +75,8 @@ public class Application implements MessageTransport.EventListener, SocketClient
 	}
 
 	@Override
-	public void onOpen(boolean wasReconnected) {
-		System.out.printf("# socket connection %s%n", wasReconnected ? "reconnected" : "opened");
+	public void onOpen(boolean isFirstConnect) {
+		System.out.printf("# socket %s%n", isFirstConnect ? "connected" : "reconnected");
 
 		if (inputThread == null) {
 			inputThread = new Thread(() -> {
@@ -114,7 +114,7 @@ public class Application implements MessageTransport.EventListener, SocketClient
 	}
 
 	@Override
-	public void onClose() {
+	public void onClose(boolean isPlanned) {
 		System.out.printf("# socket connection closed%n");
 	}
 

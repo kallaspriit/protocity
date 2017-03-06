@@ -52,6 +52,14 @@ public class Commander implements MessageTransport.EventListener {
 		messageTransport.addEventListener(this);
 	}
 
+	public boolean connect(int connectionTimeout) {
+		return messageTransport.connect(connectionTimeout);
+	}
+
+	public void close() {
+		messageTransport.close();
+	}
+
 	public void addRemoteCommandListener(RemoteCommandListener listener) {
 		remoteCommandListeners.add(listener);
 	}
@@ -93,12 +101,12 @@ public class Commander implements MessageTransport.EventListener {
 	}
 
 	@Override
-	public void onOpen(boolean wasReconnected) {
-		log.debug("{} to socket", wasReconnected ? "reconnected" : "connected");
+	public void onOpen(boolean isFirstConnect) {
+		log.debug("{} to socket", isFirstConnect ? "connected" : "reconnected");
 	}
 
 	@Override
-	public void onClose() {
+	public void onClose(boolean isPlanned) {
 		log.debug("socket connection closed");
 	}
 
@@ -126,7 +134,7 @@ public class Commander implements MessageTransport.EventListener {
 		if (wasEverOpened) {
 			log.debug("reconnecting to socket failed ({} - {})", e.getClass().getSimpleName(), e.getMessage());
 		} else {
-			log.warn("connecting to socket failed ({} - {})", e.getClass().getSimpleName(), e.getMessage());
+			log.debug("connecting to socket failed ({} - {})", e.getClass().getSimpleName(), e.getMessage());
 		}
 	}
 

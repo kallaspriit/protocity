@@ -23,11 +23,12 @@ public class EtherioAnalogInputSensor extends AbstractAnalogInputSensor {
 		super.initialize();
 
 		portController = new PortController(portNumber, commander);
-		portController.setPortMode(PortController.PortMode.ANALOG_IN);
 	}
 
 	@Override
 	public void start() {
+		portController.setPortMode(PortController.PortMode.ANALOG_IN);
+
 		// listen for value changes
 		portController.listenAnalogValueChange(0.01f, 500, new PortController.PortEventListener() {
 

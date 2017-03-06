@@ -7,21 +7,42 @@ import java.util.List;
 @SuppressWarnings("unused")
 public class Train {
 
-	private float batteryVoltage = 0.0f;
-	private int batteryChargePercentage = 0;
-	private boolean isConnected = false;
-	private boolean isCharging = false;
-	private boolean isObstacleDetected = false;
-	private boolean isInStation = false;
-	private float obstacleDistance = 0.0f;
-	private float realSpeed = 0.0f;
-	private float targetSpeed = 0.0f;
-	private List<String> operations = new ArrayList<>();
-	private int currentOperationIndex = 0;
-	private String nextStationName = "";
-	private String previousStationName = "";
-	private long chargeStartTimestamp = 0;
+	private float batteryVoltage;
+	private int batteryChargePercentage;
+	private boolean isConnected;
+	private boolean isCharging;
+	private boolean isObstacleDetected;
+	private boolean isInStation;
+	private float obstacleDistance;
+	private float realSpeed;
+	private float targetSpeed;
+	private List<String> operations;
+	private int currentOperationIndex;
+	private String nextStationName;
+	private String previousStationName;
+	private long chargeStartTimestamp;
 	// TODO keep track of number of tickets bought
+
+	public Train() {
+		reset();
+	}
+
+	public void reset() {
+		batteryVoltage = 0.0f;
+		batteryChargePercentage = 0;
+		isConnected = false;
+		isCharging = false;
+		isObstacleDetected = false;
+		isInStation = false;
+		obstacleDistance = 0.0f;
+		realSpeed = 0.0f;
+		targetSpeed = 0.0f;
+		operations = new ArrayList<>();
+		currentOperationIndex = 0;
+		nextStationName = "";
+		previousStationName = "";
+		chargeStartTimestamp = 0;
+	}
 
 	public float getBatteryVoltage() {
 		return batteryVoltage;

@@ -25,6 +25,7 @@ public class WeatherController extends AbstractController {
 	private final Weather state = new Weather();
 	private Commander commander;
 	private PortController portController;
+	private boolean isConnected = false;
 
 	private static final String CAPABILITY = "weather-station";
 
@@ -59,26 +60,44 @@ public class WeatherController extends AbstractController {
 
 		log.info("starting weather controller");
 
+		reportConnectionStatus();
+
 		commander.getMessageTransport().addEventListener(new MessageTransport.EventListener() {
 
 			@Override
-			public void onOpen(boolean wasReconnected) {
-				log.info("connection to weather commander transport has been {}", wasReconnected ? "re-established" : "opened");
-
-				boolean isFirstConnect = !wasReconnected;
+			public void onOpen(boolean isFirstConnect) {
+				log.info("connection to weather controller commander has been {}", isFirstConnect ? "established" : "re-established");
 
 				if (isFirstConnect) {
 					setupEventListener();
 				}
 
 				portController.sendPortCommand(CAPABILITY, "enable");
+
+				isConnected = true;
+
+				reportConnectionStatus();
 			}
 
 			@Override
-			public void onClose() {
-				log.info("weather commander transport has been closed");
+			public void onClose(boolean isPlanned) {
+				log.info("connection to weather controller commander transport has been closed");
+
+				isConnected = false;
+
+				reportConnectionStatus();
 			}
 		});
+	}
+
+	@Override
+	public void shutdown() {
+		log.info("shutting down weather controller");
+
+		state.reset();
+		updateState(state);
+
+		super.shutdown();
 	}
 
 	private void setupEventListener() {
@@ -157,6 +176,12 @@ public class WeatherController extends AbstractController {
 		reportMeasurement(new SoundMeasurement(value));
 
 		state.setSoundLevel(value);
+
+		updateState(state);
+	}
+
+	private void reportConnectionStatus() {
+		state.setIsConnected(isConnected);
 
 		updateState(state);
 	}

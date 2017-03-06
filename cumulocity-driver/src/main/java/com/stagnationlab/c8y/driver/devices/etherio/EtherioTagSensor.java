@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import com.stagnationlab.c8y.driver.devices.AbstractTagSensor;
 import com.stagnationlab.etherio.Commander;
+import com.stagnationlab.etherio.MessageTransport;
 import com.stagnationlab.etherio.PortController;
 
 @Slf4j
@@ -35,8 +36,28 @@ public class EtherioTagSensor extends AbstractTagSensor {
 	public void start() {
 		super.start();
 
-		portController.sendPortCommand(CAPABILITY, "enable");
+		log.debug("starting tag sensor '{}'", id);
 
+		commander.getMessageTransport().addEventListener(new MessageTransport.EventListener() {
+			@Override
+			public void onOpen(boolean isFirstConnect) {
+				log.debug("connection to tag sensor '{}' commander has been {}, enabling it", id, isFirstConnect ? "established" : "re-established");
+
+				if (isFirstConnect) {
+					setupEventListener();
+				}
+
+				portController.sendPortCommand(CAPABILITY, "enable");
+			}
+
+			@Override
+			public void onClose(boolean isPlanned) {
+				log.debug("tag sensor '{}' commander transport has been closed", id);
+			}
+		});
+	}
+
+	private void setupEventListener() {
 		portController.addEventListener(new PortController.PortEventListener() {
 			@Override
 			public void onPortCapabilityUpdate(int id, String capabilityName, List<String> arguments) {

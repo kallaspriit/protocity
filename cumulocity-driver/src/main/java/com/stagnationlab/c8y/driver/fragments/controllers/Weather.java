@@ -3,11 +3,29 @@ package com.stagnationlab.c8y.driver.fragments.controllers;
 @SuppressWarnings("unused")
 public class Weather {
 
-	private float temperature = 0.0f;
-	private float lightLevel = 0.0f;
-	private float humidity = 0.0f;
-	private float pressure = 0.0f;
-	private float soundLevel = 0.0f;
+	private boolean isConnected;
+	private float temperature;
+	private float lightLevel;
+	private float humidity;
+	private float pressure;
+	private float soundLevel;
+
+	public void reset() {
+		isConnected = false;
+		temperature = 0.0f;
+		lightLevel = 0.0f;
+		humidity = 0.0f;
+		pressure = 0.0f;
+		soundLevel = 0.0f;
+	}
+
+	public boolean getIsConnected() {
+		return isConnected;
+	}
+
+	public void setIsConnected(boolean isConnected) {
+		this.isConnected = isConnected;
+	}
 
 	public float getTemperature() {
 		return temperature;

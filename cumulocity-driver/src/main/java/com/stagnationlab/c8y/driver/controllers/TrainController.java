@@ -164,8 +164,8 @@ public class TrainController extends AbstractController implements TrainStopEven
 			setupBatteryMonitor();
 		}
 
-		void kill() {
-			log.debug("killing the train");
+		void shutdown() {
+			log.debug("shutting down the train");
 
 			if (batteryMonitorThread != null) {
 				log.debug("interrupting train battery monitor thread");
@@ -238,7 +238,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 		private void setupBatteryMonitor() {
 			batteryMonitorThread = new Thread(() -> {
-				while (isRunning) {
+				while (isConnected) {
 					requestBatteryVoltage();
 
 					try {
@@ -387,7 +387,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 		}
 
 		public String getName() {
-			return "Drive to stop '" + targetStopName + "'";
+			return "DRIVE:" + targetStopName;
 		}
 
 		@Override
@@ -422,7 +422,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 		@Override
 		public String getName() {
-			return "Wait for " + duration + "ms";
+			return "WAIT:" + duration;
 		}
 
 		@Override
@@ -437,7 +437,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 	private Train train;
 	private Thread thread;
 	private int currentOperationIndex = 0;
-	private boolean isRunning = false;
+	private boolean isConnected = false;
 
 	public TrainController(String id, Map<String, Commander> commanders, Config config, EventBroker eventBroker) {
 		super(id, commanders, config, eventBroker);
@@ -455,6 +455,8 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 	@Override
 	protected void setup() throws Exception {
+		log.info("setting up train controller");
+
 		setupTrain();
 		setupStops();
 	}
@@ -485,10 +487,8 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 		train.commander.getMessageTransport().addEventListener(new MessageTransport.EventListener() {
 			@Override
-			public void onOpen(boolean wasReconnected) {
-				log.info("connection to train commander transport has been {}", wasReconnected ? "re-established" : "opened");
-
-				boolean isFirstConnect = !wasReconnected;
+			public void onOpen(boolean isFirstConnect) {
+				log.debug("connection to train commander has been {}", isFirstConnect ? "established" : "re-established");
 
 				// only perform some operations on first connect
 				if (isFirstConnect) {
@@ -503,9 +503,9 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 				TrainOperation trainOperation = getCurrentOperation();
 
-				log.info("starting post-connect train operation: {}", trainOperation.getName());
+				log.debug("starting post-connect train operation: {}", trainOperation.getName());
 
-				isRunning = true;
+				isConnected = true;
 
 				trainOperation.start();
 
@@ -519,14 +519,12 @@ public class TrainController extends AbstractController implements TrainStopEven
 			}
 
 			@Override
-			public void onClose() {
+			public void onClose(boolean isPlanned) {
 				log.info("train commander transport has been closed");
 
-				TextToSpeech.INSTANCE.speak("Wireless connection to the train was lost, attempting to reestablish");
+				isConnected = false;
 
-				train.kill();
-
-				isRunning = false;
+				train.shutdown();
 
 				if (thread != null) {
 					try {
@@ -539,9 +537,23 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 				log.debug("stopped train controller");
 
+				if (!isPlanned) {
+					TextToSpeech.INSTANCE.speak("Wireless connection to the train was lost, attempting to reestablish");
+				}
+
 				reportConnectionStatus();
 			}
 		});
+	}
+
+	@Override
+	public void shutdown() {
+		log.info("shutting down train controller");
+
+		state.reset();
+		updateState(state);
+
+		super.shutdown();
 	}
 
 	@Override
@@ -550,7 +562,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 		long lastStepTime = Util.now();
 
-		while (isRunning) {
+		while (isConnected) {
 			long currentTime = Util.now();
 			long deltaTime = currentTime - lastStepTime;
 
@@ -641,7 +653,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 	}
 
 	private void registerStop(int stopNumber, TrainStop trainStop) {
-		log.info("registering train stop #{} '{}'", stopNumber, trainStop.name);
+		log.debug("registering train stop #{} '{}'", stopNumber, trainStop.name);
 
 		trainStop.addEventListener(this);
 
@@ -659,7 +671,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 	}
 
 	private void reportConnectionStatus() {
-		state.setIsConnected(isRunning);
+		state.setIsConnected(isConnected);
 
 		updateState(state);
 	}

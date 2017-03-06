@@ -83,7 +83,25 @@ public class Parking {
 		}
 	}
 
-	private List<SlotState> slots = new ArrayList<>();
+	private boolean isRunning;
+	private List<SlotState> slots;
+
+	public Parking() {
+		reset();
+	}
+
+	public void reset() {
+		isRunning = false;
+		slots = new ArrayList<>();
+	}
+
+	public boolean getIsRunning() {
+		return isRunning;
+	}
+
+	public void setIsRunning(boolean isRunning) {
+		this.isRunning = isRunning;
+	}
 
 	public List<SlotState> getSlots() {
 		return slots;

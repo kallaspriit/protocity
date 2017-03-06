@@ -51,6 +51,7 @@ public abstract class AbstractDevice implements Driver {
     protected final List<OperationExecutor> operationExecutors;
     protected final List<Driver> children = new ArrayList<>();
     protected final String id;
+    protected boolean isApiReady = false;
 
     protected AbstractDevice(String id) {
         this.id = id;
@@ -77,15 +78,21 @@ public abstract class AbstractDevice implements Driver {
 
     @Override
     public void initialize() throws Exception {
-    	setup();
+	    log.debug("initializing '{}' with {} {}", id, children.size(), children.size() == 1 ? "child" : "children");
 
-	    log.debug("initializing {} with {} {}", id, children.size(), children.size() == 1 ? "child" : "children");
+	    try {
+		    setup();
+	    } catch (Exception e) {
+		    log.warn("setup of device '{}' failed ({} - {})", id, e.getClass().getSimpleName(), e.getMessage(), e);
+
+		    return;
+	    }
 
 	    for (Driver child : children) {
 	    	try {
 			    child.initialize();
 		    } catch (Exception e) {
-			    debugDriverException(child, e, "Initializing failed");
+			    debugDriverException(child, e, "initializing failed");
 
 			    throw e;
 		    }
@@ -94,18 +101,19 @@ public abstract class AbstractDevice implements Driver {
 
     @Override
     public void initialize(Platform platform) throws Exception {
-	    log.debug("initializing {} with platform", id);
+	    log.debug("initializing '{}' with platform", id);
 
         this.platform = platform;
         this.measurementApi = platform.getMeasurementApi();
         this.eventApi = platform.getEventApi();
         this.inventoryApi = platform.getInventoryApi();
+        this.isApiReady = true;
 
 	    for (Driver child : children) {
 	    	try {
 			    child.initialize(platform);
 		    } catch (Exception e) {
-				debugDriverException(child, e, "Initializing platform connectivity failed");
+				debugDriverException(child, e, "initializing platform connectivity failed");
 
 				throw e;
 		    }
@@ -114,26 +122,25 @@ public abstract class AbstractDevice implements Driver {
 
 	@Override
 	public void initializeInventory(ManagedObjectRepresentation owner) {
-		log.debug("initializing {} inventory, owner: {}", id, owner.getId() == null ? "none" : owner.getId().getValue());
-
-		debugManagedObject(owner);
-
 		for (Driver child : children) {
 			try {
 				child.initializeInventory(owner);
 			} catch (Exception e) {
-				debugDriverException(child, e, "Initializing inventory failed");
+				debugDriverException(child, e, "initializing inventory failed");
 
 				throw e;
 			}
 		}
+
+		log.debug("initializing '{}' inventory, owner: {}", id, owner.getId() == null ? "none" : owner.getId().getValue());
+		debugManagedObject(owner);
 	}
 
 	@Override
 	public void discoverChildren(ManagedObjectRepresentation parent) {
 		parentId = parent.getId();
 
-		log.debug("discovering {} children for parent with id {}", id, parentId.getValue());
+		log.debug("discovering '{}' children for parent with id {}", id, parentId.getValue());
 		debugManagedObject(parent);
 
 		device = DeviceManager.create(
@@ -148,14 +155,14 @@ public abstract class AbstractDevice implements Driver {
 
 		myId = device.getId();
 
-		log.debug("created device for {} with id: {}", id, myId.getValue());
+		log.debug("created device for '{}' with id: {}", id, myId.getValue());
 		debugManagedObject(device);
 
 		for (Driver child : children) {
 			try {
 				child.discoverChildren(device);
 			} catch (Exception e) {
-				debugDriverException(child, e, "Discovering children failed");
+				debugDriverException(child, e, "discovering children failed");
 
 				throw e;
 			}
@@ -164,17 +171,17 @@ public abstract class AbstractDevice implements Driver {
 
 	@Override
 	public void start() {
-		log.debug("starting {}", id);
-
 		for (Driver child : children) {
 			try {
 				child.start();
 			} catch (Exception e) {
-				debugDriverException(child, e, "Initializing platform connectivity failed");
+				debugDriverException(child, e, "initializing platform connectivity failed");
 
 				throw e;
 			}
 		}
+
+		log.debug("starting '{}'", id);
 	}
 
     @Override
@@ -193,31 +200,51 @@ public abstract class AbstractDevice implements Driver {
 		    }
 	    }
 
-	    log.debug("returning list of supported operations for {} ({} total):", id, operationExecutors.size());
+	    log.trace("returning list of supported operations for '{}' ({} total):", id, operationExecutors.size());
 
 	    return combinedOperationExecutors.toArray(new OperationExecutor[combinedOperationExecutors.size()]);
+    }
+
+    public void shutdown() {
+	    log.debug("shutting down '{}'", id);
+
+	    for (Driver child : children) {
+	    	if (!(child instanceof AbstractDevice)) {
+	    		continue;
+		    }
+
+	    	AbstractDevice device = (AbstractDevice)child;
+
+		    try {
+			    device.shutdown();
+		    } catch (Exception e) {
+			    debugDriverException(child, e, "shutting down device failed");
+
+			    throw e;
+		    }
+	    }
     }
 
     protected void registerChild(Driver child) {
     	if (child instanceof AbstractDevice) {
     		AbstractDevice device = (AbstractDevice)child;
 
-		    log.debug("registering {} child: {} ({})", id, device.getId(), child.getClass().getSimpleName());
+		    log.debug("registering '{}' child: {} ({})", id, device.getId(), child.getClass().getSimpleName());
 	    } else {
-		    log.debug("registering {} child: {}", id, child.getClass().getSimpleName());
+		    log.debug("registering '{}' child: {}", id, child.getClass().getSimpleName());
 	    }
 
     	children.add(child);
     }
 
     protected void registerOperationExecutor(OperationExecutor operationExecutor) {
-        log.debug("registering operation executor for {} of type: {}", id, operationExecutor.supportedOperationType());
+        log.debug("registering operation executor for '{}' of type: {}", id, operationExecutor.supportedOperationType());
 
         operationExecutors.add(operationExecutor);
     }
 
     protected MeasurementRepresentation reportMeasurement(Object measurement, String type) {
-        log.trace("reporting measurement for {} of type {}: {}", id, type, Util.stringify(measurement));
+        log.trace("reporting measurement for '{}' of type {}: {}", id, type, Util.stringify(measurement));
 
         MeasurementRepresentation measurementRepresentation = new MeasurementRepresentation();
 
@@ -237,7 +264,7 @@ public abstract class AbstractDevice implements Driver {
 	}
 
     protected void reportEvent(EventRepresentation eventRepresentation) {
-        log.trace("reporting event for {} of type {}: {}", id, eventRepresentation.getClass().getSimpleName(), Util.stringify(eventRepresentation));
+        log.trace("reporting event for '{}' of type {}: {}", id, eventRepresentation.getClass().getSimpleName(), Util.stringify(eventRepresentation));
 
         eventRepresentation.setSource(device);
 
@@ -246,23 +273,27 @@ public abstract class AbstractDevice implements Driver {
 
     @SuppressWarnings("UnusedReturnValue")
     protected ManagedObjectRepresentation updateState(Object... properties) {
-        log.trace("updating state of {}: {}", id, Util.stringify(properties));
-
         ManagedObjectRepresentation managedObjectRepresentation = new ManagedObjectRepresentation();
-        managedObjectRepresentation.setId(device.getId());
 
         for (Object property : properties) {
             managedObjectRepresentation.set(property);
         }
 
-        device = platform.getInventoryApi().update(managedObjectRepresentation);
+	    if (device == null || inventoryApi == null) {
+		    log.warn("updating state of '{}' requested but initialize with platform is not yet called, APIs not available yet", id);
+	    } else {
+		    log.trace("updating state of '{}': {}", id, Util.stringify(properties));
+
+		    managedObjectRepresentation.setId(device.getId());
+		    device = inventoryApi.update(managedObjectRepresentation);
+	    }
 
         return managedObjectRepresentation;
     }
 
     @SuppressWarnings({ "SameParameterValue", "UnusedReturnValue" })
     protected ScheduledFuture<?> setInterval(Runnable runnable, long intervalMs) {
-        log.info("creating an interval for {} every {}ms", id, intervalMs);
+        log.info("creating an interval for '{}' every {}ms", id, intervalMs);
 
         ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor(
                 r -> new Thread(r, getType() + "Interval")

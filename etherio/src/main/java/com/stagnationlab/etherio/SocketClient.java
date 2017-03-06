@@ -39,9 +39,9 @@ public class SocketClient implements MessageTransport {
     private int reconnectInterval = -1;
     private int messageCounter = 1;
     private boolean wasEverConnected = false;
-    private boolean wasReconnected = false;
 	private boolean isConnecting = false;
-	private boolean isReconnectDisabled = false;
+	private boolean isFirstConnect = true;
+	private boolean isPlannedClose = false;
 	private long requestPingTime = 0;
 	private static int inputThreadCount = 0;
 	private static int timeoutThreadCount = 0;
@@ -80,10 +80,11 @@ public class SocketClient implements MessageTransport {
 	}
 
     @SuppressWarnings({ "SameParameterValue", "WeakerAccess" })
+    @Override
     public boolean connect(int connectionTimeout) {
 	    log.debug("connecting to {}:{}", hostName, portNumber);
 
-	    isReconnectDisabled = false;
+	    isPlannedClose = false;
 	    lastConnectionTimeout = connectionTimeout;
 
 	    for (EventListener eventListener : eventListeners) {
@@ -99,7 +100,7 @@ public class SocketClient implements MessageTransport {
 		    socketOut = new PrintWriter(socket.getOutputStream(), true);
 		    socketIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-		    wasReconnected = wasEverConnected;
+		    isFirstConnect = !wasEverConnected;
 
 		    isConnecting = false;
 		    wasEverConnected = true;
@@ -113,7 +114,7 @@ public class SocketClient implements MessageTransport {
 		    log.debug("connected to {}:{}", hostName, portNumber);
 
 		    for (EventListener eventListener : eventListeners) {
-			    eventListener.onOpen(wasReconnected);
+			    eventListener.onOpen(isFirstConnect);
 		    }
 
 		    return true;
@@ -138,12 +139,22 @@ public class SocketClient implements MessageTransport {
 	    }
     }
 
+	@SuppressWarnings("unused")
+	@Override
+	public void close() {
+		log.info("closing the socket to {}:{} without automatic reconnecting", hostName, portNumber);
+
+		isPlannedClose = true;
+
+		closeSocket();
+	}
+
     public void addEventListener(EventListener eventListener) {
         eventListeners.add(eventListener);
 
         // call the onOpen event if the socket is already connected
         if (isConnected()) {
-        	eventListener.onOpen(wasReconnected);
+        	eventListener.onOpen(isFirstConnect);
         }
     }
 
@@ -188,15 +199,6 @@ public class SocketClient implements MessageTransport {
     public int getNextMessageId() {
         return messageCounter++;
     }
-
-	@SuppressWarnings("unused")
-	public void close() {
-		log.info("closing the socket to {}:{} without automatic reconnecting", hostName, portNumber);
-
-		isReconnectDisabled = true;
-
-		closeSocket();
-	}
 
     private void closeSocket() {
 		if (isConnecting) {
@@ -243,18 +245,18 @@ public class SocketClient implements MessageTransport {
 		}
 
 	    for (EventListener eventListener : eventListeners) {
-		    eventListener.onClose();
+		    eventListener.onClose(isPlannedClose);
 	    }
 
 	    log.debug("socket to {}:{} has been closed", hostName, portNumber);
 
-	    if (wasEverConnected && reconnectInterval >= 0 && !isReconnectDisabled) {
+	    if (wasEverConnected && reconnectInterval >= 0 && !isPlannedClose) {
 		    scheduleReconnect(reconnectInterval);
 	    }
     }
 
 	private void scheduleReconnect(int timeout) {
-		if (isReconnectDisabled) {
+		if (isPlannedClose) {
 			log.warn("scheduling reconnect requested but final close already called, ignoring it");
 
 			return;
@@ -271,7 +273,7 @@ public class SocketClient implements MessageTransport {
 
 	@SuppressWarnings("WeakerAccess")
 	private void reconnect() {
-		if (isReconnectDisabled) {
+		if (isPlannedClose) {
 			log.warn("reconnect requested but final close already called, ignoring it");
 
 			return;
@@ -331,7 +333,11 @@ public class SocketClient implements MessageTransport {
 				} catch (SocketTimeoutException e) {
 					log.trace("socket read from {}:{} timed out", hostName, portNumber);
 				} catch (Exception e) {
-					log.warn("got exception for {}:{}, stopping input thread ({} - {})", hostName, portNumber, e.getClass().getSimpleName(), e.getMessage());
+					if (isPlannedClose) {
+						log.debug("got planned close socket exception for {}:{} ({} - {})", hostName, portNumber, e.getClass().getSimpleName(), e.getMessage());
+					} else {
+						log.warn("got exception for {}:{}, stopping input thread ({} - {})", hostName, portNumber, e.getClass().getSimpleName(), e.getMessage());
+					}
 
 					break;
 				}

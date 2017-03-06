@@ -3,8 +3,27 @@ package com.stagnationlab.c8y.driver.fragments.controllers;
 @SuppressWarnings("unused")
 public class Lighting {
 
-	private float detectedLightLevel = 0.0f;
-	private float outputLightLevel = 0.0f;
+	private boolean isRunning;
+	private float detectedLightLevel;
+	private float outputLightLevel;
+
+	public Lighting() {
+		reset();
+	}
+
+	public void reset() {
+		isRunning = false;
+		detectedLightLevel = 0.0f;
+		outputLightLevel = 0.0f;
+	}
+
+	public boolean getIsRunning() {
+		return isRunning;
+	}
+
+	public void setIsRunning(boolean isRunning) {
+		this.isRunning = isRunning;
+	}
 
 	public float getDetectedLightLevel() {
 		return detectedLightLevel;

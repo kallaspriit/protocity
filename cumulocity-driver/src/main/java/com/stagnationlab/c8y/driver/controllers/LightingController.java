@@ -1,8 +1,6 @@
 package com.stagnationlab.c8y.driver.controllers;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
@@ -32,12 +30,21 @@ public class LightingController extends AbstractController {
 
 	private final Lighting state = new Lighting();
 	private final Map<String, AbstractMultiDacActuator> driverMap = new HashMap<>();
-	private final List<Commander> lightCommanders = new ArrayList<>();
 	private float lastAutomaticLightLevel = 0.0f;
 	private boolean isRunning = false;
+	private final float lowLightValue;
+	private final float highLightValue;
+	private final float lowLightOutput;
+	private final float highLightOutput;
 
 	public LightingController(String id, Map<String, Commander> commanders, Config config, EventBroker eventBroker) {
 		super(id, commanders, config, eventBroker);
+
+		// initialize calibration
+		lowLightValue = config.getFloat("lighting.lowLightValue");
+		highLightValue = config.getFloat("lighting.highLightValue");
+		lowLightOutput = config.getFloat("lighting.lowLightOutput");
+		highLightOutput = config.getFloat("lighting.highLightOutput");
 	}
 
 	@Override
@@ -52,7 +59,7 @@ public class LightingController extends AbstractController {
 
 	@Override
 	protected void setup() throws Exception {
-		log.debug("setting up lighting controller");
+		log.info("setting up lighting controller");
 
 		setupLedDrivers();
 		setupOperations();
@@ -65,6 +72,19 @@ public class LightingController extends AbstractController {
 		log.info("starting lighting controller");
 
 		isRunning = true;
+
+		state.setIsRunning(true);
+		updateState(state);
+	}
+
+	@Override
+	public void shutdown() {
+		log.info("shutting down lighting controller");
+
+		state.reset();
+		updateState(state);
+
+		super.shutdown();
 	}
 
 	@Override
@@ -85,7 +105,7 @@ public class LightingController extends AbstractController {
 	}
 
 	private void handleLightmeterChangeEvent(float detectedLightLevel) {
-		float outputLightLevel = Util.map(detectedLightLevel, 10.0f, 200.0f, 0.5f, 0.0f);
+		float outputLightLevel = mapDetectedLightToOutputLevel(detectedLightLevel);
 		boolean areLightsCurrentlyOn = lastAutomaticLightLevel > 0.0f;
 		boolean forceUpdate = false;
 
@@ -138,15 +158,11 @@ public class LightingController extends AbstractController {
 			if (!driverMap.containsKey(commanderName)) {
 				log.debug("creating light driver for commander {} on port {} for {} channels", commanderName, ledDriverPort, ledDriverChannels);
 
-				AbstractMultiDacActuator driver = new EtherioMultiDacActuator("Led driver for commander " + commanderName, commander, ledDriverPort, ledDriverChannels);
+				AbstractMultiDacActuator driver = new EtherioMultiDacActuator("Lighting controller led driver for commander " + commanderName, commander, ledDriverPort, ledDriverChannels);
 
 				driverMap.put(commanderName, driver);
 
 				registerChild(driver);
-			}
-
-			if (lightCommanders.contains(commander)) {
-				lightCommanders.add(commander);
 			}
 		}
 	}
@@ -291,6 +307,10 @@ public class LightingController extends AbstractController {
 				operation.setStatus(OperationStatus.SUCCESSFUL.toString());
 			}
 		});
+	}
+
+	private float mapDetectedLightToOutputLevel(float detectedLightLevel) {
+		return Util.map(detectedLightLevel, lowLightValue, highLightValue, lowLightOutput, highLightOutput);
 	}
 
 	private void setAllLightLevels(float value) {

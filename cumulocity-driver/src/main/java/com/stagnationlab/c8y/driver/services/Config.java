@@ -47,6 +47,26 @@ public class Config extends Properties {
 		return Integer.valueOf(value.toString());
 	}
 
+	public float getFloat(String name, float defaultValue) {
+		Object value = get(name);
+
+		if (value == null) {
+			return defaultValue;
+		}
+
+		return Float.valueOf(value.toString());
+	}
+
+	public float getFloat(String name) {
+		Object value = get(name);
+
+		if (value == null) {
+			throw new IllegalArgumentException("configuration parameter called '" + name + "' does not exist");
+		}
+
+		return Float.valueOf(value.toString());
+	}
+
 	public List<String> getStringArray(String name) {
 		String values = getString(name);
 
