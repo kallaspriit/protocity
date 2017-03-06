@@ -14,7 +14,7 @@ public class AbstractTagSensor extends AbstractDevice {
 		void onTagExit();
 	}
 
-	private final TagSensor tagSensor = new TagSensor();
+	protected final TagSensor state = new TagSensor();
 	private final List<TagEventListener> tagEventListeners = new ArrayList<>();
 
 	protected AbstractTagSensor(String id) {
@@ -23,7 +23,7 @@ public class AbstractTagSensor extends AbstractDevice {
 
 	@Override
 	protected String getType() {
-		return tagSensor.getClass().getSimpleName();
+		return state.getClass().getSimpleName();
 	}
 
 	public void addTagEventListener(TagEventListener tagEventListener) {
@@ -35,11 +35,11 @@ public class AbstractTagSensor extends AbstractDevice {
 			tagEventListener.onTagEnter(tagName);
 		}
 
-		tagSensor.setTagName(tagName);
-		tagSensor.setTagActive(true);
+		state.setTagName(tagName);
+		state.setTagActive(true);
 
 		reportEvent(new TagEnterEvent());
-		updateState(tagSensor);
+		updateState(state);
 	}
 
 	protected void emitTagExit() {
@@ -47,10 +47,10 @@ public class AbstractTagSensor extends AbstractDevice {
 			tagEventListener.onTagExit();
 		}
 
-		tagSensor.setTagActive(false);
+		state.setTagActive(false);
 
 		reportEvent(new TagExitEvent());
-		updateState(tagSensor);
+		updateState(state);
 	}
 
 }

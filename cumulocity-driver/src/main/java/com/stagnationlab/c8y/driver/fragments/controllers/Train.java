@@ -100,11 +100,11 @@ public class Train {
 		this.targetSpeed = targetSpeed;
 	}
 
-	public List<String> getOperations() {
+	public synchronized List<String> getOperations() {
 		return operations;
 	}
 
-	public void setOperations(List<String> operations) {
+	public synchronized void setOperations(List<String> operations) {
 		this.operations = operations;
 	}
 

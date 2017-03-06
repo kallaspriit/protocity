@@ -36,19 +36,19 @@ public class Gateway {
 		this.isRunning = isRunning;
 	}
 
-	public List<Controller> getControllers() {
+	public synchronized List<Controller> getControllers() {
 		return controllers;
 	}
 
-	public void setControllers(List<Controller> controllers) {
+	public synchronized void setControllers(List<Controller> controllers) {
 		this.controllers = controllers;
 	}
 
-	public void addController(Controller controller) {
+	public synchronized void addController(Controller controller) {
 		controllers.add(controller);
 	}
 
-	public Controller controllerByName(String name) {
+	public synchronized Controller controllerByName(String name) {
 		return controllers.stream().filter(controller -> controller.getName().equals(name)).findFirst().orElse(null);
 	}
 }

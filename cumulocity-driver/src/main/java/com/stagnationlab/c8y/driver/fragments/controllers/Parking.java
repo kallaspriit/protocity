@@ -107,15 +107,15 @@ public class Parking {
 		return slots;
 	}
 
-	public void setSlots(List<SlotState> slots) {
+	public synchronized void setSlots(List<SlotState> slots) {
 		this.slots = slots;
 	}
 
-	public SlotState slotByIndex(int index) {
+	public synchronized SlotState slotByIndex(int index) {
 		return slots.stream().filter(slot -> slot.getIndex() == index).findFirst().orElse(null);
 	}
 
-	public void addSlot(SlotState slot) {
+	public synchronized void addSlot(SlotState slot) {
 		slots.add(slot);
 	}
 }

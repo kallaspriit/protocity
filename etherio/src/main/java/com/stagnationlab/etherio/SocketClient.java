@@ -336,7 +336,7 @@ public class SocketClient implements MessageTransport {
 					if (isPlannedClose) {
 						log.debug("got planned close socket exception for {}:{} ({} - {})", hostName, portNumber, e.getClass().getSimpleName(), e.getMessage());
 					} else {
-						log.warn("got exception for {}:{}, stopping input thread ({} - {})", hostName, portNumber, e.getClass().getSimpleName(), e.getMessage());
+						log.warn("got exception for {}:{}, stopping input thread ({} - {})", hostName, portNumber, e.getClass().getSimpleName(), e.getMessage(), e);
 					}
 
 					break;

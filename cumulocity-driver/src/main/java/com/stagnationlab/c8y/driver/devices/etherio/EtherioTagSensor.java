@@ -47,14 +47,32 @@ public class EtherioTagSensor extends AbstractTagSensor {
 					setupEventListener();
 				}
 
-				portController.sendPortCommand(CAPABILITY, "enable");
+				portController.sendPortCommand(CAPABILITY, "enable").thenAccept(commandResponse -> {
+					log.debug("tag sensor '{}' has been enabled", id);
+
+					state.setIsRunning(true);
+					updateState(state);
+				});
 			}
 
 			@Override
 			public void onClose(boolean isPlanned) {
 				log.debug("tag sensor '{}' commander transport has been closed", id);
+
+				state.setIsRunning(false);
+				updateState(state);
 			}
 		});
+	}
+
+	@Override
+	public void shutdown() {
+		log.info("shutting down tag sensor '{}'", id);
+
+		state.reset();
+		updateState(state);
+
+		super.shutdown();
 	}
 
 	private void setupEventListener() {
