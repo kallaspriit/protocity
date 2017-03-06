@@ -1,7 +1,7 @@
-package com.stagnationlab.c8y.driver.fragments;
+package com.stagnationlab.c8y.driver.fragments.controllers;
 
 @SuppressWarnings("unused")
-public class LightingController {
+public class Lighting {
 
 	private float detectedLightLevel = 0.0f;
 	private float outputLightLevel = 0.0f;

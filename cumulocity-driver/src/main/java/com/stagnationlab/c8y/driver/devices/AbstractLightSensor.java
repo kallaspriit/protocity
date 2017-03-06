@@ -1,6 +1,6 @@
 package com.stagnationlab.c8y.driver.devices;
 
-import com.stagnationlab.c8y.driver.fragments.LightSensor;
+import com.stagnationlab.c8y.driver.fragments.sensors.LightSensor;
 import com.stagnationlab.c8y.driver.measurements.LightMeasurement;
 
 public abstract class AbstractLightSensor extends AbstractDevice {

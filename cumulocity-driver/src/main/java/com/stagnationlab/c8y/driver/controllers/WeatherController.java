@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import com.stagnationlab.c8y.driver.constants.ControllerEvent;
 import com.stagnationlab.c8y.driver.constants.WeatherSensor;
+import com.stagnationlab.c8y.driver.fragments.controllers.Weather;
 import com.stagnationlab.c8y.driver.measurements.HumidityMeasurement;
 import com.stagnationlab.c8y.driver.measurements.LightMeasurement;
 import com.stagnationlab.c8y.driver.measurements.PressureMeasurement;
@@ -21,7 +22,7 @@ import com.stagnationlab.etherio.PortController;
 @Slf4j
 public class WeatherController extends AbstractController {
 
-	private final com.stagnationlab.c8y.driver.fragments.WeatherController state = new com.stagnationlab.c8y.driver.fragments.WeatherController();
+	private final Weather state = new Weather();
 	private Commander commander;
 	private PortController portController;
 

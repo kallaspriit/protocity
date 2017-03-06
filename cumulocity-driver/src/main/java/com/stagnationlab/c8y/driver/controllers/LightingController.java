@@ -12,6 +12,7 @@ import com.cumulocity.rest.representation.operation.OperationRepresentation;
 import com.stagnationlab.c8y.driver.constants.ControllerEvent;
 import com.stagnationlab.c8y.driver.devices.AbstractMultiDacActuator;
 import com.stagnationlab.c8y.driver.devices.etherio.EtherioMultiDacActuator;
+import com.stagnationlab.c8y.driver.fragments.controllers.Lighting;
 import com.stagnationlab.c8y.driver.operations.SetAllChannelsValue;
 import com.stagnationlab.c8y.driver.operations.SetChannelValue;
 import com.stagnationlab.c8y.driver.operations.SetChannelValues;
@@ -29,7 +30,7 @@ public class LightingController extends AbstractController {
 	private static final float LIGHT_LEVEL_TURN_ON_THRESHOLD = 0.2f;
 	private static final float LIGHT_LEVEL_TURN_OFF_THRESHOLD = 0.1f;
 
-	private final com.stagnationlab.c8y.driver.fragments.LightingController state = new com.stagnationlab.c8y.driver.fragments.LightingController();
+	private final Lighting state = new Lighting();
 	private final Map<String, AbstractMultiDacActuator> driverMap = new HashMap<>();
 	private final List<Commander> lightCommanders = new ArrayList<>();
 	private float lastAutomaticLightLevel = 0.0f;

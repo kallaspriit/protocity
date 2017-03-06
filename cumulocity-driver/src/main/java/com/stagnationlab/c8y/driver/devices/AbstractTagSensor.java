@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.stagnationlab.c8y.driver.events.TagEnterEvent;
 import com.stagnationlab.c8y.driver.events.TagExitEvent;
-import com.stagnationlab.c8y.driver.fragments.TagSensor;
+import com.stagnationlab.c8y.driver.fragments.sensors.TagSensor;
 
 public class AbstractTagSensor extends AbstractDevice {
 

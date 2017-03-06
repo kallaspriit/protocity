@@ -1,7 +1,7 @@
 package com.stagnationlab.c8y.driver.devices;
 
 
-import com.stagnationlab.c8y.driver.fragments.MonitoringSensor;
+import com.stagnationlab.c8y.driver.fragments.sensors.MonitoringSensor;
 
 public abstract class AbstractMonitoringSensor extends AbstractDevice {
 

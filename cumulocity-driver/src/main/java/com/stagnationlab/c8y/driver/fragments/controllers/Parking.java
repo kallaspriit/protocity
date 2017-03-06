@@ -1,11 +1,11 @@
-package com.stagnationlab.c8y.driver.fragments;
+package com.stagnationlab.c8y.driver.fragments.controllers;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 @SuppressWarnings("unused")
-public class ParkingController {
+public class Parking {
 
 	@SuppressWarnings("WeakerAccess")
 	public static class SlotState {

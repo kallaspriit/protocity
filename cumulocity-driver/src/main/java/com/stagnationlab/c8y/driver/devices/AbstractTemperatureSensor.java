@@ -1,6 +1,6 @@
 package com.stagnationlab.c8y.driver.devices;
 
-import com.stagnationlab.c8y.driver.fragments.TemperatureSensor;
+import com.stagnationlab.c8y.driver.fragments.sensors.TemperatureSensor;
 import com.stagnationlab.c8y.driver.measurements.TemperatureMeasurement;
 
 public abstract class AbstractTemperatureSensor extends AbstractDevice {

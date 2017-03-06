@@ -9,6 +9,7 @@ import com.stagnationlab.c8y.driver.devices.AbstractMultiDacActuator;
 import com.stagnationlab.c8y.driver.devices.AbstractTagSensor;
 import com.stagnationlab.c8y.driver.devices.etherio.EtherioMultiDacActuator;
 import com.stagnationlab.c8y.driver.devices.etherio.EtherioTagSensor;
+import com.stagnationlab.c8y.driver.fragments.controllers.Parking;
 import com.stagnationlab.c8y.driver.services.Config;
 import com.stagnationlab.c8y.driver.services.EventBroker;
 import com.stagnationlab.c8y.driver.services.TextToSpeech;
@@ -17,7 +18,7 @@ import com.stagnationlab.etherio.Commander;
 @Slf4j
 public class ParkingController extends AbstractController {
 
-	private final com.stagnationlab.c8y.driver.fragments.ParkingController state = new com.stagnationlab.c8y.driver.fragments.ParkingController();
+	private final Parking state = new Parking();
 	private AbstractMultiDacActuator ledDriver;
 	private final Map<Integer, AbstractTagSensor> sensorsMap = new HashMap<>();
 	private final Map<Integer, Integer> ledChannelMap = new HashMap<>();
@@ -80,7 +81,7 @@ public class ParkingController extends AbstractController {
 
 			registerChild(sensor);
 
-			com.stagnationlab.c8y.driver.fragments.ParkingController.SlotState slotState = new com.stagnationlab.c8y.driver.fragments.ParkingController.SlotState(i);
+			Parking.SlotState slotState = new Parking.SlotState(i);
 			state.addSlot(slotState);
 
 			log.info("added parking controller slot sensor #{} called '{}' on commander {} port {} using led channel {}", i, name, commanderName, port, ledChannel);
@@ -119,7 +120,7 @@ public class ParkingController extends AbstractController {
 	}
 
 	private void occupy(int index, String occupantName) {
-		com.stagnationlab.c8y.driver.fragments.ParkingController.SlotState slotState = state.slotByIndex(index);
+		Parking.SlotState slotState = state.slotByIndex(index);
 
 		if (slotState == null) {
 			log.warn("marking slot #{} as occupied by {} but no such slot was found, ignoring it", index, occupantName);
@@ -138,7 +139,7 @@ public class ParkingController extends AbstractController {
 	}
 
 	private void free(int index) {
-		com.stagnationlab.c8y.driver.fragments.ParkingController.SlotState slotState = state.slotByIndex(index);
+		Parking.SlotState slotState = state.slotByIndex(index);
 
 		if (slotState == null) {
 			log.warn("marking slot #{} as free but no such slot was found, ignoring it", index);

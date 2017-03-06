@@ -1,6 +1,6 @@
 package com.stagnationlab.c8y.driver.devices;
 
-import com.stagnationlab.c8y.driver.fragments.AnalogInputSensor;
+import com.stagnationlab.c8y.driver.fragments.sensors.AnalogInputSensor;
 import com.stagnationlab.c8y.driver.measurements.AnalogMeasurement;
 
 public class AbstractAnalogInputSensor extends AbstractDevice {

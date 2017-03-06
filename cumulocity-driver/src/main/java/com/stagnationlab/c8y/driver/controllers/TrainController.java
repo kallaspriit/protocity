@@ -431,7 +431,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 		}
 	}
 
-	private final com.stagnationlab.c8y.driver.fragments.TrainController state = new com.stagnationlab.c8y.driver.fragments.TrainController();
+	private final com.stagnationlab.c8y.driver.fragments.controllers.Train state = new com.stagnationlab.c8y.driver.fragments.controllers.Train();
 	private final List<TrainOperation> operations = new ArrayList<>();
 	private final Map<Integer, TrainStop> stopMap = new HashMap<>();
 	private Train train;

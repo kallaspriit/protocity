@@ -1,7 +1,7 @@
-package com.stagnationlab.c8y.driver.fragments;
+package com.stagnationlab.c8y.driver.fragments.controllers;
 
 @SuppressWarnings("unused")
-public class WeatherController {
+public class Weather {
 
 	private float temperature = 0.0f;
 	private float lightLevel = 0.0f;

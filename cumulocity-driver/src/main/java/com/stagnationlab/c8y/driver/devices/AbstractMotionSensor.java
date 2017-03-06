@@ -2,7 +2,7 @@ package com.stagnationlab.c8y.driver.devices;
 
 import com.stagnationlab.c8y.driver.events.MotionDetectedEvent;
 import com.stagnationlab.c8y.driver.events.MotionEndedEvent;
-import com.stagnationlab.c8y.driver.fragments.MotionSensor;
+import com.stagnationlab.c8y.driver.fragments.sensors.MotionSensor;
 import com.stagnationlab.c8y.driver.measurements.MotionStateMeasurement;
 
 public abstract class AbstractMotionSensor extends AbstractDevice {

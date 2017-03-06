@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import com.cumulocity.model.operation.OperationStatus;
 import com.cumulocity.rest.representation.operation.OperationRepresentation;
-import com.stagnationlab.c8y.driver.fragments.MultiDacActuator;
+import com.stagnationlab.c8y.driver.fragments.actuators.MultiDacActuator;
 import com.stagnationlab.c8y.driver.operations.SetChannelValue;
 import com.stagnationlab.c8y.driver.services.Util;
 

@@ -1,4 +1,4 @@
-package com.stagnationlab.c8y.driver.fragments;
+package com.stagnationlab.c8y.driver.fragments.actuators;
 
 import java.io.Serializable;
 import java.util.HashMap;

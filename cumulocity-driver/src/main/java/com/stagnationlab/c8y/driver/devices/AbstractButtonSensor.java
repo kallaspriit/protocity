@@ -2,7 +2,7 @@ package com.stagnationlab.c8y.driver.devices;
 
 import com.stagnationlab.c8y.driver.events.ButtonPressedEvent;
 import com.stagnationlab.c8y.driver.events.ButtonReleasedEvent;
-import com.stagnationlab.c8y.driver.fragments.ButtonSensor;
+import com.stagnationlab.c8y.driver.fragments.sensors.ButtonSensor;
 import com.stagnationlab.c8y.driver.measurements.ButtonStateMeasurement;
 
 public abstract class AbstractButtonSensor extends AbstractDevice {
