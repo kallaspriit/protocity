@@ -3,21 +3,30 @@ package com.stagnationlab.c8y.driver.fragments.actuators;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 @SuppressWarnings({ "unused", "WeakerAccess" })
 public class MultiDacActuator implements Serializable {
 
-	private static final long serialVersionUID = 2702169573343647512L;
-	private int channelCount = 0;
-	private Map<Integer, Float> values = new HashMap<>();
+	private boolean isRunning;
+	private int channelCount;
+	private Map<Integer, Float> values;
 
 	public MultiDacActuator() {
-
+		reset();
 	}
 
-	public MultiDacActuator(int channelCount) {
-		setChannelCount(channelCount);
+	public void reset() {
+		isRunning = false;
+		channelCount = 0;
+		values = new HashMap<>();
+	}
+
+	public boolean getIsRunning() {
+		return isRunning;
+	}
+
+	public void setIsRunning(boolean isRunning) {
+		this.isRunning = isRunning;
 	}
 
 	public int getChannelCount() {
@@ -42,43 +51,8 @@ public class MultiDacActuator implements Serializable {
 		this.values = values;
 	}
 
-	/*
-	public float getChannelValue(int channel) {
-		return values.get(channel);
-	}
-	*/
-
 	public void updateChannelValue(int channel, float value) {
 		values.put(channel, value);
-	}
-
-	public int hashCode() {
-		return values.hashCode();
-	}
-
-	public boolean equals(Object other) {
-		if (this == other) {
-			return true;
-		} else if (!(other instanceof MultiDacActuator)) {
-			return false;
-		} else {
-			MultiDacActuator that = (MultiDacActuator)other;
-
-			Map<Integer, Float> myValues = getValues();
-			Map<Integer, Float> otherValues = that.getValues();
-
-			if (otherValues.size() != myValues.size()) {
-				return false;
-			}
-
-			for (int i = 0; i < myValues.size(); i++) {
-				if (!Objects.equals(myValues.get(i), otherValues.get(i))) {
-					return false;
-				}
-			}
-
-			return true;
-		}
 	}
 
 }

@@ -15,22 +15,23 @@ import c8y.lx.driver.OperationExecutor;
 @Slf4j
 public abstract class AbstractMultiDacActuator extends AbstractDevice {
 
-	private final MultiDacActuator multiDacActuator;
+	protected final MultiDacActuator state;
 
 	protected AbstractMultiDacActuator(String id, int channelCount) {
 		super(id);
 
-		multiDacActuator = new MultiDacActuator(channelCount);
+		state = new MultiDacActuator();
+		state.setChannelCount(channelCount);
 	}
 
 	@Override
 	protected String getType() {
-		return multiDacActuator.getClass().getSimpleName();
+		return state.getClass().getSimpleName();
 	}
 
 	@Override
 	protected Object getSensorFragment() {
-		return multiDacActuator;
+		return state;
 	}
 
 	@Override
@@ -75,16 +76,16 @@ public abstract class AbstractMultiDacActuator extends AbstractDevice {
 	/*
 	@Override
 	public void start() {
-		int channelCount = multiDacActuator.getChannelCount();
+		int channelCount = state.getChannelCount();
 
 		log.info("starting, initializing the {} channels to off", channelCount);
 
 		for (int i = 0; i < channelCount; i++) {
-			multiDacActuator.updateChannelValue(i, 0.0f);
+			state.updateChannelValue(i, 0.0f);
 			applyChannelValue(i, 0.0f);
 		}
 
-		updateState(multiDacActuator);
+		updateState(state);
 	}
 	*/
 
@@ -93,8 +94,8 @@ public abstract class AbstractMultiDacActuator extends AbstractDevice {
 
 		applyChannelValue(channel, value);
 
-		multiDacActuator.updateChannelValue(channel, value);
-		updateState(multiDacActuator);
+		state.updateChannelValue(channel, value);
+		updateState(state);
 	}
 
 	public void setChannelValues(Map<Integer, Float> values) {
@@ -106,12 +107,12 @@ public abstract class AbstractMultiDacActuator extends AbstractDevice {
 
 			log.debug("- {}: {}", channel, value);
 
-			multiDacActuator.updateChannelValue(channel, value);
+			state.updateChannelValue(channel, value);
 		}
 
 		applyChannelValues(values);
 
-		updateState(multiDacActuator);
+		updateState(state);
 	}
 
 	protected abstract void applyChannelValue(int channel, float value);

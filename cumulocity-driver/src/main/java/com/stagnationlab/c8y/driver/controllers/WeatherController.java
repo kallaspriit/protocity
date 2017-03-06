@@ -86,6 +86,7 @@ public class WeatherController extends AbstractController {
 				isConnected = false;
 
 				reportConnectionStatus();
+				reportLightLevelEvent(0.0f);
 			}
 		});
 	}
@@ -153,7 +154,7 @@ public class WeatherController extends AbstractController {
 
 		updateState(state);
 
-		eventBroker.emitEvent(ControllerEvent.LIGHTMETER_CHANGE, value);
+		reportLightLevelEvent(value);
 	}
 
 	private void handleHygrometerUpdate(float value) {
@@ -181,9 +182,13 @@ public class WeatherController extends AbstractController {
 	}
 
 	private void reportConnectionStatus() {
-		state.setIsConnected(isConnected);
+		state.setIsRunning(isConnected);
 
 		updateState(state);
+	}
+
+	private void reportLightLevelEvent(float value) {
+		eventBroker.emitEvent(ControllerEvent.LIGHTMETER_CHANGE, value);
 	}
 
 }

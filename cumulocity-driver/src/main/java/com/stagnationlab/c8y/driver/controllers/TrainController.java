@@ -550,6 +550,8 @@ public class TrainController extends AbstractController implements TrainStopEven
 	public void shutdown() {
 		log.info("shutting down train controller");
 
+		isConnected = false;
+
 		state.reset();
 		updateState(state);
 
@@ -671,7 +673,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 	}
 
 	private void reportConnectionStatus() {
-		state.setIsConnected(isConnected);
+		state.setIsRunning(isConnected);
 
 		updateState(state);
 	}

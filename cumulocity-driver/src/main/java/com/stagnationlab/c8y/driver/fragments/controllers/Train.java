@@ -9,7 +9,7 @@ public class Train {
 
 	private float batteryVoltage;
 	private int batteryChargePercentage;
-	private boolean isConnected;
+	private boolean isRunning;
 	private boolean isCharging;
 	private boolean isObstacleDetected;
 	private boolean isInStation;
@@ -30,7 +30,7 @@ public class Train {
 	public void reset() {
 		batteryVoltage = 0.0f;
 		batteryChargePercentage = 0;
-		isConnected = false;
+		isRunning = false;
 		isCharging = false;
 		isObstacleDetected = false;
 		isInStation = false;
@@ -60,12 +60,12 @@ public class Train {
 		this.batteryChargePercentage = batteryChargePercentage;
 	}
 
-	public boolean getIsConnected() {
-		return isConnected;
+	public boolean getIsRunning() {
+		return isRunning;
 	}
 
-	public void setIsConnected(boolean isConnected) {
-		this.isConnected = isConnected;
+	public void setIsRunning(boolean isRunning) {
+		this.isRunning = isRunning;
 	}
 
 	public boolean getIsObstacleDetected() {
