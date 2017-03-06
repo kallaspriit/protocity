@@ -15,12 +15,14 @@ import com.stagnationlab.c8y.driver.measurements.TemperatureMeasurement;
 import com.stagnationlab.c8y.driver.services.Config;
 import com.stagnationlab.c8y.driver.services.EventBroker;
 import com.stagnationlab.etherio.Commander;
+import com.stagnationlab.etherio.MessageTransport;
 import com.stagnationlab.etherio.PortController;
 
 @Slf4j
 public class WeatherController extends AbstractController {
 
 	private final com.stagnationlab.c8y.driver.fragments.WeatherController state = new com.stagnationlab.c8y.driver.fragments.WeatherController();
+	private Commander commander;
 	private PortController portController;
 
 	private static final String CAPABILITY = "weather-station";
@@ -46,7 +48,7 @@ public class WeatherController extends AbstractController {
 		String commanderName = config.getString("weather.commander");
 		int port = config.getInt("weather.port");
 
-		Commander commander = getCommanderByName(commanderName);
+		commander = getCommanderByName(commanderName);
 		portController = new PortController(port, commander);
 	}
 
@@ -56,7 +58,30 @@ public class WeatherController extends AbstractController {
 
 		log.info("starting weather controller");
 
-		portController.sendPortCommand(CAPABILITY, "enable");
+		commander.getMessageTransport().addEventListener(new MessageTransport.EventListener() {
+
+			@Override
+			public void onOpen(boolean wasReconnected) {
+				log.info("connection to weather commander transport has been {}", wasReconnected ? "re-established" : "opened");
+
+				boolean isFirstConnect = !wasReconnected;
+
+				if (isFirstConnect) {
+					setupEventListener();
+				}
+
+				portController.sendPortCommand(CAPABILITY, "enable");
+			}
+
+			@Override
+			public void onClose() {
+				log.info("weather commander transport has been closed");
+			}
+		});
+	}
+
+	private void setupEventListener() {
+		log.debug("setting up weather event listener");
 
 		portController.addEventListener(new PortController.PortEventListener() {
 			@Override

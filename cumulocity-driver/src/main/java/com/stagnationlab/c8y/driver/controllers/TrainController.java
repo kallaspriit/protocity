@@ -486,7 +486,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 		train.commander.getMessageTransport().addEventListener(new MessageTransport.EventListener() {
 			@Override
 			public void onOpen(boolean wasReconnected) {
-				log.info("train commander transport has been {}", wasReconnected ? "reconnected" : "opened");
+				log.info("connection to train commander transport has been {}", wasReconnected ? "re-established" : "opened");
 
 				boolean isFirstConnect = !wasReconnected;
 
@@ -533,7 +533,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 						thread.join();
 						thread = null;
 					} catch (InterruptedException e) {
-						log.warn("waiting for train thread to join failed ({} - {})", e.getClass().getSimpleName(), e.getMessage());
+						log.warn("waiting for train thread to join failed ({} - {})", e.getClass().getSimpleName(), e.getMessage(), e);
 					}
 				}
 

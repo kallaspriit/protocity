@@ -71,7 +71,7 @@ class PlayMessageTask implements Runnable {
 
 			log.debug("completed playing message '{}'", message);
 		} catch (Exception e) {
-			log.warn("failed playing message '{}' ({} - {})", message, e.getClass().getSimpleName(), e.getMessage());
+			log.warn("failed playing message '{}' ({} - {})", message, e.getClass().getSimpleName(), e.getMessage(), e);
 
 			e.printStackTrace();
 		} finally {

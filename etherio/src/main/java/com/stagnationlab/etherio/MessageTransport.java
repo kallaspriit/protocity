@@ -4,8 +4,8 @@ package com.stagnationlab.etherio;
 public interface MessageTransport {
 
     interface EventListener {
-        default void onConnecting(boolean wasReconnected) {}
-	    default void onOpen(boolean isReconnected) {}
+        default void onConnecting(boolean isReconnecting) {}
+	    default void onOpen(boolean wasReconnected) {}
 	    default void onClose() {}
 	    default void onMessageReceived(String message) {}
 	    default void onConnectionFailed(Exception e, boolean wasEverOpened) {}

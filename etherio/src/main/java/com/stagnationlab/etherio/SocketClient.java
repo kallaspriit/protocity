@@ -343,7 +343,7 @@ public class SocketClient implements MessageTransport {
 				closeSocket();
 			}
 
-			log.info("input thread completed");
+			log.trace("input thread completed for {}:{}", hostName, portNumber);
 		};
 	}
 
@@ -401,7 +401,7 @@ public class SocketClient implements MessageTransport {
 		}
 
 		pingExpiredTimeout = setTimeout(() -> {
-			log.warn("ping timed out!");
+			log.warn("ping timed out for {}:{}, connection must have been lost", hostName, portNumber);
 
 			pingExpiredTimeout = null;
 

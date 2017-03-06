@@ -94,12 +94,12 @@ public class Commander implements MessageTransport.EventListener {
 
 	@Override
 	public void onOpen(boolean wasReconnected) {
-		log.info("{} to socket", wasReconnected ? "reconnected" : "connected");
+		log.debug("{} to socket", wasReconnected ? "reconnected" : "connected");
 	}
 
 	@Override
 	public void onClose() {
-		log.info("socket connection closed");
+		log.debug("socket connection closed");
 	}
 
 	@Override

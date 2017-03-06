@@ -217,7 +217,7 @@ public abstract class AbstractDevice implements Driver {
     }
 
     protected MeasurementRepresentation reportMeasurement(Object measurement, String type) {
-        log.debug("reporting measurement for {} of type {}: {}", id, type, Util.stringify(measurement));
+        log.trace("reporting measurement for {} of type {}: {}", id, type, Util.stringify(measurement));
 
         MeasurementRepresentation measurementRepresentation = new MeasurementRepresentation();
 
@@ -237,7 +237,7 @@ public abstract class AbstractDevice implements Driver {
 	}
 
     protected void reportEvent(EventRepresentation eventRepresentation) {
-        log.debug("reporting event for {} of type {}: {}", id, eventRepresentation.getClass().getSimpleName(), Util.stringify(eventRepresentation));
+        log.trace("reporting event for {} of type {}: {}", id, eventRepresentation.getClass().getSimpleName(), Util.stringify(eventRepresentation));
 
         eventRepresentation.setSource(device);
 
@@ -246,7 +246,7 @@ public abstract class AbstractDevice implements Driver {
 
     @SuppressWarnings("UnusedReturnValue")
     protected ManagedObjectRepresentation updateState(Object... properties) {
-        log.debug("updating state of {}: {}", id, Util.stringify(properties));
+        log.trace("updating state of {}: {}", id, Util.stringify(properties));
 
         ManagedObjectRepresentation managedObjectRepresentation = new ManagedObjectRepresentation();
         managedObjectRepresentation.setId(device.getId());
@@ -287,9 +287,9 @@ public abstract class AbstractDevice implements Driver {
 		if (child instanceof AbstractDevice) {
 			AbstractDevice childDevice = (AbstractDevice)child;
 
-			log.warn("{}:{} - {} ({} - {})", childDevice.getClass().getSimpleName(), childDevice.getId(), message, e.getClass().getSimpleName(), e.getMessage());
+			log.warn("{}:{} - {} ({} - {})", childDevice.getClass().getSimpleName(), childDevice.getId(), message, e.getClass().getSimpleName(), e.getMessage(), e);
 		} else {
-			log.warn("{} - {} ({} - {})", child.getClass().getSimpleName(), message, e.getClass().getSimpleName(), e.getMessage());
+			log.warn("{} - {} ({} - {})", child.getClass().getSimpleName(), message, e.getClass().getSimpleName(), e.getMessage(), e);
 		}
 
 		e.printStackTrace();

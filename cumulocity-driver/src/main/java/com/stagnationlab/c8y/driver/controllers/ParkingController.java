@@ -55,6 +55,9 @@ public class ParkingController extends AbstractController {
 
 			registerEventListeners(i, sensorsMap.get(i));
 		}
+
+		// update initial state
+		updateState(state);
 	}
 
 	private void setupSlotSensors() {
@@ -77,6 +80,9 @@ public class ParkingController extends AbstractController {
 
 			registerChild(sensor);
 
+			com.stagnationlab.c8y.driver.fragments.ParkingController.SlotState slotState = new com.stagnationlab.c8y.driver.fragments.ParkingController.SlotState(i);
+			state.addSlot(slotState);
+
 			log.info("added parking controller slot sensor #{} called '{}' on commander {} port {} using led channel {}", i, name, commanderName, port, ledChannel);
 		}
 	}
@@ -98,20 +104,68 @@ public class ParkingController extends AbstractController {
 		parkingSlotSensor.addTagEventListener(new AbstractTagSensor.TagEventListener() {
 			@Override
 			public void onTagEnter(String tagName) {
-				log.debug("vehicle entered slot {}: {}", index, tagName);
-
-				setSlotFree(index, false);
-				playSlotTakenSound(index, tagName);
+				occupy(index, tagName);
 			}
 
 			@Override
 			public void onTagExit() {
-				log.info("slot {} is now free", index);
-
-				setSlotFree(index, true);
-				playSlotFreedSound(index);
+				free(index);
 			}
 		});
+	}
+
+	private String getSlotName(int index) {
+		return slotNameMap.get(index);
+	}
+
+	private void occupy(int index, String occupantName) {
+		com.stagnationlab.c8y.driver.fragments.ParkingController.SlotState slotState = state.slotByIndex(index);
+
+		if (slotState == null) {
+			log.warn("marking slot #{} as occupied by {} but no such slot was found, ignoring it", index, occupantName);
+
+			return;
+		}
+
+		log.debug("slot #{} is now occupied by {}", index, occupantName);
+
+		slotState.occupy(occupantName);
+
+		updateState(state);
+
+		setSlotFree(index, false);
+		playSlotTakenSound(index, occupantName);
+	}
+
+	private void free(int index) {
+		com.stagnationlab.c8y.driver.fragments.ParkingController.SlotState slotState = state.slotByIndex(index);
+
+		if (slotState == null) {
+			log.warn("marking slot #{} as free but no such slot was found, ignoring it", index);
+
+			return;
+		}
+
+		log.debug("slot #{} is now free", index);
+
+		slotState.free();
+
+		updateState(state);
+
+		setSlotFree(index, true);
+		playSlotFreedSound(index);
+	}
+
+	private void setSlotFree(int index, boolean isFree) {
+		int ledChannel = ledChannelMap.get(index);
+
+		if (isFree) {
+			ledDriver.setChannelValue(ledChannel, 1.0f);
+		} else {
+			ledDriver.setChannelValue(ledChannel, 0.0f);
+		}
+
+		log.trace("setting slot {} indicator to show {}", index, isFree ? "free" : "occupied");
 	}
 
 	private void playSlotTakenSound(int index, String vehicleName) {
@@ -126,22 +180,6 @@ public class ParkingController extends AbstractController {
 		String message = name + " is now free";
 
 		TextToSpeech.INSTANCE.speak(message, true);
-	}
-
-	private String getSlotName(int index) {
-		return slotNameMap.get(index);
-	}
-
-	private void setSlotFree(int index, boolean isFree) {
-		int ledChannel = ledChannelMap.get(index);
-
-		if (isFree) {
-			ledDriver.setChannelValue(ledChannel, 1.0f);
-		} else {
-			ledDriver.setChannelValue(ledChannel, 0.0f);
-		}
-
-		log.debug("setting slot {} indicator to show {}", index, isFree ? "free" : "occupied");
 	}
 
 

@@ -176,7 +176,7 @@ public class Gateway extends AbstractDevice {
 					return;
 				}
 
-				log.debug("got controller '{}' message: '{}'", name, message);
+				log.trace("got controller '{}' message: '{}'", name, message);
 			}
 
 			@Override
