@@ -33,7 +33,7 @@ public class MultiDacActuator implements Serializable {
 		return channelCount;
 	}
 
-	public void setChannelCount(int channelCount) {
+	public synchronized void setChannelCount(int channelCount) {
 		this.channelCount = channelCount;
 		this.values = new HashMap<>();
 
@@ -43,15 +43,15 @@ public class MultiDacActuator implements Serializable {
 	}
 
 
-	public Map<Integer, Float> getValues() {
+	public synchronized Map<Integer, Float> getValues() {
 		return values;
 	}
 
-	public void setValues(Map<Integer, Float> values) {
+	public synchronized void setValues(Map<Integer, Float> values) {
 		this.values = values;
 	}
 
-	public void updateChannelValue(int channel, float value) {
+	public synchronized void updateChannelValue(int channel, float value) {
 		values.put(channel, value);
 	}
 

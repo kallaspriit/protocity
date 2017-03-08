@@ -71,13 +71,13 @@ public class Parking {
 			this.freedTimestamp = freedTimestamp;
 		}
 
-		public void occupy(String occupantName) {
+		public synchronized void occupy(String occupantName) {
 			setIsOccupied(true);
 			setOccupantName(occupantName);
 			setOccupiedTimestamp((new Date()).getTime());
 		}
 
-		public void free() {
+		public synchronized void free() {
 			setIsOccupied(false);
 			setFreedTimestamp((new Date()).getTime());
 		}
@@ -103,7 +103,7 @@ public class Parking {
 		this.isRunning = isRunning;
 	}
 
-	public List<SlotState> getSlots() {
+	public synchronized List<SlotState> getSlots() {
 		return slots;
 	}
 
