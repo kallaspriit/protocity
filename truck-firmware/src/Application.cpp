@@ -8,7 +8,12 @@ void Application::setupBefore() {
     log("setting up pin-modes");
 
     pinMode(BATTERY_VOLTAGE_PIN, INPUT);
+    pinMode(BATTERY_CHARGE_STATE_PIN, OUTPUT);
     pinMode(CHARGE_DETECTION_PIN, INPUT);
+}
+
+void Application::setupGreeting() {
+    Serial.print(String("\n\n### Truck v") + getVersion() + String(" ###\n"));
 }
 
 float Application::getBatteryVoltage() {
@@ -34,4 +39,12 @@ Application::BatteryChargeState Application::getBatteryChargeState() {
     } else {
         return BatteryChargeState::CHARGE_STATE_CHARGING;
     }
+}
+
+void Application::onBatteryStateChanged(BatteryChargeState state, float voltage) {
+    bool isCharging = state == BatteryChargeState::CHARGE_STATE_CHARGING;
+
+    log("battery is now %s", isCharging ? "charging" : "not charging");
+
+    digitalWrite(BATTERY_CHARGE_STATE_PIN, isCharging ? LOW : HIGH);
 }

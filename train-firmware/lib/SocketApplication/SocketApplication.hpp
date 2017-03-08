@@ -25,18 +25,39 @@ public:
 
 protected:
 
+    // battery charge states
+    enum BatteryChargeState {
+        CHARGE_STATE_UNKNOWN,
+        CHARGE_STATE_CHARGING,
+        CHARGE_STATE_NOT_CHARGING
+    };
+
     // should be implemented by the child class
     virtual String getVersion() = 0;
 
-    // setup dependecies
+    // generic setup
     virtual void setupDebugLed();
     virtual void setupSerial();
+    virtual void setupGreeting();
     virtual void setupWifiConnection();
     virtual void setupServer();
+
+    // application setup before and after generic
+    virtual void setupBefore() {};
+    virtual void setupAfter() {};
+
+    // application setup before and after generic
+    virtual void loopBefore() {};
+    virtual void loopAfter() {};
 
     // called on every loop
     virtual void loopSerial();
     virtual void loopServer();
+
+    // battery handling
+    virtual void loopBatteryMonitor();
+    virtual float getBatteryVoltage() = 0;
+    virtual BatteryChargeState getBatteryChargeState() = 0;
 
     // handle events
     virtual void handleClientConnected();
@@ -45,9 +66,12 @@ protected:
     virtual void handleMessage(String message);
 
     // handle commands
-    virtual bool handleCommand(int requestId, String command, String parameters[], int parameterCount);
+    virtual void handleRawCommand(int requestId, String command, String parameters[], int parameterCount);
+    virtual void handleCommand(int requestId, String command, String parameters[], int parameterCount);
     virtual void handlePingCommand(int requestId, String parameters[], int parameterCount);
     virtual void handleVersionCommand(int requestId, String parameters[], int parameterCount);
+    virtual void handleGetBatteryVoltageCommand(int requestId, String parameters[], int parameterCount);
+    virtual void handleIsChargingCommand(int requestId, String parameters[], int parameterCount);
     virtual void handleUnsupportedCommand(int requestId, String command, String parameters[], int parameterCount);
 
     // send messages and events
@@ -66,9 +90,17 @@ protected:
     virtual void sendEventMessage(String event, String info1, String info2, String info3);
     virtual void sendErrorMessage(int requestId, String reason);
 
+    // response senders
+    virtual void sendBatteryVoltage(int requestId);
+    virtual void sendIsCharging(int requestId);
+
     // debug led handling
     virtual void toggleDebugLed();
     virtual void setDebugLed(int state);
+
+    // helpers
+    virtual float calculateAdcVoltage(int reading, int maxReading, float maxReadingVoltage, float resistor1, float resistor2, float calibrationMultiplier);
+    virtual int getBatteryChargePercentage(float voltage);
 
     // log utility
     virtual void log(const char *fmt, ...);
@@ -84,6 +116,10 @@ protected:
     static const int LOG_BUFFER_SIZE = 128;
     static const int COMMAND_BUFFER_SIZE = 128;
 
+    // battery monitor
+    const unsigned long BATTERY_MONITOR_INTERVAL_MS = 500;
+    const float BATTERY_VOLTAGE_CHANGE_THRESHOLD = 0.01f;
+
     // dependencies
     WiFiServer server;
     WiFiClient client;
@@ -96,6 +132,9 @@ protected:
     int receiveLength = 0;
     int commandLength = 0;
     bool wasClientConnected = false;
+    unsigned long lastBatteryMonitorCheckTime = 0;
+    BatteryChargeState lastBatteryChargeState = BatteryChargeState::CHARGE_STATE_UNKNOWN;
+    float lastBatteryVoltage = 0.0f;
 };
 
 #endif

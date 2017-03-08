@@ -9,6 +9,7 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.ConcurrentModificationException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -309,6 +310,8 @@ public class SocketClient implements MessageTransport {
 
 							clearPingExpiredTimeout();
 
+							log.trace("setting ping timeout at {}ms", pingInterval);
+
 							sendPingTimeout = setTimeout(() -> {
 								if (!isConnected()) {
 									log.debug("ping timeout reached but connection has been lost, skipping it");
@@ -323,13 +326,15 @@ public class SocketClient implements MessageTransport {
 
 							inputQueue.add(message);
 
-							synchronized (this) {
-								for (EventListener eventListener : eventListeners) {
-									eventListener.onMessageReceived(message);
-								}
+							for (EventListener eventListener : eventListeners) {
+								eventListener.onMessageReceived(message);
 							}
 						}
 					}
+				} catch (ConcurrentModificationException e) {
+					log.warn("operation for {}:{} performed concurrent modification", hostName, portNumber);
+
+					// TODO find and fix the concurrent modification issue
 				} catch (SocketTimeoutException e) {
 					log.trace("socket read from {}:{} timed out", hostName, portNumber);
 				} catch (Exception e) {

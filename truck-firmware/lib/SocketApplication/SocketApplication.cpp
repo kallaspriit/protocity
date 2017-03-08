@@ -11,6 +11,7 @@ void SocketApplication::setup() {
     // generic
     setupDebugLed();
     setupSerial();
+    setupGreeting();
     setupWifiConnection();
     setupServer();
 
@@ -18,19 +19,27 @@ void SocketApplication::setup() {
 }
 
 void SocketApplication::loop() {
+    loopBefore();
+
+    // generic
     loopSerial();
     loopServer();
     loopBatteryMonitor();
+
+    loopAfter();
 }
 
 void SocketApplication::setupDebugLed() {
-    pinMode(LED_BUILTIN, OUTPUT);
+    pinMode(DEBUG_LED_PIN, OUTPUT);
 }
 
 void SocketApplication::setupSerial() {
     Serial.begin(115200);
     delay(100);
-    Serial.print("\n\n");
+}
+
+void SocketApplication::setupGreeting() {
+    Serial.print(String("\n\n### ESP8266 v") + getVersion() + String(" ###\n"));
 }
 
 void SocketApplication::setupWifiConnection() {
@@ -110,6 +119,7 @@ void SocketApplication::loopBatteryMonitor() {
     BatteryChargeState batteryChargeState = getBatteryChargeState();
     float batteryVoltage = getBatteryVoltage();
     int chargePercentage = getBatteryChargePercentage(batteryVoltage);
+    bool wasStateChangeEmitted = false;
 
     // check for charge state change
     if (batteryChargeState != lastBatteryChargeState) {
@@ -119,6 +129,9 @@ void SocketApplication::loopBatteryMonitor() {
             sendEventMessage("battery-charge-state-changed", String(0), String(batteryVoltage), String(chargePercentage));
         }
 
+        onBatteryStateChanged(batteryChargeState, batteryVoltage);
+
+        wasStateChangeEmitted = true;
         lastBatteryChargeState = batteryChargeState;
     }
 
@@ -127,6 +140,12 @@ void SocketApplication::loopBatteryMonitor() {
         sendEventMessage("battery-voltage-changed", String(batteryVoltage), String(chargePercentage));
 
         lastBatteryVoltage = batteryVoltage;
+
+        if (!wasStateChangeEmitted) {
+            onBatteryStateChanged(batteryChargeState, batteryVoltage);
+
+            wasStateChangeEmitted = true;
+        }
     }
 
     lastBatteryMonitorCheckTime = currentTime;
@@ -370,9 +389,9 @@ void SocketApplication::log(const char *fmt, ...) {
 }
 
 void SocketApplication::toggleDebugLed() {
-    setDebugLed(digitalRead(LED_BUILTIN) == HIGH ? LOW : HIGH);
+    setDebugLed(digitalRead(DEBUG_LED_PIN) == HIGH ? LOW : HIGH);
 }
 
 void SocketApplication::setDebugLed(int state) {
-    digitalWrite(LED_BUILTIN, state == HIGH ? HIGH : LOW);
+    digitalWrite(DEBUG_LED_PIN, state == HIGH ? HIGH : LOW);
 }

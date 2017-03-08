@@ -35,13 +35,20 @@ protected:
     // should be implemented by the child class
     virtual String getVersion() = 0;
 
-    // setup dependecies
-    virtual void setupBefore() {}; // nothing by default
+    // generic setup
     virtual void setupDebugLed();
     virtual void setupSerial();
+    virtual void setupGreeting();
     virtual void setupWifiConnection();
     virtual void setupServer();
-    virtual void setupAfter() {}; // nothing by default
+
+    // application setup before and after generic
+    virtual void setupBefore() {};
+    virtual void setupAfter() {};
+
+    // application setup before and after generic
+    virtual void loopBefore() {};
+    virtual void loopAfter() {};
 
     // called on every loop
     virtual void loopSerial();
@@ -83,6 +90,9 @@ protected:
     virtual void sendEventMessage(String event, String info1, String info2, String info3);
     virtual void sendErrorMessage(int requestId, String reason);
 
+    // callback for battery state change
+    virtual void onBatteryStateChanged(BatteryChargeState state, float voltage) {};
+
     // response senders
     virtual void sendBatteryVoltage(int requestId);
     virtual void sendIsCharging(int requestId);
@@ -102,7 +112,7 @@ protected:
     int port;
 
     // configure pins
-    static const int DEBUG_LED_PIN       = LED_BUILTIN; // should be pin 5
+    static const int DEBUG_LED_PIN = LED_BUILTIN; // should be pin 5
 
     // buffers
     static const int RECEIVE_BUFFER_SIZE = 1024;

@@ -4,7 +4,6 @@
 #include <SocketApplication.hpp>
 #include <MCP320X.hpp>
 #include <SPI.h>
-#include <stdarg.h>
 
 class Application : public SocketApplication {
 
@@ -13,17 +12,20 @@ public:
 
 private:
     // provide version number
-    virtual String getVersion() { return "2.10.0"; };
+    virtual String getVersion() { return "2.11.0"; };
 
     // setup additional dependecies
     virtual void setupBefore();
+    virtual void setupGreeting();
 
     // battery handling
     virtual float getBatteryVoltage();
     virtual BatteryChargeState getBatteryChargeState();
+    virtual void onBatteryStateChanged(BatteryChargeState state, float voltage);
 
     // pins config
     const int BATTERY_VOLTAGE_PIN = A0;
+    const int BATTERY_CHARGE_STATE_PIN = 0;
     const int CHARGE_DETECTION_PIN = 4;
 
     // analog-to-digital converter config
