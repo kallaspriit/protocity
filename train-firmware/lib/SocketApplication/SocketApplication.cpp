@@ -372,9 +372,11 @@ int SocketApplication::getBatteryChargePercentage(float voltage) {
 
 void SocketApplication::log(const char *fmt, ...) {
     va_list args;
+
     va_start(args, fmt );
     vsnprintf(logBuffer, LOG_BUFFER_SIZE, fmt, args);
     va_end(args);
+    
     Serial.print(String("# ") + String(logBuffer) + String("\n"));
 }
 

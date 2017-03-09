@@ -169,7 +169,7 @@
 // Parameters
 #define ENABLE       '\x00'
 #define DISABLE      '\x01'
-#define RESET        '\x02'
+#define CMD_RESET        '\x02'
 
 #define NEW          '\x00'
 #define OLD          '\x01'

@@ -7,19 +7,21 @@
 
 int main() {
 	Config config;
-	Serial serial(config.serialTxPin, config.serialRxPin);
 
+	// configure serial
+	Serial serial(config.serialTxPin, config.serialRxPin);
 	serial.baud(config.serialBaudRate);
 
-	printf("\n\n### Protocity v%s ###\n", config.version.c_str());
+	printf("\n\n### Protocity v%s ###\n", Application::getVersion().c_str());
 
+	// initialize sram
 	if (sdram_init() != 0) {
         printf("# failed to initialize SDRAM\n");
     } else {
 		printf("# initialized SDRAM\n");
 	}
 
+	// start the application
 	Application application(&config, &serial);
-
 	application.run();
 }

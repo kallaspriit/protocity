@@ -26,6 +26,8 @@ Application::Application(Config *config, Serial *serial) :
 }
 
 void Application::run() {
+	log.info("starting application %d", 123);
+
 	setup();
 	testSetup();
 
@@ -62,7 +64,7 @@ void Application::setupSerial() {
 }
 
 void Application::setupCommandHandlers() {
-	printf("# setting up command handlers\n");
+	log.info("setting up command handlers");
 
 	// register command handlers
 	registerCommandHandler("ping", this, &Application::handlePingCommand);
@@ -73,7 +75,7 @@ void Application::setupCommandHandlers() {
 }
 
 void Application::setupPorts() {
-	printf("# setting up ports\n");
+	log.info("setting up ports");
 
 	// register the ports in the mapping
 	portNumberToControllerMap[port1.getId()] = &port1;
@@ -103,13 +105,13 @@ void Application::setupPort(PortController *portController) {
 }
 
 void Application::setupDebug() {
-	printf("# setting up debugging\n");
+	log.info("setting up debugging");
 
 	debug.setLedMode(LED_BREATHE_INDEX, Debug::LedMode::BREATHE);
 }
 
 void Application::setupEthernetManager() {
-	printf("# setting up ethernet manager\n");
+	log.info("setting up ethernet manager");
 
 	debug.setLedMode(LED_ETHERNET_STATUS_INDEX, Debug::LedMode::BLINK_FAST);
 
@@ -123,7 +125,7 @@ void Application::setupEthernetManager() {
 }
 
 void Application::setupSocketServer() {
-	printf("# setting up socket server\n");
+	log.info("setting up socket server");
 
 	socketServer.addListener(this);
 	socketServer.start(ethernetManager.getEthernetInterface(), config->socketServerPort);
@@ -252,7 +254,7 @@ void Application::onSocketClientConnected(TCPSocketConnection* client) {
 void Application::onSocketClientDisconnected(TCPSocketConnection* client) {
 	debug.setLedMode(LED_ETHERNET_STATUS_INDEX, Debug::LedMode::BLINK_SLOW);
 
-	printf("# socket client disconnected, performing reset\n");
+	log.warn("socket client disconnected, performing reset");
 
 	Thread::wait(100);
 	restart();
@@ -345,7 +347,7 @@ CommandManager::Command::Response Application::handleVersionCommand(CommandManag
 		return command->createFailureResponse("expected no parameters");
 	}
 
-	return command->createSuccessResponse(config->version);
+	return command->createSuccessResponse(getVersion());
 }
 
 CommandManager::Command::Response Application::handleRestartCommand(CommandManager::Command *command) {
@@ -353,7 +355,7 @@ CommandManager::Command::Response Application::handleRestartCommand(CommandManag
 		return command->createFailureResponse("expected no parameters");
 	}
 
-	printf("# restarting system..\n");
+	log.info("restarting system..");
 
 	Thread::wait(100);
 	restart();
@@ -580,7 +582,7 @@ PortController *Application::getPortControllerByPortNumber(int portNumber) {
 }
 
 void Application::testSetup() {
-	printf("# setting up tests\n");
+	log.info("setting up tests");
 
 	testLoopThread.start(this, &Application::testLoop);
 }
@@ -590,9 +592,9 @@ void Application::testLoop() {
 	TSL2561 lum(p9, p10, TSL2561_ADDR_FLOAT);
 
 	if (lum.begin()) {
-        printf("# TSL2561 Sensor Found\n");
+        log.debug("TSL2561 Sensor Found");
     } else {
-        printf("# TSL2561 Sensor not Found\n");
+        log.debug("TSL2561 Sensor not Found");
     }
 
 	lum.setGain(TSL2561_GAIN_0X);

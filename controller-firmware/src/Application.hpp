@@ -6,6 +6,7 @@
 #include "Callback.h"
 
 #include "Debug.hpp"
+#include "Log.hpp"
 #include "CommandManager.hpp"
 #include "EthernetManager.hpp"
 #include "SocketServer.hpp"
@@ -14,6 +15,7 @@
 
 #include <map>
 #include <queue>
+#include <string>
 
 class Config;
 class TCPSocketConnection;
@@ -21,17 +23,20 @@ class TCPSocketConnection;
 class Application : SocketServer::SocketServerListener, PortController::PortEventListener {
 
 public:
+	static std::string getVersion() { return "1.23.0"; };
+
 	Application(Config *config, Serial *serial);
 
 	void run();
 
 private:
+	Log log = Log::getLog("Application");
+
 	// list of possible command sources
 	enum CommandSource {
 		SOCKET,
 		SERIAL
 	};
-
 
 	// main lifecycle methods
 	void setup();					// sets up the system

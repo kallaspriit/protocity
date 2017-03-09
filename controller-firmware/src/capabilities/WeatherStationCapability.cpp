@@ -270,7 +270,7 @@ bool WeatherStationCapability::enable() {
 
 	isEnabled = true;
 
-	updateThread.start(this, &WeatherStationCapability::runUpdateThread);
+	updateThread.start(callback(this, &WeatherStationCapability::runUpdateThread));
 
 	return true;
 }
