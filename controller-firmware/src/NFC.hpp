@@ -1,6 +1,8 @@
 #ifndef NFC_HPP
 #define NFC_HPP
 
+#include "Log.hpp"
+
 #include "mbed.h"
 
 #include <PN532_SPI.h>
@@ -55,6 +57,8 @@ public:
 	bool isCheckScheduled = false;
 
 private:
+	Log log = Log::getLog("NFC");
+
 	// dependencies
 	SPI *spi;
 	PN532_SPI interface;

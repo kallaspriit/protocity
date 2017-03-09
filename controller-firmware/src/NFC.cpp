@@ -13,6 +13,8 @@ NFC::NFC(SPI *spi, PinName spiSlaveSelectPin) :
 {}
 
 bool NFC::initialize() {
+	log.info("initializing");
+
 	return adapter.begin();
 }
 
@@ -28,14 +30,20 @@ NFC::Version NFC::getVersion() {
 
 void NFC::addEventListener(NfcEventListener *listener) {
 	nfcEventListeners.push_back(listener);
+
+	log.info("added event listener (%d total)", nfcEventListeners.size());
 }
 
 void NFC::checkForTag() {
+	log.trace("checking for tag presence");
+
 	// if (!adapter.tagPresent()) {
 	if (!adapter.tagPresent(100)) {
 		bool wasTagPresent = activeTagUid.size() > 0;
 
 		if (wasTagPresent) {
+			log.debug("tag %s exited", activeTagUid.c_str());
+
 			for (NfcEventListenerList::iterator it = nfcEventListeners.begin(); it != nfcEventListeners.end(); ++it) {
 				(*it)->onTagExit(activeTagUid);
 			}
@@ -50,6 +58,8 @@ void NFC::checkForTag() {
 
 	std::string uid = tag.getUidString();
 
+	log.trace("tag %s was read", uid.c_str());
+
 	// always send the read event
 	for (NfcEventListenerList::iterator it = nfcEventListeners.begin(); it != nfcEventListeners.end(); ++it) {
 		(*it)->onTagRead(tag);
@@ -57,6 +67,8 @@ void NFC::checkForTag() {
 
 	// only change the enter event if the tag uid has changed (or there was no tag before)
 	if (uid != activeTagUid) {
+		log.debug("tag %s entered", uid.c_str());
+
 		for (NfcEventListenerList::iterator it = nfcEventListeners.begin(); it != nfcEventListeners.end(); ++it) {
 			(*it)->onTagEnter(tag);
 		}
@@ -76,7 +88,7 @@ void NFC::update() {
 
 bool NFC::scheduleCheck() {
 	if (!adapter.requestTagPresent()) {
-		printf("# NFC: requesting tag present failed\n");
+		log.warn("requesting tag present failed");
 
 		return false;
 	}
@@ -111,6 +123,8 @@ bool NFC::performCheck() {
 
 		std::string uid = tag.getUidString();
 
+		log.trace("tag %s was read", uid.c_str());
+
 		// always send the read event
 		for (NfcEventListenerList::iterator it = nfcEventListeners.begin(); it != nfcEventListeners.end(); ++it) {
 			(*it)->onTagRead(tag);
@@ -118,6 +132,8 @@ bool NFC::performCheck() {
 
 		// only change the enter event if the tag uid has changed (or there was no tag before)
 		if (uid != activeTagUid) {
+			log.debug("tag %s entered", uid.c_str());
+
 			for (NfcEventListenerList::iterator it = nfcEventListeners.begin(); it != nfcEventListeners.end(); ++it) {
 				(*it)->onTagEnter(tag);
 			}
@@ -129,6 +145,8 @@ bool NFC::performCheck() {
 		bool wasTagPresent = activeTagUid.size() > 0;
 
 		if (wasTagPresent) {
+			log.debug("tag %s exited", activeTagUid.c_str());
+			
 			for (NfcEventListenerList::iterator it = nfcEventListeners.begin(); it != nfcEventListeners.end(); ++it) {
 				(*it)->onTagExit(activeTagUid);
 			}
