@@ -1,10 +1,11 @@
 #ifndef DIGITALPORTCONTROLLER_HPP
 #define DIGITALPORTCONTROLLER_HPP
 
-#include "mbed.h"
-
 #include "AbstractController.hpp"
 #include "AbstractCapability.hpp"
+#include "Log.hpp"
+
+#include "mbed.h"
 
 #include <string>
 #include <vector>
@@ -67,6 +68,8 @@ public:
 	void update(int deltaUs);
 
 private:
+	Log log = Log::getLog("PortController");
+
 	void handleInterruptRise();
 	void handleInterruptFall();
 

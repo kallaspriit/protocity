@@ -24,7 +24,7 @@ void PortController::setPortMode(PortMode portMode) {
 		return;
 	}
 
-	printf("# setting mode %s for port %d\n", getPortModeName(portMode).c_str(), id);
+	log.debug("setting mode %s for port %d", getPortModeName(portMode).c_str(), id);
 
 	this->portMode = portMode;
 
@@ -86,13 +86,13 @@ void PortController::setPinMode(PinMode pinMode) {
 void PortController::setDigitalValue(DigitalValue value) {
 	switch (value) {
 		case DigitalValue::LOW:
-			printf("# setting port %d to digital LOW\n", id);
+			log.trace("setting port %d to digital LOW", id);
 
 			*digitalOut = 0;
 			break;
 
 		case DigitalValue::HIGH:
-			printf("# setting port %d to digital HIGH\n", id);
+			log.trace("setting port %d to digital HIGH", id);
 
 			*digitalOut = 1;
 			break;
@@ -111,7 +111,7 @@ void PortController::setAnalogValue(float dutyCycle) {
 		error("expected duty cycle value between 0.0 and 1.0");
 	}
 
-	printf("# setting port %d ANALOG_OUT duty cycle to %f\n", id, dutyCycle);
+	log.trace("setting port %d ANALOG_OUT duty cycle to %f", id, dutyCycle);
 
 	*pwmOut = dutyCycle;
 }
@@ -170,19 +170,19 @@ PortController::DigitalValue PortController::getDigitalValue() {
 	} else if (portMode == PortMode::DIGITAL_IN) {
 		value = digitalIn->read();
 	} else {
-		printf("# getting digital reading is valid only for port configured as digital input\n");
+		log.warn("getting digital reading is valid only for port configured as digital input");
 
 		return DigitalValue::LOW;
 	}
 
-	printf("# digital value of port %d: %d, rise count: %d, fall count: %d\n", id, value, interruptRiseCount, interruptFallCount);
+	log.trace("digital value of port %d: %d, rise count: %d, fall count: %d", id, value, interruptRiseCount, interruptFallCount);
 
 	return value == 1 ? DigitalValue::HIGH : DigitalValue::LOW;
 }
 
 float PortController::getAnalogValue() {
 	if (portMode != PortMode::ANALOG_IN) {
-		printf("# getting analog reading is valid only for port configured as analog input\n");
+		log.warn("getting analog reading is valid only for port configured as analog input");
 
 		return 0.0f;
 	}
@@ -191,13 +191,13 @@ float PortController::getAnalogValue() {
 }
 
 void PortController::addEventListener(PortController::PortEventListener *listener) {
-	// printf("# registering interrup listener for port %d\n", id);
+	log.info("registering interrup listener for port %d", id);
 
 	listeners.push_back(listener);
 }
 
 void PortController::addEventListener(PortController::PortEventListener *listener, float changeThreshold, int intervalMs) {
-	printf("# registering interrup listener for port %d with change threshold of %f\n", id, changeThreshold);
+	log.info("registering interrup listener for port %d with change threshold of %f", id, changeThreshold);
 
 	listenAnalogValueChange(changeThreshold, intervalMs);
 
@@ -221,7 +221,7 @@ void PortController::stopAnalogValueListener() {
 }
 
 void PortController::addCapability(AbstractCapability *capability) {
-	// printf("# registering capability %s for port %d\n", capability->getName().c_str(), id);
+	log.info("registering capability %s for port %d", capability->getName().c_str(), id);
 
 	capabilities.push_back(capability);
 }

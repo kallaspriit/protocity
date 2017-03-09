@@ -84,6 +84,8 @@ public:
     TLC5940(PinName SCLK, PinName MOSI, PinName GSCLK, PinName BLANK,
             PinName XLAT, PinName VPRG, const int number = 1);
 
+    virtual ~TLC5940() {}
+
     /**
       *  Set the next chunk of grayscale data to be sent
       *  @param data - Array of 16 bit shorts containing 16 12 bit grayscale data chunks per TLC5940
@@ -201,7 +203,7 @@ public:
                const int rows, void (*SetRows)(int));
 
     // Destructor used to delete memory
-    ~TLC5940Mux();
+    virtual ~TLC5940Mux();
 
     /**
       *  Set the contents of the buffer that contains the multiplexed data

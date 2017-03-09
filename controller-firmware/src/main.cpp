@@ -13,6 +13,7 @@ int main() {
 	// configure serial
 	Serial serial(config.serialTxPin, config.serialRxPin);
 	serial.baud(config.serialBaudRate);
+	printf("\n\n");
 
 	log.info("starting Protocity v%s", Application::getVersion().c_str());
 
