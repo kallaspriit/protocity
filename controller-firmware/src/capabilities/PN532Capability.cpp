@@ -65,7 +65,7 @@ bool PN532Capability::enable() {
 		return true;
 	}
 
-	printf("# enabling PN532 NFC tag reader\n");
+	log.info("enabling PN532 NFC tag reader");
 
 	spi = new SPI(mosiPin, misoPin, sclkPin);
 	nfc = new NFC(spi, portController->getPinName());
@@ -88,7 +88,7 @@ void PN532Capability::disable() {
 		return;
 	}
 
-	printf("# disabling PN532 NFC tag reader\n");
+	log.info("disabling PN532 NFC tag reader");
 
 	delete nfc;
 	nfc = NULL;
@@ -100,11 +100,11 @@ void PN532Capability::disable() {
 }
 
 void PN532Capability::onTagRead(NfcTag &tag) {
-	// printf("# read '%s' tag with uid: %s\n", tag.getTagType().c_str(), tag.getUidString().c_str());
+	log.trace("read '%s' tag with uid: %s", tag.getTagType().c_str(), tag.getUidString().c_str());
 }
 
 void PN532Capability::onTagEnter(NfcTag &tag) {
-	// printf("# enter '%s' tag with uid: %s\n", tag.getTagType().c_str(), tag.getUidString().c_str());
+	log.trace("enter '%s' tag with uid: %s", tag.getTagType().c_str(), tag.getUidString().c_str());
 
 	if (!tag.hasNdefMessage()) {
 		return;
@@ -129,7 +129,7 @@ void PN532Capability::onTagEnter(NfcTag &tag) {
 	}
 
 	if (tagName.size() > 0 && tagName != activeTagName) {
-		// printf("# '%s' (%s) ENTER\n", tagName.c_str(), tag.getUidString().c_str());
+		log.debug("'%s' (%s) ENTER", tagName.c_str(), tag.getUidString().c_str());
 
 		snprintf(sendBuffer, SEND_BUFFER_SIZE, "enter:%s", tagName.c_str());
 
@@ -144,7 +144,7 @@ void PN532Capability::onTagExit(std::string lastTagUid) {
 		return;
 	}
 
-	// printf("# '%s' (%s) EXIT\n", activeTagName.c_str(), lastTagUid.c_str());
+	log.debug("'%s' (%s) EXIT", activeTagName.c_str(), lastTagUid.c_str());
 
 	snprintf(sendBuffer, SEND_BUFFER_SIZE, "exit:%s", activeTagName.c_str());
 

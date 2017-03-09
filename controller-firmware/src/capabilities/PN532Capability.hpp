@@ -18,6 +18,8 @@ public:
 	CommandManager::Command::Response handleCommand(CommandManager::Command *command);
 
 private:
+	Log log = Log::getLog("PN532Capability");
+
 	CommandManager::Command::Response handleEnableCommand(CommandManager::Command *command);
 	CommandManager::Command::Response handleDisableCommand(CommandManager::Command *command);
 

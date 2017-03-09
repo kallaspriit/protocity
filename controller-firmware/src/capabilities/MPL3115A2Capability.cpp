@@ -30,7 +30,7 @@ CommandManager::Command::Response MPL3115A2Capability::handleCommand(CommandMana
 	if (command->argumentCount < 3) {
         return command->createFailureResponse("no capability action requested");
     }
-	
+
 	std::string action = command->getString(2);
 
 	if (action == "enable") {
@@ -72,7 +72,7 @@ void MPL3115A2Capability::enable() {
 		return;
 	}
 
-	printf("# enabling MPL3115A2 pressure measurement every %d milliseconds\n", measurementIntervalMs);
+	log.info("enabling MPL3115A2 pressure measurement every %d milliseconds", measurementIntervalMs);
 
 	sensor = new MPL3115A2(sdaPin, sclPin, 0x60 << 1);
 
@@ -91,7 +91,7 @@ void MPL3115A2Capability::disable() {
 		return;
 	}
 
-	printf("# disabling MPL3115A2 pressure measurement\n");
+	log.info("disabling MPL3115A2 pressure measurement");
 
 	delete sensor;
 	sensor = NULL;
