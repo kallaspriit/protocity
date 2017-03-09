@@ -28,7 +28,7 @@ CommandManager::Command::Response TSL2561Capability::handleEnableCommand(Command
 	if (command->argumentCount < 3) {
         return command->createFailureResponse("no capability action requested");
     }
-	
+
 	// one can update the interval even if alrady enabled
 	if (command->argumentCount == 4) {
 		measurementIntervalMs = command->getInt(3);
@@ -58,7 +58,7 @@ void TSL2561Capability::enable() {
 		return;
 	}
 
-	printf("# enabling TSL2561 luminosity measurement every %d milliseconds\n", measurementIntervalMs);
+	log.info("enabling TSL2561 luminosity measurement every %d milliseconds", measurementIntervalMs);
 
 	sensor = new TSL2561(sdaPin, sclPin, TSL2561_ADDR_FLOAT);
 	sensor->setGain(TSL2561_GAIN_0X);
@@ -76,7 +76,7 @@ void TSL2561Capability::disable() {
 		return;
 	}
 
-	printf("# disabling TSL2561 luminosity measurement\n");
+	log.info("disabling TSL2561 luminosity measurement");
 
 	delete sensor;
 	sensor = NULL;
