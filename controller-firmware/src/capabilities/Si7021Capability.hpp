@@ -2,6 +2,7 @@
 #define SI7021CAPABILITY_HPP
 
 #include "../AbstractCapability.hpp"
+#include "Log.hpp"
 
 #include <Si7021.hpp>
 
@@ -16,6 +17,8 @@ public:
 	CommandManager::Command::Response handleCommand(CommandManager::Command *command);
 
 private:
+	Log log = Log::getLog("Si7021Capability");
+
 	CommandManager::Command::Response handleEnableCommand(CommandManager::Command *command);
 	CommandManager::Command::Response handleDisableCommand(CommandManager::Command *command);
 

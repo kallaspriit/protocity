@@ -74,12 +74,12 @@ bool Si7021Capability::enable() {
 		return true;
 	}
 
-	printf("# enabling Si7021 humidity measurement every %d milliseconds\n", measurementIntervalMs);
+	log.info("enabling Si7021 humidity measurement every %d milliseconds", measurementIntervalMs);
 
 	sensor = new Si7021(sdaPin, sclPin);
 
 	if (!sensor->check()) {
-        printf("# Si7021 humidity sensor check failed\n");
+        log.warn("Si7021 humidity sensor check failed");
 
         return false;
     }
@@ -98,7 +98,7 @@ void Si7021Capability::disable() {
 		return;
 	}
 
-	printf("# disabling Si7021 humidity measurement\n");
+	log.info("disabling Si7021 humidity measurement");
 
 	delete sensor;
 	sensor = NULL;
@@ -111,7 +111,7 @@ void Si7021Capability::sendMeasurement() {
     bool wasMeasurementSuccessful = sensor->measure();
 
     if (!wasMeasurementSuccessful) {
-        printf("# measuring humidity failed\n");
+        log.warn("measuring humidity failed");
 
         return;
     }
