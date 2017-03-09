@@ -191,7 +191,7 @@ float PortController::getAnalogValue() {
 }
 
 void PortController::addEventListener(PortController::PortEventListener *listener) {
-	log.info("registering interrup listener for port %d", id);
+	// log.debug("registering interrup listener for port %d", id);
 
 	listeners.push_back(listener);
 }
@@ -221,7 +221,7 @@ void PortController::stopAnalogValueListener() {
 }
 
 void PortController::addCapability(AbstractCapability *capability) {
-	log.info("registering capability %s for port %d", capability->getName().c_str(), id);
+	// log.debug("registering capability %s for port %d", capability->getName().c_str(), id);
 
 	capabilities.push_back(capability);
 }

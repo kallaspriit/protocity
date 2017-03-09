@@ -26,8 +26,6 @@ Application::Application(Config *config, Serial *serial) :
 }
 
 void Application::run() {
-	log.info("starting application %d", 123);
-
 	setup();
 	testSetup();
 

@@ -7,6 +7,8 @@
 
 // char Log::logBuffer[LOG_BUFFER_SIZE];
 
+Log::LogHandler *Log::logHandler = NULL;
+
 Log::Log(const char *component) :
     component(component)
 {
@@ -17,52 +19,76 @@ Log Log::getLog(const char *component) {
     return Log(component);
 }
 
+void Log::setLogHandler(LogHandler *logHandler) {
+    Log::logHandler = logHandler;
+}
+
 void Log::trace(const char *fmt, ...) {
+    if (logHandler == NULL) {
+        return;
+    }
+
     va_list args;
 
     va_start(args, fmt );
     vsnprintf(logBuffer, LOG_BUFFER_SIZE, fmt, args);
     va_end(args);
 
-    printf("# %-5s | %-35s | %s\n", "TRACE", component, logBuffer);
+    Log::logHandler->handleLogMessage(LogLevel::TRACE, component, logBuffer);
 }
 
 void Log::debug(const char *fmt, ...) {
+    if (Log::logHandler == NULL) {
+        return;
+    }
+
     va_list args;
 
     va_start(args, fmt );
     vsnprintf(logBuffer, LOG_BUFFER_SIZE, fmt, args);
     va_end(args);
 
-    printf("# %-5s | %-35s | %s\n", "DEBUG", component, logBuffer);
+    Log::logHandler->handleLogMessage(LogLevel::DEBUG, component, logBuffer);
 }
 
 void Log::info(const char *fmt, ...) {
+    if (Log::logHandler == NULL) {
+        return;
+    }
+
     va_list args;
 
     va_start(args, fmt );
     vsnprintf(logBuffer, LOG_BUFFER_SIZE, fmt, args);
     va_end(args);
 
-    printf("# %-5s | %-35s | %s\n", "INFO", component, logBuffer);
+    Log::logHandler->handleLogMessage(LogLevel::INFO, component, logBuffer);
 }
 
 void Log::warn(const char *fmt, ...) {
+    if (Log::logHandler == NULL) {
+        return;
+    }
+
     va_list args;
 
     va_start(args, fmt );
     vsnprintf(logBuffer, LOG_BUFFER_SIZE, fmt, args);
     va_end(args);
 
-    printf("# %-5s | %-35s | %s\n", "WARN", component, logBuffer);
+    Log::logHandler->handleLogMessage(LogLevel::WARN, component, logBuffer);
 }
 
 void Log::error(const char *fmt, ...) {
+    if (Log::logHandler == NULL) {
+        return;
+    }
+
     va_list args;
 
     va_start(args, fmt );
     vsnprintf(logBuffer, LOG_BUFFER_SIZE, fmt, args);
     va_end(args);
 
-    error("# %-5s | %-35s | %s\n", "ERROR", component, logBuffer);
+    Log::logHandler->handleLogMessage(LogLevel::ERROR, component, logBuffer);
 }

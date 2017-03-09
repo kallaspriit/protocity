@@ -1,9 +1,11 @@
 #ifndef SOCKETSERVER_HPP
 #define SOCKETSERVER_HPP
 
+#include "Log.hpp"
+#include "EthernetInterface.h"
+
 #include "mbed.h"
 #include "rtos.h"
-#include "EthernetInterface.h"
 
 #include <vector>
 #include <string>
@@ -31,6 +33,8 @@ public:
 	void addListener(SocketServerListener *listener);
 
 private:
+	Log log = Log::getLog("SocketServer");
+
 	void runListenThread();
 	void handleReceivedData(char *buffer, int receivedBytes);
 
