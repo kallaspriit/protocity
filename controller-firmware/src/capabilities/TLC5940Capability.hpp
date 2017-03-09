@@ -2,6 +2,7 @@
 #define TLC5940CAPABILITY_HPP
 
 #include "../AbstractCapability.hpp"
+#include "Log.hpp"
 
 #include <TLC5940.hpp>
 
@@ -18,6 +19,8 @@ public:
 	CommandManager::Command::Response handleCommand(CommandManager::Command *command);
 
 private:
+	Log log = Log::getLog("TLC5940Capability");
+
 	CommandManager::Command::Response handleEnableCommand(CommandManager::Command *command);
 	CommandManager::Command::Response handleDisableCommand(CommandManager::Command *command);
 	CommandManager::Command::Response handleValueCommand(CommandManager::Command *command);

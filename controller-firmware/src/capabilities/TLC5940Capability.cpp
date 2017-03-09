@@ -73,7 +73,7 @@ CommandManager::Command::Response TLC5940Capability::handleValueCommand(CommandM
 	}
 
 	if (!isEnabled) {
-		printf("# setting value requested but enable not called, enabling led driver\n");
+		log.info("setting value requested but enable not called, enabling led driver");
 
 		if (!enable()) {
 			return command->createFailureResponse("enabling TLC5940 led driver failed");
@@ -87,7 +87,7 @@ CommandManager::Command::Response TLC5940Capability::handleValueCommand(CommandM
 		return command->createFailureResponse("setting requested value failed, check parameters");
 	}
 
-	printf("# set channel %d to %f\n", channel, value);
+	log.trace("set channel %d to %f", channel, value);
 
 	return command->createSuccessResponse();
 }
@@ -98,7 +98,7 @@ CommandManager::Command::Response TLC5940Capability::handleValuesCommand(Command
 	}
 
 	if (!isEnabled) {
-		printf("# setting value requested but enable not called, enabling led driver\n");
+		log.info("setting value requested but enable not called, enabling led driver");
 
 		if (!enable()) {
 			return command->createFailureResponse("enabling TLC5940 led driver failed");
@@ -107,7 +107,7 @@ CommandManager::Command::Response TLC5940Capability::handleValuesCommand(Command
 
 	std::string values = command->getString(3);
 
-	printf("# requested to set values: %s\n", values.c_str());
+	log.trace("requested to set values: %s", values.c_str());
 
 	std::vector<std::string> channelValuePairs = Util::split(values, ',');
 
@@ -123,7 +123,7 @@ CommandManager::Command::Response TLC5940Capability::handleValuesCommand(Command
 		int channel = atoi(channelValueTokens.at(0).c_str());
 		float value = atof(channelValueTokens.at(1).c_str());
 
-		printf("#  setting channel %d to %f\n", channel, value);
+		log.trace(" setting channel %d to %f", channel, value);
 
 		if (!setChannelValue(channel, value)) {
 			return command->createFailureResponse("setting requested values failed, check parameters");
@@ -135,7 +135,7 @@ CommandManager::Command::Response TLC5940Capability::handleValuesCommand(Command
 
 CommandManager::Command::Response TLC5940Capability::handleTestCommand(CommandManager::Command *command) {
 	if (!isEnabled) {
-		printf("# test requested but enable not called, enabling led driver\n");
+		log.info("test requested but enable not called, enabling led driver");
 
 		if (!enable()) {
 			return command->createFailureResponse("enabling TLC5940 led driver failed");
@@ -163,7 +163,7 @@ bool TLC5940Capability::enable() {
 		return true;
 	}
 
-	printf("# enabling TLC5940 led driver\n");
+	log.info("enabling TLC5940 led driver");
 
 	tlc5940 = new TLC5940(sclkPin, mosiPin, gsclkPin, blankPin, portController->getPinName(), vprgPin, chainLength);
 
@@ -184,7 +184,7 @@ void TLC5940Capability::disable() {
 		return;
 	}
 
-	printf("# disabling TLC5940 led driver\n");
+	log.info("disabling TLC5940 led driver");
 
 	delete tlc5940;
 	tlc5940 = NULL;
