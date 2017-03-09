@@ -14,8 +14,12 @@ Debug::Debug() {
 
 void Debug::setLedMode(int index, LedMode mode) {
 	if (index < 0 || index > LED_COUNT - 1) {
-		error("> expected led index between 0 and %d\n", LED_COUNT - 1);
+		log.warn("expected led index between 0 and %d", LED_COUNT - 1);
+
+		return;
 	}
+
+	log.trace("set led #%d to mode %d", index, mode);
 
 	ledMode[index] = mode;
 

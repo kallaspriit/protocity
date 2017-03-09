@@ -141,7 +141,7 @@ void Application::registerCommandHandler(std::string name, T *obj, M method) {
 }
 
 void Application::registerCommandHandler(std::string name, Callback<CommandManager::Command::Response(CommandManager::Command*)> func) {
-	printf("# registering command handler for '%s'\n", name.c_str());
+	log.info("registering command handler for '%s'", name.c_str());
 
 	commandHandlerMap[name].attach(func);
 }
@@ -202,20 +202,20 @@ void Application::consumeCommand(CommandManager::Command *command) {
 
 	if (commandIt != commandHandlerMap.end()) {
 		/*
-		printf("# calling command handler for #%d '%s' (source: %d)\n", command->id, command->name.c_str(), command->sourceId);
+		log.trace("calling command handler for #%d '%s' (source: %d)", command->id, command->name.c_str(), command->sourceId);
 
 		for (int i = 0; i < command->argumentCount; i++) {
-			printf("# - argument %d: %s\n", i, command->arguments[i].c_str());
+			log.trace("- argument %d: %s", i, command->arguments[i].c_str());
 		}
 		*/
 
 		CommandManager::Command::Response response = commandIt->second.call(command);
 		responseText = response.getResponseText();
 	} else {
-		printf("# command handler for #%d '%s' (source: %d) has not been registered\n", command->id, command->name.c_str(), command->sourceId);
+		log.warn("command handler for #%d '%s' (source: %d) has not been registered", command->id, command->name.c_str(), command->sourceId);
 
 		for (int i = 0; i < command->argumentCount; i++) {
-			printf("# - argument %d: %s\n", i, command->arguments[i].c_str());
+			log.debug("- argument %d: %s", i, command->arguments[i].c_str());
 		}
 
 		// build response text
@@ -235,7 +235,7 @@ void Application::consumeCommand(CommandManager::Command *command) {
 			break;
 
 		default:
-			error("unexpected command source %d\n", command->sourceId);
+			log.error("unexpected command source %d", command->sourceId);
 	}
 }
 
@@ -312,7 +312,7 @@ void Application::handleSerialRx() {
 		//consumeQueuedCommands();
 	} else {
 		if (commandLength > MAX_COMMAND_LENGTH - 1) {
-			error("maximum command length is %d characters, stopping at %s\n", MAX_COMMAND_LENGTH, commandBuffer);
+			log.warn("maximum command length is %d characters, stopping at %s", MAX_COMMAND_LENGTH, commandBuffer);
 		}
 
 		commandBuffer[commandLength++] = receivedChar;
@@ -420,7 +420,7 @@ CommandManager::Command::Response Application::handlePortModeCommand(PortControl
 
 	portController->setPortMode(portMode);
 
-	printf("# set port %d mode: %s\n", portNumber, modeName.c_str());
+	log.debug("set port %d mode: %s", portNumber, modeName.c_str());
 
 	return command->createSuccessResponse();
 }
@@ -452,7 +452,7 @@ CommandManager::Command::Response Application::handlePortPullCommand(PortControl
 
 	portController->setPinMode(pinMode);
 
-	printf("# set port %d pull mode: %s\n", portNumber, modeName.c_str());
+	log.debug("set port %d pull mode: %s", portNumber, modeName.c_str());
 
 	return command->createSuccessResponse();
 }
@@ -488,7 +488,7 @@ CommandManager::Command::Response Application::handlePortValueCommand(PortContro
 
 			portController->setDigitalValue(digitalValue);
 
-			printf("# port set digital value for %d: %d\n", portNumber, digitalValue);
+			log.debug("port set digital value for %d: %d", portNumber, digitalValue);
 		}
 		break;
 
@@ -501,7 +501,7 @@ CommandManager::Command::Response Application::handlePortValueCommand(PortContro
 
 			portController->setAnalogValue(pwmDutyCycle);
 
-			printf("# port set pwm duty cycle value for %d: %f\n", portNumber, pwmDutyCycle);
+			log.debug("port set pwm duty cycle value for %d: %f", portNumber, pwmDutyCycle);
 		}
 		break;
 
@@ -550,7 +550,7 @@ CommandManager::Command::Response Application::handlePortListenCommand(PortContr
 
 	if (command->argumentCount >= 3) {
 		if (command->getString(2) == "off") {
-			printf("# stopping listening for analog port %d value changes\n", portNumber);
+			log.info("stopping listening for analog port %d value changes", portNumber);
 
 			portController->stopAnalogValueListener();
 
@@ -564,7 +564,7 @@ CommandManager::Command::Response Application::handlePortListenCommand(PortContr
 		intervalMs = command->getInt(3);
 	}
 
-	printf("# listening for analog port %d value changes (threshold: %f, interval: %dms)\n", portNumber, changeThreshold, intervalMs);
+	log.info("listening for analog port %d value changes (threshold: %f, interval: %dms)", portNumber, changeThreshold, intervalMs);
 
 	portController->listenAnalogValueChange(changeThreshold, intervalMs);
 
@@ -602,14 +602,14 @@ void Application::testLoop() {
 
 	while (true) {
 		// test TSL2561
-		// printf("# illuminance: %f lux\n", lum.lux());
+		// log.info("illuminance: %f lux", lum.lux());
 
 		uint16_t x,y,z;
 		x = lum.getLuminosity(TSL2561_VISIBLE);
         y = lum.getLuminosity(TSL2561_FULLSPECTRUM);
         z = lum.getLuminosity(TSL2561_INFRARED);
 
-		printf("# illuminance: %d, %d, %d lux\n", x, y, z);
+		log.info("illuminance: %d, %d, %d lux", x, y, z);
 
 		// update loop
 		testFlipFlop = testFlipFlop == 1 ? 0 : 1;

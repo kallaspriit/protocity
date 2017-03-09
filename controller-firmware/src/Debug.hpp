@@ -1,6 +1,8 @@
 #ifndef DEBUG_HPP
 #define DEBUG_HPP
 
+#include "Log.hpp"
+
 #include "mbed.h"
 #include "rtos.h"
 
@@ -22,6 +24,8 @@ public:
 	static int getFreeMemoryBytes();
 
 private:
+	Log log = Log::getLog("Debug");
+
 	void runLedUpdateThread();
 
 	Thread ledUpdateThread;

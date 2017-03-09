@@ -9,7 +9,9 @@
 
 Log::Log(const char *component) :
     component(component)
-{}
+{
+    logBuffer = new char[LOG_BUFFER_SIZE];
+}
 
 Log Log::getLog(const char *component) {
     return Log(component);
@@ -22,7 +24,7 @@ void Log::trace(const char *fmt, ...) {
     vsnprintf(logBuffer, LOG_BUFFER_SIZE, fmt, args);
     va_end(args);
 
-    printf("# %-5s | %-20s | %s\n", "TRACE", component, logBuffer);
+    printf("# %-5s | %-35s | %s\n", "TRACE", component, logBuffer);
 }
 
 void Log::debug(const char *fmt, ...) {
@@ -32,7 +34,7 @@ void Log::debug(const char *fmt, ...) {
     vsnprintf(logBuffer, LOG_BUFFER_SIZE, fmt, args);
     va_end(args);
 
-    printf("# %-5s | %-20s | %s\n", "DEBUG", component, logBuffer);
+    printf("# %-5s | %-35s | %s\n", "DEBUG", component, logBuffer);
 }
 
 void Log::info(const char *fmt, ...) {
@@ -42,7 +44,7 @@ void Log::info(const char *fmt, ...) {
     vsnprintf(logBuffer, LOG_BUFFER_SIZE, fmt, args);
     va_end(args);
 
-    printf("# %-5s | %-20s | %s\n", "INFO", component, logBuffer);
+    printf("# %-5s | %-35s | %s\n", "INFO", component, logBuffer);
 }
 
 void Log::warn(const char *fmt, ...) {
@@ -52,7 +54,7 @@ void Log::warn(const char *fmt, ...) {
     vsnprintf(logBuffer, LOG_BUFFER_SIZE, fmt, args);
     va_end(args);
 
-    printf("# %-5s | %-20s | %s\n", "WARN", component, logBuffer);
+    printf("# %-5s | %-35s | %s\n", "WARN", component, logBuffer);
 }
 
 void Log::error(const char *fmt, ...) {
@@ -62,5 +64,5 @@ void Log::error(const char *fmt, ...) {
     vsnprintf(logBuffer, LOG_BUFFER_SIZE, fmt, args);
     va_end(args);
 
-    printf("# %-5s | %-20s | %s\n", "ERROR", component, logBuffer);
+    error("# %-5s | %-35s | %s\n", "ERROR", component, logBuffer);
 }

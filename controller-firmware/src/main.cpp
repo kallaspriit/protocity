@@ -3,25 +3,29 @@
 #include <sdram.h>
 
 #include "Config.hpp"
+#include "Log.hpp"
 #include "Application.hpp"
 
 int main() {
 	Config config;
+	Log log = Log::getLog("main");
 
 	// configure serial
 	Serial serial(config.serialTxPin, config.serialRxPin);
 	serial.baud(config.serialBaudRate);
 
-	printf("\n\n### Protocity v%s ###\n", Application::getVersion().c_str());
+	log.info("starting Protocity v%s", Application::getVersion().c_str());
 
 	// initialize sram
 	if (sdram_init() != 0) {
-        printf("# failed to initialize SDRAM\n");
+        log.error("failed to initialize SDRAM");
     } else {
-		printf("# initialized SDRAM\n");
+		log.info("initialized SDRAM");
 	}
 
 	// start the application
 	Application application(&config, &serial);
 	application.run();
+
+	log.info("application completed");
 }

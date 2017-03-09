@@ -38,7 +38,7 @@ double CommandManager::Command::getDouble(int argumentIndex) {
 
 void CommandManager::Command::validateArgumentIndex(int argumentIndex) {
 	if (argumentIndex > argumentCount - 1) {
-		error("requested argument with index #%d but there are only %d arguments provided\n", argumentIndex, argumentCount);
+		log.error("requested argument with index #%d but there are only %d arguments provided\n", argumentIndex, argumentCount);
 	}
 }
 
@@ -76,7 +76,9 @@ std::string CommandManager::Command::Response::getErrorResponseText() {
 
 void CommandManager::Command::Response::addArgument(std::string argument) {
 	if (argumentCount == MAX_ARGUMENT_COUNT) {
-		error("response can have a maximum of %d arguments\n", MAX_ARGUMENT_COUNT);
+		log.warn("response can have a maximum of %d arguments\n", MAX_ARGUMENT_COUNT);
+
+		return;
 	}
 
 	arguments[argumentCount++] = argument;
@@ -136,7 +138,9 @@ void CommandManager::handleCommand(int sourceId, const char *commandText, int le
 	printf("< %s\n", commandText);
 
 	if ((commandQueueTail - commandQueueHead) == COMMAND_QUEUE_SIZE) {
-		error("command queue fits a maximum of %d commands\n", COMMAND_QUEUE_SIZE);
+		log.warn("command queue fits a maximum of %d commands", COMMAND_QUEUE_SIZE);
+
+		return;
 	}
 
 	// select command from the ring-buffer
@@ -164,7 +168,7 @@ void CommandManager::handleCommand(int sourceId, const char *commandText, int le
 				commandNameBuffer = "";
 			} else {
 				if (command->argumentCount == Command::MAX_ARGUMENT_COUNT) {
-					printf("# command can have a maximum of %d arguments\n", Command::MAX_ARGUMENT_COUNT);
+					log.debug("command can have a maximum of %d arguments", Command::MAX_ARGUMENT_COUNT);
 
 					return;
 				}
@@ -186,7 +190,7 @@ void CommandManager::handleCommand(int sourceId, const char *commandText, int le
 	}
 
 	if (delimiterCount == 0) {
-		printf("# expected commands in the format of ID:NAME:arg1:arg2:argN\n");
+		log.warn("expected commands in the format of ID:NAME:arg1:arg2:argN");
 
 		command->id = 0;
 		command->name = "";

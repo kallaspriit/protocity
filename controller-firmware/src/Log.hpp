@@ -17,7 +17,7 @@ public:
 private:
     const char *component;
     static const int LOG_BUFFER_SIZE = 1024;
-    char logBuffer[LOG_BUFFER_SIZE];
+    char *logBuffer;
 
 };
 

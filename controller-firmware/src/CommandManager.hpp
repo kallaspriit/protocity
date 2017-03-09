@@ -1,6 +1,8 @@
 #ifndef COMMANDMANAGER_HPP
 #define COMMANDMANAGER_HPP
 
+#include "Log.hpp"
+
 #include <string>
 
 class CommandManager {
@@ -25,6 +27,8 @@ public:
 			std::string getResponseText();
 
 		private:
+			Log log = Log::getLog("CommandManager::Command::Response");
+
 			std::string getSuccessResponseText();
 			std::string getErrorResponseText();
 
@@ -54,6 +58,8 @@ public:
 		CommandManager::Command::Response createFailureResponse(std::string errorMessage);
 
 	private:
+		Log log = Log::getLog("CommandManager::Command");
+
 		void validateArgumentIndex(int argumentIndex);
 	};
 
@@ -64,6 +70,8 @@ public:
 	CommandManager::Command *getNextCommand();
 
 private:
+	Log log = Log::getLog("CommandManager");
+
 	void reset();
 
 	static const int COMMAND_QUEUE_SIZE = 32;
