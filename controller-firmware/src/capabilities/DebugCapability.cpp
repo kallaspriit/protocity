@@ -16,7 +16,7 @@ CommandManager::Command::Response DebugCapability::handleCommand(CommandManager:
 	if (command->argumentCount < 3) {
         return command->createFailureResponse("no capability action requested");
     }
-	
+
 	std::string action = command->getString(2);
 
 	if (action == "i2c") {
@@ -29,19 +29,19 @@ CommandManager::Command::Response DebugCapability::handleCommand(CommandManager:
 CommandManager::Command::Response DebugCapability::handleI2CCommand(CommandManager::Command *command) {
     I2C i2c(sdaPin, sclPin);
 
-    printf("# searching for I2C devices...\n");
+    log.info("searching for I2C devices...");
 
     int count = 0;
 
     for (int address = 0; address < 256; address += 2) {
         if (i2c.write(address, NULL, 0) == 0) {
-            printf("# - device found at address 0x%02X\n", address);
+            log.info("- device found at address 0x%02X", address);
 
             count++;
         }
     }
 
-    printf("# found %d I2C devices\n", count);
+    log.info("found %d I2C devices", count);
 
 	return command->createSuccessResponse(count);
 }

@@ -2,6 +2,7 @@
 #define DEBUGCAPABILITY_HPP
 
 #include "../AbstractCapability.hpp"
+#include "Log.hpp"
 
 class DebugCapability : public AbstractCapability {
 
@@ -14,6 +15,8 @@ public:
 	CommandManager::Command::Response handleI2CCommand(CommandManager::Command *command);
 
 private:
+	Log log = Log::getLog("DebugCapability");
+
     PinName sdaPin;
     PinName sclPin;
 
