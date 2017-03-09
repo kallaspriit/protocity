@@ -19,8 +19,6 @@ void Debug::setLedMode(int index, LedMode mode) {
 		return;
 	}
 
-	log.trace("set led #%d to mode %d", index, mode);
-
 	ledMode[index] = mode;
 
 	// simple states can be applied immediately

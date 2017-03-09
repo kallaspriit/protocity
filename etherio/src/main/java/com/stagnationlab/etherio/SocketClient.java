@@ -292,6 +292,8 @@ public class SocketClient implements MessageTransport {
 	}
 
 	private Runnable getInputThreadTask() {
+		SocketClient lockReference = this;
+
 		return () -> {
 			log.debug("starting input thread");
 
@@ -302,37 +304,39 @@ public class SocketClient implements MessageTransport {
 					String message = socketIn.readLine();
 
 					if (message != null) {
-						if (pingStrategy != null && pingStrategy.isPingResponse(message)) {
-							long currentTime = now();
-							long pingLatency = currentTime - requestPingTime;
+						synchronized (lockReference) {
+							if (pingStrategy != null && pingStrategy.isPingResponse(message)) {
+								long currentTime = now();
+								long pingLatency = currentTime - requestPingTime;
 
-							log.trace("got ping response for {}:{} '{}' in {}ms", hostName, portNumber, message, pingLatency);
+								log.trace("got ping response for {}:{} '{}' in {}ms", hostName, portNumber, message, pingLatency);
 
-							clearPingExpiredTimeout();
+								clearPingExpiredTimeout();
 
-							log.trace("setting ping timeout at {}ms", pingInterval);
+								log.trace("setting ping timeout at {}ms", pingInterval);
 
-							sendPingTimeout = setTimeout(() -> {
-								if (!isConnected()) {
-									log.debug("ping timeout reached but connection has been lost, skipping it");
+								sendPingTimeout = setTimeout(() -> {
+									if (!isConnected()) {
+										log.debug("ping timeout reached but connection has been lost, skipping it");
 
-									return;
+										return;
+									}
+
+									sendPing();
+								}, pingInterval);
+							} else {
+								log.trace("received message from {}:{}: '{}'", hostName, portNumber, message);
+
+								inputQueue.add(message);
+
+								for (EventListener eventListener : eventListeners) {
+									eventListener.onMessageReceived(message);
 								}
-
-								sendPing();
-							}, pingInterval);
-						} else {
-							log.trace("received message from {}:{}: '{}'", hostName, portNumber, message);
-
-							inputQueue.add(message);
-
-							for (EventListener eventListener : eventListeners) {
-								eventListener.onMessageReceived(message);
 							}
 						}
 					}
 				} catch (ConcurrentModificationException e) {
-					log.warn("operation for {}:{} performed concurrent modification", hostName, portNumber);
+					log.warn("operation for {}:{} performed concurrent modification", hostName, portNumber, e);
 
 					// TODO find and fix the concurrent modification issue
 				} catch (SocketTimeoutException e) {

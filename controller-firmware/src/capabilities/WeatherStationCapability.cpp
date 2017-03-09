@@ -11,188 +11,10 @@ WeatherStationCapability::WeatherStationCapability(Serial *serial, PortControlle
     txPin(txPin),
     rxPin(rxPin),
     resetPin(resetPin)
-{
-    DigitalOut reset(resetPin);
-
-    reset = 0;
-    wait_ms(5);
-    reset = 1;
-}
+{}
 
 std::string WeatherStationCapability::getName() {
 	return "weather-station";
-}
-
-void WeatherStationCapability::update(int deltaUs) {
-	// we're using our own thread not to interrupt the main thread
-}
-
-void WeatherStationCapability::runUpdateThread() {
-	while (isEnabled) {
-		updateLcd();
-
-		Thread::wait(renderInterval);
-	}
-}
-
-void WeatherStationCapability::updateLcd() {
-    if (lcd == NULL) {
-        return;
-    }
-
-    int timeSinceLastRender = renderTimer.read_ms();
-
-    if (timeSinceLastRender < renderInterval) {
-        return;
-    }
-
-    updateReadings();
-
-    renderTimer.reset();
-}
-
-void WeatherStationCapability::updateReadings() {
-    if (updateThermometerReading()) {
-        sendMeasurement("thermometer", thermometerLastRenderedValue);
-    }
-
-    if (updateLightmeterReading()) {
-        sendMeasurement("lightmeter", lightmeterLastRenderedValue);
-    }
-
-    if (updateHygrometerReading()) {
-        sendMeasurement("hygrometer", hygrometerLastRenderedValue);
-    }
-
-    if (updateBarometerReading()) {
-        sendMeasurement("barometer", barometerLastRenderedValue);
-    }
-
-    if (updateSoundmeterReading()) {
-        sendMeasurement("soundmeter", soundmeterLastRenderedValue);
-    }
-}
-
-bool WeatherStationCapability::updateThermometerReading() {
-    int timeSinceLastReading = thermometerTimer.read_ms();
-
-    if (thermometerLastRenderedValue > 0 && timeSinceLastReading < thermometerIntervalMs) {
-        return false;
-    }
-
-    float current = thermometer->read();
-    float diff = fabs(current - thermometerLastRenderedValue);
-
-    if (diff < thermometerRenderChangeThreshold && timeSinceLastReading < forceUpdateInterval) {
-        return false;
-    }
-
-    renderThermometer(current);
-
-    thermometerLastRenderedValue = current;
-    thermometerTimer.reset();
-
-    return true;
-}
-
-bool WeatherStationCapability::updateLightmeterReading() {
-    int timeSinceLastReading = lightmeterTimer.read_ms();
-
-    if (lightmeterLastRenderedValue > 0 && timeSinceLastReading < lightmeterIntervalMs) {
-        return false;
-    }
-
-    float current = lightmeter->getLuminosity(TSL2561_VISIBLE);
-    float diff = fabs(current - lightmeterLastRenderedValue);
-
-    if (diff < lightmeterRenderChangeThreshold && timeSinceLastReading < forceUpdateInterval) {
-        return false;
-    }
-
-    renderLightmeter(current);
-
-    float maxLightValue = 300.0f;
-    float lightPercentage = fmax(fmin((current / maxLightValue) * 100.0f, 100.0f), 0.0f);
-    drawProgressBar(0, SIZE_Y - 11, SIZE_X - 1, 10, round(lightPercentage), BLACK, WHITE);
-
-    lightmeterLastRenderedValue = current;
-    lightmeterTimer.reset();
-
-    return true;
-}
-
-bool WeatherStationCapability::updateHygrometerReading() {
-    int timeSinceLastReading = hygrometerTimer.read_ms();
-
-    if (hygrometerLastRenderedValue > 0 && timeSinceLastReading < hygrometerIntervalMs) {
-        return false;
-    }
-
-    bool wasMeasurementSuccessful = hygrometer->measure();
-
-    if (!wasMeasurementSuccessful) {
-        printf("# measuring humidity failed\n");
-
-        return false;
-    }
-
-    float current = (float)hygrometer->get_humidity() / 1000.0f;
-    float diff = fabs(current - hygrometerLastRenderedValue);
-
-    if (diff < hygrometerRenderChangeThreshold && timeSinceLastReading < forceUpdateInterval) {
-        return false;
-    }
-
-    renderHygrometer(current);
-
-    hygrometerLastRenderedValue = current;
-    hygrometerTimer.reset();
-
-    return true;
-}
-
-bool WeatherStationCapability::updateBarometerReading() {
-    int timeSinceLastReading = barometerTimer.read_ms();
-
-    if (barometerLastRenderedValue > 0 && timeSinceLastReading < barometerIntervalMs) {
-        return false;
-    }
-
-    float current = (barometer->getPressure() / 1000.0f)  / 0.13332239f;
-    float diff = fabs(current - barometerLastRenderedValue);
-
-    if (diff < barometerRenderChangeThreshold && timeSinceLastReading < forceUpdateInterval) {
-        return false;
-    }
-
-    renderBarometer(current);
-
-    barometerLastRenderedValue = current;
-    barometerTimer.reset();
-
-    return true;
-}
-
-bool WeatherStationCapability::updateSoundmeterReading() {
-    int timeSinceLastReading = soundmeterTimer.read_ms();
-
-    if (soundmeterLastRenderedValue > 0 && timeSinceLastReading < soundmeterIntervalMs) {
-        return false;
-    }
-
-    float current = soundmeter->read() * 100.0f;
-    float diff = fabs(current - soundmeterLastRenderedValue);
-
-    if (diff < soundmeterRenderChangeThreshold && timeSinceLastReading < forceUpdateInterval) {
-        return false;
-    }
-
-    renderSoundmeter(current);
-
-    soundmeterLastRenderedValue = current;
-    soundmeterTimer.reset();
-
-    return true;
 }
 
 CommandManager::Command::Response WeatherStationCapability::handleCommand(CommandManager::Command *command) {
@@ -238,11 +60,10 @@ bool WeatherStationCapability::enable() {
 		return true;
 	}
 
-	printf("# enabling weather station\n");
+	log.info("enabling weather station");
 
     // create lcd controller
-    lcd = new uLCD_4DGL(txPin, rxPin, resetPin);
-    lcd->baudrate(BAUD_3000000);
+    restartLcd();
 
     // create sensors
     thermometer = new TMP102(sdaPin, sclPin, 0x90);
@@ -259,17 +80,17 @@ bool WeatherStationCapability::enable() {
     barometer->Oversample_Ratio(OVERSAMPLE_RATIO_32);
 	barometer->Barometric_Mode();
 
-    renderBackground();
-
-    renderTimer.start();
+	// start timers
     thermometerTimer.start();
     lightmeterTimer.start();
     hygrometerTimer.start();
     barometerTimer.start();
     soundmeterTimer.start();
 
+
 	isEnabled = true;
 
+	// start update thread
 	updateThread.start(callback(this, &WeatherStationCapability::runUpdateThread));
 
 	return true;
@@ -280,7 +101,7 @@ void WeatherStationCapability::disable() {
 		return;
 	}
 
-	printf("# disabling weather station\n");
+	log.info("disabling weather station");
 
 	delete lcd;
 	lcd = NULL;
@@ -300,7 +121,6 @@ void WeatherStationCapability::disable() {
     delete soundmeter;
 	soundmeter = NULL;
 
-    renderTimer.stop();
     thermometerTimer.stop();
     lightmeterTimer.stop();
     hygrometerTimer.stop();
@@ -310,7 +130,195 @@ void WeatherStationCapability::disable() {
 	isEnabled = false;
 }
 
+void WeatherStationCapability::update(int deltaUs) {
+	// we're using our own thread not to interrupt the main thread
+}
+
+void WeatherStationCapability::runUpdateThread() {
+	log.debug("starting update thread");
+
+	while (isEnabled) {
+		if (lcd->hasDied()) {
+			log.warn("seems that the LCD has died");
+
+			restartLcd();
+		}
+
+		updateReadings();
+
+		Thread::wait(updateInterval);
+	}
+
+	log.debug("update thread finished");
+}
+
+void WeatherStationCapability::updateReadings() {
+    if (updateThermometerReading()) {
+        sendMeasurement("thermometer", thermometerLastRenderedValue);
+    }
+
+    if (updateLightmeterReading()) {
+        sendMeasurement("lightmeter", lightmeterLastRenderedValue);
+    }
+
+    if (updateHygrometerReading()) {
+        sendMeasurement("hygrometer", hygrometerLastRenderedValue);
+    }
+
+    if (updateBarometerReading()) {
+        sendMeasurement("barometer", barometerLastRenderedValue);
+    }
+
+    if (updateSoundmeterReading()) {
+        sendMeasurement("soundmeter", soundmeterLastRenderedValue);
+    }
+}
+
+bool WeatherStationCapability::updateThermometerReading() {
+    int timeSinceLastReading = thermometerTimer.read_ms();
+
+    if (thermometerLastRenderedValue > 0 && timeSinceLastReading < thermometerIntervalMs) {
+        return false;
+    }
+
+    float current = thermometer->read();
+    float diff = fabs(current - thermometerLastRenderedValue);
+	bool shouldRender = diff >= thermometerRenderChangeThreshold || timeSinceLastReading >= forceUpdateInterval;
+
+	log.trace("read thermometer reading: %f (last: %f, diff: %f, render: %s)", current, thermometerLastRenderedValue, diff, shouldRender ? "yes" : "no");
+
+    if (!shouldRender) {
+        return false;
+    }
+
+    renderThermometer(current);
+
+    thermometerLastRenderedValue = current;
+    thermometerTimer.reset();
+
+    return true;
+}
+
+bool WeatherStationCapability::updateLightmeterReading() {
+    int timeSinceLastReading = lightmeterTimer.read_ms();
+
+    if (lightmeterLastRenderedValue > 0 && timeSinceLastReading < lightmeterIntervalMs) {
+        return false;
+    }
+
+    float current = lightmeter->getLuminosity(TSL2561_VISIBLE);
+    float diff = fabs(current - lightmeterLastRenderedValue);
+	bool shouldRender = diff >= lightmeterRenderChangeThreshold || timeSinceLastReading >= forceUpdateInterval;
+
+	log.trace("read lightmeter reading: %f (last: %f, diff: %f, render: %s)", current, lightmeterLastRenderedValue, diff, shouldRender ? "yes" : "no");
+
+    if (!shouldRender) {
+        return false;
+    }
+
+	if (current > maximumObservedLightLevel) {
+		maximumObservedLightLevel = current;
+
+		log.info("updated maximum observed light level to %f", maximumObservedLightLevel);
+	}
+
+    float lightPercentage = fmax(fmin((current / maximumObservedLightLevel) * 100.0f, 100.0f), 0.0f);
+
+	renderLightmeter(current);
+    drawProgressBar(0, SIZE_Y - 11, SIZE_X - 1, 10, round(lightPercentage), BLACK, WHITE);
+
+    lightmeterLastRenderedValue = current;
+    lightmeterTimer.reset();
+
+    return true;
+}
+
+bool WeatherStationCapability::updateHygrometerReading() {
+    int timeSinceLastReading = hygrometerTimer.read_ms();
+
+    if (hygrometerLastRenderedValue > 0 && timeSinceLastReading < hygrometerIntervalMs) {
+        return false;
+    }
+
+    bool wasMeasurementSuccessful = hygrometer->measure();
+
+    if (!wasMeasurementSuccessful) {
+        log.warn("measuring humidity failed");
+
+        return false;
+    }
+
+    float current = (float)hygrometer->get_humidity() / 1000.0f;
+    float diff = fabs(current - hygrometerLastRenderedValue);
+	bool shouldRender = diff >= hygrometerRenderChangeThreshold || timeSinceLastReading >= forceUpdateInterval;
+
+	log.trace("read hygrometer reading: %f (last: %f, diff: %f, render: %s)", current, hygrometerLastRenderedValue, diff, shouldRender ? "yes" : "no");
+
+    if (!shouldRender) {
+        return false;
+    }
+
+    renderHygrometer(current);
+
+    hygrometerLastRenderedValue = current;
+    hygrometerTimer.reset();
+
+    return true;
+}
+
+bool WeatherStationCapability::updateBarometerReading() {
+    int timeSinceLastReading = barometerTimer.read_ms();
+
+    if (barometerLastRenderedValue > 0 && timeSinceLastReading < barometerIntervalMs) {
+        return false;
+    }
+
+    float current = (barometer->getPressure() / 1000.0f)  / 0.13332239f;
+    float diff = fabs(current - barometerLastRenderedValue);
+	bool shouldRender = diff >= barometerRenderChangeThreshold || timeSinceLastReading >= forceUpdateInterval;
+
+	log.trace("read barometer reading: %f (last: %f, diff: %f, render: %s)", current, barometerLastRenderedValue, diff, shouldRender ? "yes" : "no");
+
+    if (!shouldRender) {
+        return false;
+    }
+
+    renderBarometer(current);
+
+    barometerLastRenderedValue = current;
+    barometerTimer.reset();
+
+    return true;
+}
+
+bool WeatherStationCapability::updateSoundmeterReading() {
+    int timeSinceLastReading = soundmeterTimer.read_ms();
+
+    if (soundmeterLastRenderedValue > 0 && timeSinceLastReading < soundmeterIntervalMs) {
+        return false;
+    }
+
+    float current = soundmeter->read() * 100.0f;
+    float diff = fabs(current - soundmeterLastRenderedValue);
+	bool shouldRender = diff >= soundmeterRenderChangeThreshold || timeSinceLastReading >= forceUpdateInterval;
+
+	log.trace("read soundmeter reading: %f (last: %f, diff: %f, render: %s)", current, soundmeterLastRenderedValue, diff, shouldRender ? "yes" : "no");
+
+    if (!shouldRender) {
+        return false;
+    }
+
+    renderSoundmeter(current);
+
+    soundmeterLastRenderedValue = current;
+    soundmeterTimer.reset();
+
+    return true;
+}
+
 void WeatherStationCapability::renderBackground() {
+	log.debug("rendering LCD background");
+
     // flip the display
     lcd->display_control(LANDSCAPE_R);
 
@@ -364,6 +372,8 @@ void WeatherStationCapability::sendMeasurement(std::string name, float value) {
         value
     );
 
+	log.debug("%s measurement changed to %f", name.c_str(), value);
+
 	portController->emitCapabilityUpdate(getName(), std::string(sendBuffer));
 }
 
@@ -413,4 +423,27 @@ void WeatherStationCapability::drawProgressBar(int x, int y, int width, int heig
         y + innerPadding + height - innerPadding * 2,
         barColor
     );
+}
+
+void WeatherStationCapability::restartLcd() {
+	if (lcd != NULL) {
+		log.debug("restarting lcd, destroying existing lcd controller");
+
+		delete lcd;
+		lcd = NULL;
+	} else {
+		log.info("starting lcd");
+	}
+
+	// make all the values render again
+	thermometerLastRenderedValue = INVALID_VALUE;
+	lightmeterLastRenderedValue = INVALID_VALUE;
+	hygrometerLastRenderedValue = INVALID_VALUE;
+	barometerLastRenderedValue = INVALID_VALUE;
+	soundmeterLastRenderedValue = INVALID_VALUE;
+
+	lcd = new uLCD_4DGL(txPin, rxPin, resetPin);
+    lcd->baudrate(BAUD_3000000);
+
+	renderBackground();
 }

@@ -159,7 +159,8 @@ void Application::sendQueuedMessages() {
 		std::string message = messageQueue.front();
 		messageQueue.pop();
 
-		printf("> %s", message.c_str());
+		// last character is a linefeed \n, remove it
+		log.debug("> %s", message.substr(0, message.length() - 1).c_str());
 
 		if (socketServer.isClientConnected()) {
 			socketServer.sendMessage(message);
@@ -222,14 +223,14 @@ void Application::consumeCommand(CommandManager::Command *command) {
 		responseText = responseBuffer;
 	}
 
+	log.debug("> %s", responseText.c_str());
+
 	switch (command->sourceId) {
 		case CommandSource::SOCKET:
 			socketServer.sendMessage(responseText + "\n");
-			printf("> %s\n", responseText.c_str());
 			break;
 
 		case CommandSource::SERIAL:
-			printf("> %s\n", responseText.c_str());
 			break;
 
 		default:

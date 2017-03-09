@@ -25,7 +25,7 @@ bool Si7021::measure()
     tx_buff[0] = READ_RH;
 
     if (i2c.write(ADDR, (char*)tx_buff, 1) != 0) {
-      printf("# Si7021: failed to write humidity measurement command\n");
+      // printf("# Si7021: failed to write humidity measurement command\n");
 
       return false;
     }
@@ -33,7 +33,7 @@ bool Si7021::measure()
     wait(0.5f);
 
     if (i2c.read(ADDR, (char*)rx_buff, 2) != 0) {
-        printf("# Si7021: failed to read humidity measurement response\n");
+        // printf("# Si7021: failed to read humidity measurement response\n");
 
         return false;
     }
@@ -69,24 +69,24 @@ bool Si7021::check()
     tx_buff[1] = READ_ID2_2;
 
     if (i2c.write(ADDR, (char*)tx_buff, 2) != 0) {
-        printf("# Si7021: failed to write check command\n");
+        // printf("# Si7021: failed to write check command\n");
 
         return false;
     }
 
     if(i2c.read(ADDR, (char*)rx_buff, 8) != 0) {
-        printf("# Si7021: failed to read check command response\n");
+        // printf("# Si7021: failed to read check command response\n");
 
         return false;
     }
 
     if(rx_buff[0] != DEVICE_ID) {
-        printf("# Si7021: invalid device id %d received (expected %d)\n", rx_buff[0], DEVICE_ID);
+        // printf("# Si7021: invalid device id %d received (expected %d)\n", rx_buff[0], DEVICE_ID);
 
         return false;
     }
 
-    printf("# Si7021: check complete, found device 0x%x\n", rx_buff[0]);
+    // printf("# Si7021: check complete, found device 0x%x\n", rx_buff[0]);
 
     return true;
 }

@@ -2,6 +2,7 @@
 #define WEATHERSTATIONCAPABILITY_HPP
 
 #include "../AbstractCapability.hpp"
+#include "Log.hpp"
 
 #include <uLCD_4DGL.hpp>
 #include <MPL3115A2.hpp>
@@ -20,6 +21,8 @@ public:
 	CommandManager::Command::Response handleCommand(CommandManager::Command *command);
 
 private:
+	Log log = Log::getLog("WeatherStationCapability");
+
 	CommandManager::Command::Response handleEnableCommand(CommandManager::Command *command);
 	CommandManager::Command::Response handleDisableCommand(CommandManager::Command *command);
 
@@ -35,7 +38,7 @@ private:
 	void renderSoundmeter(float value);
 
 	void runUpdateThread();
-	void updateLcd();
+	void restartLcd();
 	void updateReadings();
 	bool updateThermometerReading();
 	bool updateLightmeterReading();
@@ -63,33 +66,35 @@ private:
 
 	Thread updateThread;
 
-	Timer renderTimer;
 	Timer thermometerTimer;
 	Timer lightmeterTimer;
 	Timer hygrometerTimer;
 	Timer barometerTimer;
 	Timer soundmeterTimer;
 
-	int renderFps = 10;
-	int renderInterval = 1000 / renderFps;
+	const float INVALID_VALUE = -100.0f;
 
-	float thermometerLastRenderedValue = -100.0f;
+	int updateFps = 10;
+	int updateInterval = 1000 / updateFps;
+
+	float thermometerLastRenderedValue = INVALID_VALUE;
 	float thermometerRenderChangeThreshold = 0.01f;
 	int thermometerIntervalMs = 1000;
 
-	float lightmeterLastRenderedValue = -100.0f;
+	float lightmeterLastRenderedValue = INVALID_VALUE;
 	float lightmeterRenderChangeThreshold = 5.0f;
 	int lightmeterIntervalMs = 1000;
+	float maximumObservedLightLevel = 300.0f;
 
-	float hygrometerLastRenderedValue = -100.0f;
+	float hygrometerLastRenderedValue = INVALID_VALUE;
 	float hygrometerRenderChangeThreshold = 0.1f;
 	int hygrometerIntervalMs = 10000;
 
-	float barometerLastRenderedValue = -100.0f;
+	float barometerLastRenderedValue = INVALID_VALUE;
 	float barometerRenderChangeThreshold = 0.1f;
 	int barometerIntervalMs = 10000;
 
-	float soundmeterLastRenderedValue = -100.0f;
+	float soundmeterLastRenderedValue = INVALID_VALUE;
 	float soundmeterRenderChangeThreshold = 5.0f;
 	int soundmeterIntervalMs = 1000;
 

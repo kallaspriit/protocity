@@ -89,8 +89,49 @@ void uLCD_4DGL :: freeBUFFER(void)         // Clear serial buffer before writing
 }
 
 //******************************************************************************************************
+// int uLCD_4DGL :: writeCOMMAND(char *command, int number)   // send several BYTES making a command and return an answer
+// {
+//
+// #if DEBUGMODE
+//     pc.printf("\n");
+//     pc.printf("New COMMAND : 0x%02X\n", command[0]);
+// #endif
+//     int i, resp = 0;
+//     freeBUFFER();
+//     writeBYTE(0xFF);
+//     for (i = 0; i < number; i++) {
+//         if (i<16)
+//             writeBYTEfast(command[i]); // send command to serial port
+//         else
+//             writeBYTE(command[i]); // send command to serial port but slower
+//     }
+//     while (!_cmd.readable()) wait_ms(TEMPO);              // wait for screen answer
+//     if (_cmd.readable()) resp = _cmd.getc();           // read response if any
+//     switch (resp) {
+//         case ACK :                                     // if OK return   1
+//             resp =  1;
+//             break;
+//         case NAK :                                     // if NOK return -1
+//             resp = -1;
+//             break;
+//         default :
+//             resp =  0;                                 // else return   0
+//             break;
+//     }
+// #if DEBUGMODE
+//     pc.printf("   Answer received : %d\n",resp);
+// #endif
+//
+//     return resp;
+// }
+
+// modified version with write timeout
 int uLCD_4DGL :: writeCOMMAND(char *command, int number)   // send several BYTES making a command and return an answer
 {
+
+    int waitStep = 1; // ms
+    int waitTimeout = 100;
+    int waitDuration = 0;
 
 #if DEBUGMODE
     pc.printf("\n");
@@ -105,7 +146,22 @@ int uLCD_4DGL :: writeCOMMAND(char *command, int number)   // send several BYTES
         else
             writeBYTE(command[i]); // send command to serial port but slower
     }
-    while (!_cmd.readable()) wait_ms(TEMPO);              // wait for screen answer
+
+    // wait for screen answer, time out after a while
+    while (!_cmd.readable()) {
+        wait_ms(waitStep);
+        waitDuration += waitStep;
+
+        if (waitDuration > waitTimeout) {
+            timeoutCount++;
+
+#if DEBUGMODE
+    pc.printf("   Waiting for response timed out after %d ms (total timeouts in a row: %d)!\n", waitTimeout, timeoutCount);
+#endif
+            break;
+        }
+    }
+
     if (_cmd.readable()) resp = _cmd.getc();           // read response if any
     switch (resp) {
         case ACK :                                     // if OK return   1
@@ -119,7 +175,7 @@ int uLCD_4DGL :: writeCOMMAND(char *command, int number)   // send several BYTES
             break;
     }
 #if DEBUGMODE
-    pc.printf("   Answer received : %d\n",resp);
+    pc.printf("   Answer received: %d (%d ms)\n", resp, waitDuration);
 #endif
 
     return resp;
@@ -272,7 +328,7 @@ void uLCD_4DGL :: baudrate(int speed)    // set screen baud rate
         case 750000 : //rates over 600000 are not documented, but seem to work
             newbaud = BAUD_750000;
             break;
-        case 1000000 :  
+        case 1000000 :
             newbaud = BAUD_1000000;
             break;
         case 1500000 :
@@ -294,7 +350,7 @@ void uLCD_4DGL :: baudrate(int speed)    // set screen baud rate
     command[2] = char(newbaud % 256);
     wait_ms(1);
     for (i = 0; i <3; i++) writeBYTEfast(command[i]);      // send command to serial port
-    for (i = 0; i<10; i++) wait_ms(1); 
+    for (i = 0; i<10; i++) wait_ms(1);
     //dont change baud until all characters get sent out
     _cmd.baud(speed);                                  // set mbed to same speed
     i=0;
@@ -466,4 +522,3 @@ int uLCD_4DGL :: getSTATUS(char *command, int number)   // read screen info and 
 
     return resp;
 }
-

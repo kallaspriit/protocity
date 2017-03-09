@@ -26,6 +26,7 @@
 // Debug Verbose off - SGE commands echoed to USB serial for debugmode=1
 #ifndef DEBUGMODE
 #define DEBUGMODE 0
+//#define DEBUGMODE 1
 #endif
 
 // Common WAIT value in milliseconds between commands
@@ -290,6 +291,9 @@ public :
     void display_video(int, int);
     void display_frame(int, int, int);
 
+// Error handling
+    bool hasDied() { return timeoutCount >= 2; }
+
 // Screen Data
     int type;
     int revision;
@@ -314,6 +318,10 @@ protected :
 
     Serial     _cmd;
     DigitalOut _rst;
+
+    // error detection
+    int timeoutCount = 0;
+
     //used by printf
     virtual int _putc(int c) {
         putc(c);

@@ -135,7 +135,7 @@ CommandManager::CommandManager() {
 }
 
 void CommandManager::handleCommand(int sourceId, const char *commandText, int length) {
-	printf("< %s\n", commandText);
+	log.debug("< %s", commandText);
 
 	if ((commandQueueTail - commandQueueHead) == COMMAND_QUEUE_SIZE) {
 		log.warn("command queue fits a maximum of %d commands", COMMAND_QUEUE_SIZE);
@@ -211,7 +211,7 @@ void CommandManager::handleCommand(int sourceId, const char *commandText, int le
 	// add last argument
 	if (argumentBuffer.size() > 0) {
 		if (command->argumentCount == Command::MAX_ARGUMENT_COUNT) {
-			printf("# command can have a maximum of %d arguments\n", Command::MAX_ARGUMENT_COUNT);
+			log.warn("command can have a maximum of %d arguments", Command::MAX_ARGUMENT_COUNT);
 
 			return;
 		}
