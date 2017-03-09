@@ -30,7 +30,7 @@ CommandManager::Command::Response TMP102Capability::handleCommand(CommandManager
 	if (command->argumentCount < 3) {
         return command->createFailureResponse("no capability action requested");
     }
-	
+
 	std::string action = command->getString(2);
 
 	if (action == "enable") {
@@ -72,7 +72,7 @@ void TMP102Capability::enable() {
 		return;
 	}
 
-	printf("# enabling TMP102 temperature measurement every %d milliseconds\n", measurementIntervalMs);
+	log.info("enabling TMP102 temperature measurement every %d milliseconds", measurementIntervalMs);
 
 	sensor = new TMP102(sdaPin, sclPin, 0x90);
 
@@ -88,7 +88,7 @@ void TMP102Capability::disable() {
 		return;
 	}
 
-	printf("# disabling TMP102 temperature measurement\n");
+	log.info("disabling TMP102 temperature measurement");
 
 	delete sensor;
 	sensor = NULL;

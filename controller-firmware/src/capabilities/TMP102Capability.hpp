@@ -2,6 +2,7 @@
 #define TMP102CAPABILITY_HPP
 
 #include "../AbstractCapability.hpp"
+#include "Log.hpp"
 
 #include <TMP102.hpp>
 
@@ -17,6 +18,8 @@ public:
 	CommandManager::Command::Response handleCommand(CommandManager::Command *command);
 
 private:
+	Log log = Log::getLog("TMP102Capability");
+
 	CommandManager::Command::Response handleEnableCommand(CommandManager::Command *command);
 	CommandManager::Command::Response handleDisableCommand(CommandManager::Command *command);
 
