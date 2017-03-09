@@ -9,7 +9,7 @@
 #include <stdlib.h>
 
 Debug::Debug() {
-	ledUpdateThread.start(this, &Debug::runLedUpdateThread);
+	ledUpdateThread.start(callback(this, &Debug::runLedUpdateThread));
 }
 
 void Debug::setLedMode(int index, LedMode mode) {

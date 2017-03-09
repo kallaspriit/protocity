@@ -23,7 +23,7 @@ class TCPSocketConnection;
 class Application : SocketServer::SocketServerListener, PortController::PortEventListener {
 
 public:
-	static std::string getVersion() { return "1.24.0"; };
+	static std::string getVersion() { return "2.1.0"; };
 
 	Application(Config *config, Serial *serial);
 

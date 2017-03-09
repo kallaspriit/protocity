@@ -21,7 +21,7 @@ TLC5940::TLC5940(PinName SCLK, PinName MOSI, PinName GSCLK, PinName BLANK,
     blank = 1;
 
     // Call the reset function every 4096 PWM outputs
-    reset_ticker.attach_us(this, &TLC5940::reset, (1000000.0/GSCLK_SPEED) * 4096.0);
+    reset_ticker.attach_us(callback(this, &TLC5940::reset), (1000000.0/GSCLK_SPEED) * 4096.0);
 
     // Configure FastPWM output for GSCLK frequency at 50% duty cycle
     //gsclk.period_us(1000000.0/(GSCLK_SPEED * 1.05)); // FastPWM

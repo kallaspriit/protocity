@@ -1,6 +1,8 @@
 #ifndef ETHERNETMANAGER_HPP
 #define ETHERNETMANAGER_HPP
 
+#include "Log.hpp"
+
 #include "mbed.h"
 #include "EthernetInterface.h"
 
@@ -12,6 +14,8 @@ public:
 	EthernetInterface *getEthernetInterface();
 
 private:
+	Log log = Log::getLog("EthernetManager");
+
 	EthernetInterface ethernetInterface;
 };
 

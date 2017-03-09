@@ -9,7 +9,7 @@ AbstractCapability::AbstractCapability(Serial *serial, PortController *portContr
 
 /*
 void AbstractCapability::startStepThread() {
-	thread.start(this, &AbstractCapability::runThread);
+	thread.start(callback(this, &AbstractCapability::runThread));
 }
 
 void AbstractCapability::runThread() {

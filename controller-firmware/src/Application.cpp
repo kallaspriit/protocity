@@ -60,7 +60,7 @@ void Application::loop() {
 
 void Application::setupSerial() {
 	// configure serial
-	serial->attach(this, &Application::handleSerialRx, Serial::RxIrq);
+	serial->attach(callback(this, &Application::handleSerialRx), Serial::RxIrq);
 }
 
 void Application::setupCommandHandlers() {
@@ -584,7 +584,7 @@ PortController *Application::getPortControllerByPortNumber(int portNumber) {
 void Application::testSetup() {
 	log.info("setting up tests");
 
-	testLoopThread.start(this, &Application::testLoop);
+	testLoopThread.start(callback(this, &Application::testLoop));
 }
 
 void Application::testLoop() {

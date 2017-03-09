@@ -50,8 +50,8 @@ void PortController::setPortMode(PortMode portMode) {
 
 		case PortMode::INTERRUPT:
 			interruptIn = new InterruptIn(pinName);
-			interruptIn->rise(this, &PortController::handleInterruptRise);
-			interruptIn->fall(this, &PortController::handleInterruptFall);
+			interruptIn->rise(callback(this, &PortController::handleInterruptRise));
+			interruptIn->fall(callback(this, &PortController::handleInterruptFall));
 
 			break;
 

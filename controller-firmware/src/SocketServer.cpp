@@ -31,7 +31,7 @@ bool SocketServer::start(EthernetInterface *ethernetInterface, int port) {
 		return false;
 	}
 
-	listenThread.start(this, &SocketServer::runListenThread);
+	listenThread.start(callback(this, &SocketServer::runListenThread));
 
 	return true;
 }

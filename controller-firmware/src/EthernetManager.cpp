@@ -1,27 +1,27 @@
 #include "EthernetManager.hpp"
 
 bool EthernetManager::initialize() {
-	printf("# initializing ethernet interface..\n");
+	log.info("initializing ethernet interface..");
 
     int initResult = ethernetInterface.init(); // use DHCP
     // int initResult = eth.init("10.220.20.123", "255.255.255.0", "10.220.20.1"); // use static IP
 
 	if (initResult == 0) {
-		printf("# ethernet interface initialized\n");
+		log.info("ethernet interface initialized");
 	} else {
-		printf("# failed to initialize ethernet interface with code %d\n", initResult);
+		log.warn("failed to initialize ethernet interface with code %d", initResult);
 
 		return false;
 	}
 
-	printf("# connecting to ethernet..\n");
+	log.info("connecting to ethernet..");
 
     int connectResult = ethernetInterface.connect();
 
 	if (connectResult == 0) {
-		printf("# connected to ethernet, ip address: %s\n", ethernetInterface.getIPAddress());
+		log.info("connected to ethernet, ip address: %s", ethernetInterface.getIPAddress());
 	} else {
-		printf("# failed to connect to ethernet with code %d\n", connectResult);
+		log.warn("failed to connect to ethernet with code %d", connectResult);
 
 		return false;
 	}

@@ -78,7 +78,7 @@ bool PN532Capability::enable() {
 
 	isEnabled = true;
 
-	//updateThread.start(this, &PN532Capability::runUpdateThread);
+	//updateThread.start(callback(this, &PN532Capability::runUpdateThread));
 
 	return true;
 }
