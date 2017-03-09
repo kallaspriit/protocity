@@ -21,6 +21,8 @@ CommandManager::Command::Response DebugCapability::handleCommand(CommandManager:
 
 	if (action == "i2c") {
 		return handleI2CCommand(command);
+	} else if (action == "logging") {
+		return handleLoggingCommand(command);
 	} else {
 		return command->createFailureResponse("invalid capability action requested");
 	}
@@ -44,4 +46,26 @@ CommandManager::Command::Response DebugCapability::handleI2CCommand(CommandManag
     log.info("found %d I2C devices", count);
 
 	return command->createSuccessResponse(count);
+}
+
+CommandManager::Command::Response DebugCapability::handleLoggingCommand(CommandManager::Command *command) {
+	if (command->argumentCount < 4) {
+        return command->createFailureResponse("expected a total of 4 arguments (for example '1:port:1:debug:logging:TRACE");
+    }
+
+	std::string minimumLevelInput = command->getString(3);
+	Log::LogLevel minimumLevel = Log::LogHandler::parseLogLevel(minimumLevelInput.c_str());
+	std::string actualMinimumLevel = Log::LogHandler::logLevelToName(minimumLevel);
+
+	if (minimumLevelInput != actualMinimumLevel) {
+		log.warn("invalid loggig level %s requested, expected one of TRACE, DEBUG, INFO, WARN, ERROR", minimumLevelInput.c_str());
+
+		return command->createFailureResponse();
+	}
+
+	log.info("setting logging minimum level to %s", actualMinimumLevel.c_str());
+
+	Log::getLogHandler()->setMinimumLevel(minimumLevel);
+
+	return command->createSuccessResponse(actualMinimumLevel);
 }

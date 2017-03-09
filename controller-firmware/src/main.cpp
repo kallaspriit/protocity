@@ -10,9 +10,7 @@
 class SerialLogHandler : public Log::LogHandler {
 
 public:
-	SerialLogHandler(Log::LogLevel minimumLevel) :
-	 	minimumLevel(minimumLevel)
-	{}
+	SerialLogHandler(Log::LogLevel minimumLevel) : LogHandler(minimumLevel) {}
 
 	void handleLogMessage(Log::LogLevel level, const char *component, const char *message) {
 		if (level < minimumLevel) {
@@ -27,28 +25,6 @@ public:
 	};
 
 private:
-	const char *logLevelToName(Log::LogLevel level) {
-		switch (level) {
-			case Log::LogLevel::TRACE:
-				return "TRACE";
-
-			case Log::LogLevel::DEBUG:
-				return "DEBUG";
-
-			case Log::LogLevel::INFO:
-				return "INFO";
-
-			case Log::LogLevel::WARN:
-				return "WARN";
-
-			case Log::LogLevel::ERROR:
-				return "ERROR";
-		}
-
-		return "UNKNOWN";
-	}
-
-	Log::LogLevel minimumLevel;
 	Mutex serialMutex;
 };
 
@@ -65,6 +41,7 @@ int main() {
 	printf("\n\n");
 
 	log.info("starting Protocity v%s", Application::getVersion().c_str());
+	log.info("logging level can be changed with command '1:port:1:debug:logging:TRACE' etc (where level is one of TRACE, DEBUG, INFO, WARN, ERROR)");
 
 	// initialize sram
 	if (sdram_init() != 0) {

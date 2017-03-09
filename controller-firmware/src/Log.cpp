@@ -23,6 +23,10 @@ void Log::setLogHandler(LogHandler *logHandler) {
     Log::logHandler = logHandler;
 }
 
+Log::LogHandler *Log::getLogHandler() {
+    return Log::logHandler;
+}
+
 void Log::trace(const char *fmt, ...) {
     if (logHandler == NULL) {
         return;

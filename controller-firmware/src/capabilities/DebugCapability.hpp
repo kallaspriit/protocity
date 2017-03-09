@@ -13,6 +13,7 @@ public:
 
 	CommandManager::Command::Response handleCommand(CommandManager::Command *command);
 	CommandManager::Command::Response handleI2CCommand(CommandManager::Command *command);
+	CommandManager::Command::Response handleLoggingCommand(CommandManager::Command *command);
 
 private:
 	Log log = Log::getLog("DebugCapability");
