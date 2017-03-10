@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
+import com.stagnationlab.c8y.driver.measurements.BatteryMeasurement;
 import com.stagnationlab.c8y.driver.services.Config;
 import com.stagnationlab.c8y.driver.services.EventBroker;
 import com.stagnationlab.c8y.driver.services.TextToSpeech;
@@ -104,8 +105,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 		private static final String EVENT_OBSTACLE_DETECTED = "obstacle-detected";
 		private static final String EVENT_OBSTACLE_CLEARED = "obstacle-cleared";
 		private static final String EVENT_SPEED_CHANGED = "speed-changed";
-		private static final String EVENT_BATTERY_CHARGE_STATE_CHANGED = "battery-charge-state-changed";
-		private static final String EVENT_BATTERY_VOLTAGE_CHANGED = "battery-voltage-changed";
+		private static final String EVENT_BATTERY_STATE_CHANGED = "battery-state-changed";
 
 		private boolean areEventListenersAdded = false;
 
@@ -183,20 +183,12 @@ public class TrainController extends AbstractController implements TrainStopEven
 						break;
 					}
 
-					case EVENT_BATTERY_CHARGE_STATE_CHANGED: {
+					case EVENT_BATTERY_STATE_CHANGED: {
 						boolean isCharging = command.getInt(0) == 1;
 						float batteryVoltage = command.getFloat(1);
 						int batteryChargePercentage = command.getInt(2);
 
 						handleBatteryChargeStateChanged(isCharging, batteryVoltage, batteryChargePercentage);
-						break;
-					}
-
-					case EVENT_BATTERY_VOLTAGE_CHANGED: {
-						float batteryVoltage = command.getFloat(0);
-						int batteryChargePercentage = command.getInt(1);
-
-						handleBatteryVoltageChanged(batteryVoltage, batteryChargePercentage);
 						break;
 					}
 
@@ -227,15 +219,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 			state.setBatteryChargePercentage(batteryChargePercentage);
 
 			updateState(state);
-		}
-
-		private void handleBatteryVoltageChanged(float batteryVoltage, int batteryChargePercentage) {
-			log.debug("train battery voltage is now {}V ({})", batteryVoltage, batteryChargePercentage);
-
-			state.setBatteryVoltage(batteryVoltage);
-			state.setBatteryChargePercentage(batteryChargePercentage);
-
-			updateState(state);
+			reportMeasurement(new BatteryMeasurement(batteryVoltage, batteryChargePercentage, isCharging));
 		}
 
 		private void handleObstacleDetectedEvent(float obstacleDistance) {

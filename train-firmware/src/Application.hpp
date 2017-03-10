@@ -13,7 +13,7 @@ public:
 private:
 
     // provide version number
-    virtual String getVersion() { return "2.13.0"; };
+    virtual String getVersion() { return "2.17.0"; };
 
     // override main setup hooks
     virtual void setupBefore();
@@ -28,7 +28,8 @@ private:
 
     // provide custom loop functionality
     virtual void loopAfter();
-    void loopMotorController();
+    void loopObstacleDetection(unsigned long deltaTime);
+    void loopMotorController(unsigned long deltaTime);
 
     // handle events
     virtual void handleClientDisconnected();
@@ -39,10 +40,6 @@ private:
     void handleGetSpeedCommand(int requestId, String parameters[], int parameterCount);
     void handleGetObstacleDistanceCommand(int requestId, String parameters[], int parameterCount);
 
-    // obstacle detection
-    void handleObstacleDetected();
-    void handleObstacleCleared();
-
     // disable debug led functionality (pin used for charge detection)
     virtual void toggleDebugLed() {};
     virtual void setDebugLed(int state) {};
@@ -51,7 +48,7 @@ private:
     void sendMotorSpeed(int requestId);
     void sendObstacleDistance(int requestId);
     void sendObstacleDetectedEvent(float distance);
-    void sendObstacleClearedEvent();
+    void sendObstacleClearedEvent(int duration);
 
     // battery handling
     virtual float getBatteryVoltage();
@@ -59,13 +56,10 @@ private:
 
     // obstacle handling
     float getObstacleDistance();
-    bool isObstacleDetected();
 
     // motor handling
     void setMotorSpeed(int speed);
     void stopMotor();
-    void brakeMotor();
-    void applyMotorSpeed();
 
     // pins config
     const int MOTOR_CONTROL_PIN_A = 0;
@@ -78,10 +72,13 @@ private:
     const int MAX_ADC_READ_VALUE = 4095;
     const int MAX_ANALOG_WRITE_VALUE = 1023;
 
-    // behaviour config
-    const float OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM = 10.0f;
-    const unsigned long SPEED_DECISION_INTERVAL = 10;
-    const unsigned long BRAKE_DURATION = 250;
+    // obstacle detection config, apply some hysteresis
+    const float OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM = 14.0f;
+    const float OBSTACLE_CLEARED_DISTANCE_THRESHOLD_CM = OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM + 1.0f;
+    const unsigned long OBSTACLE_DETECTED_THRESHOLD_DURATION = 50;
+
+    // how often to run the main loop
+    const unsigned long LOOP_INTERVAL = 10;
 
     // battery voltage detection config
     const float BATTERY_VOLTAGE_DIVIDER_RESISTOR_1 = 8200.0f;       // between input and output
@@ -94,13 +91,9 @@ private:
     // runtime info
     int motorSpeed = 0;
     int targetSpeed = 0;
-    bool isBraking = false;
-    bool stopAfterBrake = false;
-    unsigned long brakeStartTime = 0;
-    unsigned long lastSpeedDecisionTime = 0;
-    float obstacleDistance = 0.0f;
-    int obstacleDetectedFrames = 0;
-    bool wasObstacleDetected = false;
+    unsigned long lastLoopTime = 0;
+    int obstacleDetectedDuration = 0;
+    bool isObstacleDetected = false;
 };
 
 #endif

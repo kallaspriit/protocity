@@ -121,7 +121,7 @@ protected:
 
     // battery monitor
     const unsigned long BATTERY_MONITOR_INTERVAL_MS = 500;
-    const float BATTERY_VOLTAGE_CHANGE_THRESHOLD = 0.01f;
+    const float BATTERY_VOLTAGE_CHANGE_THRESHOLD = 0.05f;
 
     // dependencies
     WiFiServer server;

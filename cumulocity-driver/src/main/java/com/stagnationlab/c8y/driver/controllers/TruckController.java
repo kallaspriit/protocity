@@ -5,7 +5,10 @@ import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
+import com.stagnationlab.c8y.driver.devices.AbstractMultiDacActuator;
+import com.stagnationlab.c8y.driver.devices.etherio.EtherioMultiDacActuator;
 import com.stagnationlab.c8y.driver.fragments.controllers.Truck;
+import com.stagnationlab.c8y.driver.measurements.BatteryMeasurement;
 import com.stagnationlab.c8y.driver.services.Config;
 import com.stagnationlab.c8y.driver.services.EventBroker;
 import com.stagnationlab.c8y.driver.services.TextToSpeech;
@@ -18,10 +21,11 @@ public class TruckController extends AbstractController {
 
 	private final Truck state = new Truck();
 	private Commander commander;
+	private AbstractMultiDacActuator indicatorDriver;
+	private int indicatorChannel = 0;
 
 	private static final String COMMAND_GET_BATTERY_VOLTAGE = "get-battery-voltage";
-	private static final String EVENT_BATTERY_CHARGE_STATE_CHANGED = "battery-charge-state-changed";
-	private static final String EVENT_BATTERY_VOLTAGE_CHANGED = "battery-voltage-changed";
+	private static final String EVENT_BATTERY_STATE_CHANGED = "battery-state-changed";
 
 	public TruckController(String id, Map<String, Commander> commanders, Config config, EventBroker eventBroker) {
 		super(id, commanders, config, eventBroker);
@@ -41,8 +45,25 @@ public class TruckController extends AbstractController {
 	protected void setup() throws Exception {
 		log.info("setting up truck controller");
 
+		setupTruck();
+		setupIndicator();
+	}
+
+	private void setupTruck() {
 		String commanderName = config.getString("truck.commander");
 		commander = getCommanderByName(commanderName);
+	}
+
+	private void setupIndicator() {
+		String commanderName = config.getString("truck.indicator.commander");
+		int port = config.getInt("truck.indicator.port");
+		int channelCount = config.getInt("truck.indicator.channels");
+		indicatorChannel = config.getInt("truck.indicator.channel");
+
+		Commander commander = getCommanderByName(commanderName);
+		indicatorDriver = new EtherioMultiDacActuator("Truck controller indicator led driver", commander, port, channelCount);
+
+		registerChild(indicatorDriver);
 	}
 
 	@Override
@@ -113,20 +134,12 @@ public class TruckController extends AbstractController {
 			}
 
 			switch (command.name) {
-				case EVENT_BATTERY_CHARGE_STATE_CHANGED: {
+				case EVENT_BATTERY_STATE_CHANGED: {
 					boolean isCharging = command.getInt(0) == 1;
 					float batteryVoltage = command.getFloat(1);
 					int batteryChargePercentage = command.getInt(2);
 
 					handleBatteryChargeStateChanged(isCharging, batteryVoltage, batteryChargePercentage);
-					break;
-				}
-
-				case EVENT_BATTERY_VOLTAGE_CHANGED: {
-					float batteryVoltage = command.getFloat(0);
-					int batteryChargePercentage = command.getInt(1);
-
-					handleBatteryVoltageChanged(batteryVoltage, batteryChargePercentage);
 					break;
 				}
 
@@ -145,15 +158,9 @@ public class TruckController extends AbstractController {
 		state.setBatteryChargePercentage(batteryChargePercentage);
 
 		updateState(state);
-	}
+		reportMeasurement(new BatteryMeasurement(batteryVoltage, batteryChargePercentage, isCharging));
 
-	private void handleBatteryVoltageChanged(float batteryVoltage, int batteryChargePercentage) {
-		log.debug("truck battery voltage is now {}V ({})", batteryVoltage, batteryChargePercentage);
-
-		state.setBatteryVoltage(batteryVoltage);
-		state.setBatteryChargePercentage(batteryChargePercentage);
-
-		updateState(state);
+		indicatorDriver.setChannelValue(indicatorChannel, isCharging ? 1.0f : 0.0f);
 	}
 
 	private void setIsRunning(boolean isRunning) {

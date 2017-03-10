@@ -43,25 +43,74 @@ void Application::setupAdc() {
 void Application::setupMotorController() {
     log("setting up motor controller");
 
-    // make the motor brake by default
+    // make the motor stop by default
     stopMotor();
 }
 
 void Application::loopAfter() {
-    loopMotorController();
+    unsigned long currentTime = millis();
+    unsigned long deltaTime = currentTime - lastLoopTime;
+
+    if (deltaTime < LOOP_INTERVAL) {
+        return;
+    }
+
+    lastLoopTime = currentTime;
+
+    loopObstacleDetection(deltaTime);
+    loopMotorController(deltaTime);
 }
 
-void Application::loopMotorController() {
-    unsigned long currentTime = millis();
-    unsigned long timeSinceLastSpeedDecision = currentTime - lastSpeedDecisionTime;
+void Application::loopObstacleDetection(unsigned long deltaTime) {
+    float obstacleDistance = getObstacleDistance();
+    float obstacleDistanceThreshold = isObstacleDetected ? OBSTACLE_CLEARED_DISTANCE_THRESHOLD_CM : OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM;
+    bool isObstacleNear = obstacleDistance < obstacleDistanceThreshold;
 
-    if (timeSinceLastSpeedDecision > SPEED_DECISION_INTERVAL) {
-        applyMotorSpeed();
+    // sendEventMessage("d", String(obstacleDistance));
 
-        lastSpeedDecisionTime = currentTime;
+    if (isObstacleNear) {
+        obstacleDetectedDuration += deltaTime;
+
+        if (obstacleDetectedDuration >= OBSTACLE_DETECTED_THRESHOLD_DURATION && !isObstacleDetected) {
+            isObstacleDetected = true;
+
+            if (motorSpeed != 0) {
+                log("obstacle detected at %s cm after %d ms, stopping the train from current speed of %d%%", String(obstacleDistance).c_str(), (int)obstacleDetectedDuration, motorSpeed);
+
+                stopMotor();
+            } else {
+                log("obstacle detected at %s cm after %d ms but the train is already stationary", String(obstacleDistance).c_str(), (int)obstacleDetectedDuration);
+            }
+
+            sendObstacleDetectedEvent(obstacleDistance);
+        }
+    } else if (isObstacleDetected) {
+        if (motorSpeed != targetSpeed) {
+            log("obstacle cleared at %s cm after %d ms, resuming target speed of %d%%", String(obstacleDistance).c_str(), (int)obstacleDetectedDuration, targetSpeed);
+
+            setMotorSpeed(targetSpeed);
+        } else {
+            log("obstacle cleared at %s cm after %d ms", String(obstacleDistance).c_str(), (int)obstacleDetectedDuration);
+        }
+
+        sendObstacleClearedEvent((int)obstacleDetectedDuration);
+
+        isObstacleDetected = false;
+        obstacleDetectedDuration = 0;
     }
 }
 
+void Application::loopMotorController(unsigned long deltaTime) {
+    if (isObstacleDetected) {
+        return;
+    }
+
+    if (motorSpeed != targetSpeed) {
+        log("applying target speed of %d%%", targetSpeed);
+
+        setMotorSpeed(targetSpeed);
+    }
+}
 void Application::handleClientDisconnected() {
     SocketApplication::handleClientDisconnected();
 
@@ -86,8 +135,6 @@ void Application::handleSetSpeedCommand(int requestId, String parameters[], int 
     }
 
     targetSpeed = min(max(parameters[0].toInt(), -100), 100);
-
-    applyMotorSpeed();
 
     sendMotorSpeed(requestId);
 }
@@ -122,8 +169,8 @@ void Application::sendObstacleDetectedEvent(float distance) {
     sendEventMessage("obstacle-detected", String(distance));
 }
 
-void Application::sendObstacleClearedEvent() {
-    sendEventMessage("obstacle-cleared", String(obstacleDetectedFrames));
+void Application::sendObstacleClearedEvent(int duration) {
+    sendEventMessage("obstacle-cleared", String(duration));
 }
 
 float Application::getBatteryVoltage() {
@@ -160,12 +207,6 @@ float Application::getObstacleDistance() {
     return distance;
 }
 
-bool Application::isObstacleDetected() {
-    obstacleDistance = getObstacleDistance();
-
-    return obstacleDistance < OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM;
-}
-
 void Application::setMotorSpeed(int speed) {
     if (speed == motorSpeed) {
         return;
@@ -196,75 +237,4 @@ void Application::setMotorSpeed(int speed) {
 
 void Application::stopMotor() {
     setMotorSpeed(0);
-}
-
-void Application::brakeMotor() {
-    isBraking = true;
-    brakeStartTime = millis();
-    applyMotorSpeed();
-}
-
-void Application::applyMotorSpeed() {
-    if (isBraking) {
-        unsigned long currentTime = millis();
-        unsigned long brakingDuration = currentTime - brakeStartTime;
-
-        if (brakingDuration > BRAKE_DURATION) {
-            if (stopAfterBrake == true) {
-                targetSpeed = 0;
-            }
-
-            isBraking = false;
-            stopAfterBrake = false;
-            stopMotor();
-        } else {
-            setMotorSpeed(targetSpeed > 0 ? -100 : 100);
-        }
-
-        return;
-    }
-
-    if (isObstacleDetected()) {
-        if (!wasObstacleDetected) {
-            wasObstacleDetected = true;
-
-            handleObstacleDetected();
-        }
-
-        obstacleDetectedFrames++;
-    } else {
-        if (wasObstacleDetected) {
-            handleObstacleCleared();
-
-            wasObstacleDetected = false;
-            obstacleDetectedFrames = 0;
-        } else if (motorSpeed != targetSpeed) {
-            log("applying target speed of %d%%", targetSpeed);
-
-            setMotorSpeed(targetSpeed);
-        }
-    }
-}
-
-void Application::handleObstacleDetected() {
-    // stop the train
-    if (motorSpeed != 0) {
-        log("obstacle detected, stopping train");
-
-        stopMotor();
-        //brakeMotor();
-    }
-
-    sendObstacleDetectedEvent(obstacleDistance);
-}
-
-void Application::handleObstacleCleared() {
-    sendObstacleClearedEvent();
-
-    // restart the train if it was moving before
-    if (targetSpeed != 0) {
-        log("obstacle cleared, resuming target speed of %d%%", targetSpeed);
-
-        setMotorSpeed(targetSpeed);
-    }
 }

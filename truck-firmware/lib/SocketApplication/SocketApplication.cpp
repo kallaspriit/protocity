@@ -119,33 +119,17 @@ void SocketApplication::loopBatteryMonitor() {
     BatteryChargeState batteryChargeState = getBatteryChargeState();
     float batteryVoltage = getBatteryVoltage();
     int chargePercentage = getBatteryChargePercentage(batteryVoltage);
+    bool isCharging = batteryChargeState == BatteryChargeState::CHARGE_STATE_CHARGING ? true : false;
     bool wasStateChangeEmitted = false;
 
-    // check for charge state change
-    if (batteryChargeState != lastBatteryChargeState) {
-        if (batteryChargeState == BatteryChargeState::CHARGE_STATE_CHARGING) {
-            sendEventMessage("battery-charge-state-changed", String(1), String(batteryVoltage), String(chargePercentage));
-        } else if (batteryChargeState == BatteryChargeState::CHARGE_STATE_NOT_CHARGING) {
-            sendEventMessage("battery-charge-state-changed", String(0), String(batteryVoltage), String(chargePercentage));
-        }
+    // check for battery state change
+    if (batteryChargeState != lastBatteryChargeState || fabs(batteryVoltage - lastBatteryVoltage) >= BATTERY_VOLTAGE_CHANGE_THRESHOLD) {
+        sendEventMessage("battery-state-changed", String(isCharging), String(batteryVoltage), String(chargePercentage));
 
         onBatteryStateChanged(batteryChargeState, batteryVoltage);
 
-        wasStateChangeEmitted = true;
         lastBatteryChargeState = batteryChargeState;
-    }
-
-    // check for battery voltage change
-    if (fabs(batteryVoltage - lastBatteryVoltage) >= BATTERY_VOLTAGE_CHANGE_THRESHOLD) {
-        sendEventMessage("battery-voltage-changed", String(batteryVoltage), String(chargePercentage));
-
         lastBatteryVoltage = batteryVoltage;
-
-        if (!wasStateChangeEmitted) {
-            onBatteryStateChanged(batteryChargeState, batteryVoltage);
-
-            wasStateChangeEmitted = true;
-        }
     }
 
     lastBatteryMonitorCheckTime = currentTime;

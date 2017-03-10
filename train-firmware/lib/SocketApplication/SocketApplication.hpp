@@ -90,6 +90,9 @@ protected:
     virtual void sendEventMessage(String event, String info1, String info2, String info3);
     virtual void sendErrorMessage(int requestId, String reason);
 
+    // callback for battery state change
+    virtual void onBatteryStateChanged(BatteryChargeState state, float voltage) {};
+
     // response senders
     virtual void sendBatteryVoltage(int requestId);
     virtual void sendIsCharging(int requestId);
@@ -109,7 +112,7 @@ protected:
     int port;
 
     // configure pins
-    static const int DEBUG_LED_PIN       = LED_BUILTIN; // should be pin 5
+    static const int DEBUG_LED_PIN = LED_BUILTIN; // should be pin 5
 
     // buffers
     static const int RECEIVE_BUFFER_SIZE = 1024;
@@ -118,7 +121,7 @@ protected:
 
     // battery monitor
     const unsigned long BATTERY_MONITOR_INTERVAL_MS = 500;
-    const float BATTERY_VOLTAGE_CHANGE_THRESHOLD = 0.01f;
+    const float BATTERY_VOLTAGE_CHANGE_THRESHOLD = 0.05f;
 
     // dependencies
     WiFiServer server;

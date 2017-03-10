@@ -30,7 +30,7 @@ void SocketApplication::loop() {
 }
 
 void SocketApplication::setupDebugLed() {
-    pinMode(LED_BUILTIN, OUTPUT);
+    pinMode(DEBUG_LED_PIN, OUTPUT);
 }
 
 void SocketApplication::setupSerial() {
@@ -119,22 +119,16 @@ void SocketApplication::loopBatteryMonitor() {
     BatteryChargeState batteryChargeState = getBatteryChargeState();
     float batteryVoltage = getBatteryVoltage();
     int chargePercentage = getBatteryChargePercentage(batteryVoltage);
+    bool isCharging = batteryChargeState == BatteryChargeState::CHARGE_STATE_CHARGING ? true : false;
+    bool wasStateChangeEmitted = false;
 
-    // check for charge state change
-    if (batteryChargeState != lastBatteryChargeState) {
-        if (batteryChargeState == BatteryChargeState::CHARGE_STATE_CHARGING) {
-            sendEventMessage("battery-charge-state-changed", String(1), String(batteryVoltage), String(chargePercentage));
-        } else if (batteryChargeState == BatteryChargeState::CHARGE_STATE_NOT_CHARGING) {
-            sendEventMessage("battery-charge-state-changed", String(0), String(batteryVoltage), String(chargePercentage));
-        }
+    // check for battery state change
+    if (batteryChargeState != lastBatteryChargeState || fabs(batteryVoltage - lastBatteryVoltage) >= BATTERY_VOLTAGE_CHANGE_THRESHOLD) {
+        sendEventMessage("battery-state-changed", String(isCharging), String(batteryVoltage), String(chargePercentage));
+
+        onBatteryStateChanged(batteryChargeState, batteryVoltage);
 
         lastBatteryChargeState = batteryChargeState;
-    }
-
-    // check for battery voltage change
-    if (fabs(batteryVoltage - lastBatteryVoltage) >= BATTERY_VOLTAGE_CHANGE_THRESHOLD) {
-        sendEventMessage("battery-voltage-changed", String(batteryVoltage), String(chargePercentage));
-
         lastBatteryVoltage = batteryVoltage;
     }
 
@@ -372,18 +366,16 @@ int SocketApplication::getBatteryChargePercentage(float voltage) {
 
 void SocketApplication::log(const char *fmt, ...) {
     va_list args;
-
     va_start(args, fmt );
     vsnprintf(logBuffer, LOG_BUFFER_SIZE, fmt, args);
     va_end(args);
-    
     Serial.print(String("# ") + String(logBuffer) + String("\n"));
 }
 
 void SocketApplication::toggleDebugLed() {
-    setDebugLed(digitalRead(LED_BUILTIN) == HIGH ? LOW : HIGH);
+    setDebugLed(digitalRead(DEBUG_LED_PIN) == HIGH ? LOW : HIGH);
 }
 
 void SocketApplication::setDebugLed(int state) {
-    digitalWrite(LED_BUILTIN, state == HIGH ? HIGH : LOW);
+    digitalWrite(DEBUG_LED_PIN, state == HIGH ? HIGH : LOW);
 }
