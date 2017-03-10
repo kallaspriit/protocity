@@ -15,6 +15,7 @@ import com.stagnationlab.c8y.driver.controllers.AbstractController;
 import com.stagnationlab.c8y.driver.controllers.LightingController;
 import com.stagnationlab.c8y.driver.controllers.ParkingController;
 import com.stagnationlab.c8y.driver.controllers.TrainController;
+import com.stagnationlab.c8y.driver.controllers.TruckController;
 import com.stagnationlab.c8y.driver.controllers.WeatherController;
 import com.stagnationlab.c8y.driver.devices.AbstractDevice;
 import com.stagnationlab.c8y.driver.fragments.Controller;
@@ -175,6 +176,10 @@ public class Gateway extends AbstractDevice {
 		registerController(
 				new TrainController("Train controller", commanders, config, eventBroker)
 		);
+
+		registerController(
+				new TruckController("Truck controller", commanders, config, eventBroker)
+		);
 	}
 
 	private void setupOperations() {
@@ -212,11 +217,14 @@ public class Gateway extends AbstractDevice {
 	}
 
 	private Commander createCommander(String name) {
-		String host = config.getString("commander." + name + ".host");
 		int defaultPort = config.getInt("socket.defaultPort");
+		int defaultPingInterval = config.getInt("socket.defaultPingInterval");
+		int defaultReconnectTimeout = config.getInt("socket.defaultReconnectTimeout");
+
+		String host = config.getString("commander." + name + ".host");
 		int port = config.getInt("commander.\" + id + \".port", defaultPort);
-		int reconnectTimeout = config.getInt("socket.reconnectTimeout");
-		int pingInterval = config.getInt("socket.pingInterval");
+		int pingInterval = config.getInt("commander.\" + id + \".pingInterval", defaultPingInterval);
+		int reconnectTimeout = config.getInt("commander.\" + id + \".reconnectTimeout", defaultReconnectTimeout);
 
 		log.info("connecting to controller commander '{}' at {}:{}", name, host, port);
 

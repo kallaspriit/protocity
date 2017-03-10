@@ -99,8 +99,8 @@ public class TrainController extends AbstractController implements TrainStopEven
 		private final int normalSpeed;
 		private final int requestBatteryVoltageInterval;
 
-		private static final String COMMAND_SET_SPEED = "set-speed";
 		private static final String COMMAND_GET_BATTERY_VOLTAGE = "get-battery-voltage";
+		private static final String COMMAND_SET_SPEED = "set-speed";
 		private static final String EVENT_OBSTACLE_DETECTED = "obstacle-detected";
 		private static final String EVENT_OBSTACLE_CLEARED = "obstacle-cleared";
 		private static final String EVENT_SPEED_CHANGED = "speed-changed";
@@ -108,7 +108,6 @@ public class TrainController extends AbstractController implements TrainStopEven
 		private static final String EVENT_BATTERY_VOLTAGE_CHANGED = "battery-voltage-changed";
 
 		private boolean areEventListenersAdded = false;
-		private Thread batteryMonitorThread = null;
 
 		Train(Commander commander) {
 			this.commander = commander;
@@ -127,26 +126,6 @@ public class TrainController extends AbstractController implements TrainStopEven
 			commander.sendCommand(COMMAND_SET_SPEED, speed);
 		}
 
-		void requestBatteryVoltage() {
-			commander.sendCommand(COMMAND_GET_BATTERY_VOLTAGE).thenAccept((Commander.CommandResponse result) -> {
-				boolean isCharging = result.response.getInt(0) == 1;
-				float batteryVoltage = result.response.getFloat(1);
-				int chargePercentage = result.response.getInt(2);
-
-				handleBatteryVoltageUpdate(isCharging, batteryVoltage, chargePercentage);
-			});
-		}
-
-		private void handleBatteryVoltageUpdate(boolean isCharging, float batteryVoltage, int chargePercentage) {
-			log.debug("battery is {} with voltage: {} ({}%}", isCharging ? "charging" : "not charging", batteryVoltage, chargePercentage);
-
-			state.setIsCharging(isCharging);
-			state.setBatteryVoltage(batteryVoltage);
-			state.setBatteryChargePercentage(chargePercentage);
-
-			updateState(state);
-		}
-
 		void stop() {
 			log.debug("stopping train");
 
@@ -161,17 +140,11 @@ public class TrainController extends AbstractController implements TrainStopEven
 			log.debug("starting the train");
 
 			setupEventListeners();
-			setupBatteryMonitor();
+			requestBatteryVoltage();
 		}
 
 		void shutdown() {
 			log.debug("shutting down the train");
-
-			if (batteryMonitorThread != null) {
-				log.debug("interrupting train battery monitor thread");
-
-				batteryMonitorThread.interrupt();
-			}
 		}
 
 		private void setupEventListeners() {
@@ -236,20 +209,14 @@ public class TrainController extends AbstractController implements TrainStopEven
 			areEventListenersAdded = true;
 		}
 
-		private void setupBatteryMonitor() {
-			batteryMonitorThread = new Thread(() -> {
-				while (isConnected) {
-					requestBatteryVoltage();
+		private void requestBatteryVoltage() {
+			commander.sendCommand(COMMAND_GET_BATTERY_VOLTAGE).thenAccept((Commander.CommandResponse result) -> {
+				boolean isCharging = result.response.getInt(0) == 1;
+				float batteryVoltage = result.response.getFloat(1);
+				int batteryChargePercentage = result.response.getInt(2);
 
-					try {
-						Thread.sleep(requestBatteryVoltageInterval);
-					} catch (InterruptedException e) {
-						log.trace("battery monitor sleep was interrupted");
-					}
-				}
-			}, "BatteryMonitor");
-
-			batteryMonitorThread.start();
+				handleBatteryChargeStateChanged(isCharging, batteryVoltage, batteryChargePercentage);
+			});
 		}
 
 		private void handleBatteryChargeStateChanged(boolean isCharging, float batteryVoltage, int batteryChargePercentage) {
@@ -437,7 +404,6 @@ public class TrainController extends AbstractController implements TrainStopEven
 	private Train train;
 	private Thread thread;
 	private int currentOperationIndex = 0;
-	private boolean isConnected = false;
 
 	public TrainController(String id, Map<String, Commander> commanders, Config config, EventBroker eventBroker) {
 		super(id, commanders, config, eventBroker);
@@ -461,29 +427,11 @@ public class TrainController extends AbstractController implements TrainStopEven
 		setupStops();
 	}
 
-	@SuppressWarnings("EmptyMethod")
-	@Override
-	public void handleEvent(String name, Object info) {
-		// nothing to do
-	}
-
-	@Override
-	public void onTrainEnter(String stopName) {
-		operations.forEach((trainOperation -> trainOperation.onTrainEnter(stopName)));
-	}
-
-	@Override
-	public void onTrainExit(String stopName) {
-		operations.forEach((trainOperation -> trainOperation.onTrainExit(stopName)));
-	}
-
 	@Override
 	public void start() {
 		super.start();
 
 		log.info("starting train controller");
-
-		reportConnectionStatus();
 
 		train.commander.getMessageTransport().addEventListener(new MessageTransport.EventListener() {
 			@Override
@@ -505,7 +453,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 				log.debug("starting post-connect train operation: {}", trainOperation.getName());
 
-				isConnected = true;
+				setIsRunning(true);
 
 				trainOperation.start();
 
@@ -515,14 +463,13 @@ public class TrainController extends AbstractController implements TrainStopEven
 				thread.start();
 
 				reportOperations();
-				reportConnectionStatus();
 			}
 
 			@Override
 			public void onClose(boolean isPlanned) {
 				log.info("train commander transport has been closed");
 
-				isConnected = false;
+				setIsRunning(false);
 
 				train.shutdown();
 
@@ -540,8 +487,6 @@ public class TrainController extends AbstractController implements TrainStopEven
 				if (!isPlanned) {
 					TextToSpeech.INSTANCE.speak("Wireless connection to the train was lost, attempting to reestablish");
 				}
-
-				reportConnectionStatus();
 			}
 		});
 	}
@@ -550,12 +495,20 @@ public class TrainController extends AbstractController implements TrainStopEven
 	public void shutdown() {
 		log.info("shutting down train controller");
 
-		isConnected = false;
-
 		state.reset();
 		updateState(state);
 
 		super.shutdown();
+	}
+
+	@Override
+	public void onTrainEnter(String stopName) {
+		operations.forEach((trainOperation -> trainOperation.onTrainEnter(stopName)));
+	}
+
+	@Override
+	public void onTrainExit(String stopName) {
+		operations.forEach((trainOperation -> trainOperation.onTrainExit(stopName)));
 	}
 
 	@Override
@@ -564,7 +517,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 		long lastStepTime = Util.now();
 
-		while (isConnected) {
+		while (state.getIsRunning()) {
 			long currentTime = Util.now();
 			long deltaTime = currentTime - lastStepTime;
 
@@ -672,8 +625,8 @@ public class TrainController extends AbstractController implements TrainStopEven
 		updateState(state);
 	}
 
-	private void reportConnectionStatus() {
-		state.setIsRunning(isConnected);
+	private void setIsRunning(boolean isRunning) {
+		state.setIsRunning(isRunning);
 
 		updateState(state);
 	}

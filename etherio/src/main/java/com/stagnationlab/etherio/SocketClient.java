@@ -9,13 +9,16 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.ConcurrentModificationException;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
 import lombok.extern.slf4j.Slf4j;
 
+@SuppressWarnings("ForLoopReplaceableByForEach")
 @Slf4j
 public class SocketClient implements MessageTransport {
 
@@ -36,7 +39,7 @@ public class SocketClient implements MessageTransport {
     private Thread reconnectTimeout;
 	private PingStrategy pingStrategy = null;
     private final Queue<String> inputQueue = new LinkedList<>();
-    private final List<EventListener> eventListeners = new ArrayList<>();
+    private final List<EventListener> eventListeners = Collections.synchronizedList(new ArrayList<>());
     private int reconnectInterval = -1;
     private int messageCounter = 1;
     private boolean wasEverConnected = false;
@@ -88,8 +91,18 @@ public class SocketClient implements MessageTransport {
 	    isPlannedClose = false;
 	    lastConnectionTimeout = connectionTimeout;
 
+	    /*
 	    for (EventListener eventListener : eventListeners) {
 		    eventListener.onConnecting(wasEverConnected);
+	    }
+	    */
+
+	    synchronized (eventListeners) {
+		    for (Iterator<EventListener> it = eventListeners.iterator(); it.hasNext(); ) {
+			    EventListener eventListener = it.next();
+
+			    eventListener.onConnecting(wasEverConnected);
+		    }
 	    }
 
 	    try {
@@ -114,14 +127,34 @@ public class SocketClient implements MessageTransport {
 
 		    log.debug("connected to {}:{}", hostName, portNumber);
 
+		    /*
 		    for (EventListener eventListener : eventListeners) {
 			    eventListener.onOpen(isFirstConnect);
+		    }
+		    */
+
+		    synchronized (eventListeners) {
+			    for (Iterator<EventListener> it = eventListeners.iterator(); it.hasNext(); ) {
+				    EventListener eventListener = it.next();
+
+				    eventListener.onOpen(isFirstConnect);
+			    }
 		    }
 
 		    return true;
 	    } catch (IOException e) {
+	    	/*
 		    for (EventListener eventListener : eventListeners) {
 			    eventListener.onConnectionFailed(e, wasEverConnected);
+		    }
+		    */
+
+		    synchronized (eventListeners) {
+			    for (Iterator<EventListener> it = eventListeners.iterator(); it.hasNext(); ) {
+				    EventListener eventListener = it.next();
+
+				    eventListener.onConnectionFailed(e, wasEverConnected);
+			    }
 		    }
 
 	    	if (wasEverConnected && reconnectInterval >= 0) {
@@ -168,7 +201,7 @@ public class SocketClient implements MessageTransport {
     		return false;
 	    }
 
-	    log.trace("sending message: '{}'", message.replace("\n", "\\n"));
+	    log.trace("sending message: '{}' to {}:{}", message.replace("\n", "\\n"), hostName, portNumber);
 
         socketOut.print(message);
 
@@ -245,8 +278,18 @@ public class SocketClient implements MessageTransport {
 			}
 		}
 
-	    for (EventListener eventListener : eventListeners) {
+		/*
+	    for (EventListener eventListener : ) {
 		    eventListener.onClose(isPlannedClose);
+	    }
+	    */
+
+	    synchronized (eventListeners) {
+		    for (Iterator<EventListener> it = eventListeners.iterator(); it.hasNext(); ) {
+			    EventListener eventListener = it.next();
+
+			    eventListener.onClose(isPlannedClose);
+		    }
 	    }
 
 	    log.debug("socket to {}:{} has been closed", hostName, portNumber);
@@ -292,7 +335,6 @@ public class SocketClient implements MessageTransport {
 	}
 
 	private Runnable getInputThreadTask() {
-		SocketClient lockReference = this;
 
 		return () -> {
 			log.debug("starting input thread");
@@ -304,32 +346,40 @@ public class SocketClient implements MessageTransport {
 					String message = socketIn.readLine();
 
 					if (message != null) {
-						synchronized (lockReference) {
-							if (pingStrategy != null && pingStrategy.isPingResponse(message)) {
-								long currentTime = now();
-								long pingLatency = currentTime - requestPingTime;
+						if (pingStrategy != null && pingStrategy.isPingResponse(message)) {
+							long currentTime = now();
+							long pingLatency = currentTime - requestPingTime;
 
-								log.trace("got ping response for {}:{} '{}' in {}ms", hostName, portNumber, message, pingLatency);
+							log.trace("got ping response for {}:{} '{}' in {}ms", hostName, portNumber, message, pingLatency);
 
-								clearPingExpiredTimeout();
+							clearPingExpiredTimeout();
 
-								log.trace("setting ping timeout at {}ms", pingInterval);
+							log.trace("setting ping timeout at {}ms", pingInterval);
 
-								sendPingTimeout = setTimeout(() -> {
-									if (!isConnected()) {
-										log.debug("ping timeout reached but connection has been lost, skipping it");
+							sendPingTimeout = setTimeout(() -> {
+								if (!isConnected()) {
+									log.debug("ping timeout reached but connection has been lost, skipping it");
 
-										return;
-									}
+									return;
+								}
 
-									sendPing();
-								}, pingInterval);
-							} else {
-								log.trace("received message from {}:{}: '{}'", hostName, portNumber, message);
+								sendPing();
+							}, pingInterval);
+						} else {
+							log.trace("received message from {}:{}: '{}'", hostName, portNumber, message);
 
-								inputQueue.add(message);
+							inputQueue.add(message);
 
-								for (EventListener eventListener : eventListeners) {
+							/*
+							for (EventListener eventListener : eventListeners) {
+								eventListener.onMessageReceived(message);
+							}
+							*/
+
+							synchronized (eventListeners) {
+								for (Iterator<EventListener> it = eventListeners.iterator(); it.hasNext(); ) {
+									EventListener eventListener = it.next();
+
 									eventListener.onMessageReceived(message);
 								}
 							}
@@ -362,7 +412,7 @@ public class SocketClient implements MessageTransport {
 		};
 	}
 
-	private void clearSendPingTimeout() {
+	private synchronized void clearSendPingTimeout() {
 		if (sendPingTimeout == null) {
 			return;
 		}
@@ -373,7 +423,7 @@ public class SocketClient implements MessageTransport {
 		sendPingTimeout = null;
 	}
 
-	private void clearPingExpiredTimeout() {
+	private synchronized void clearPingExpiredTimeout() {
 		if (pingExpiredTimeout == null) {
 			return;
 		}
@@ -384,7 +434,7 @@ public class SocketClient implements MessageTransport {
 		pingExpiredTimeout = null;
 	}
 
-	private void clearReconnectTimeout() {
+	private synchronized void clearReconnectTimeout() {
 		if (reconnectTimeout == null) {
 			return;
 		}
