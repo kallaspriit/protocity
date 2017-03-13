@@ -9,14 +9,12 @@ import com.cumulocity.model.measurement.MeasurementValue;
 import com.cumulocity.model.measurement.StateType;
 import com.cumulocity.model.measurement.ValueType;
 
-public class Util {
+public final class Util {
+
+	private Util() {}
 
     public static double map(double value, double inMin, double inMax, double outMin, double outMax) {
         return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
-    }
-
-    public static double convertBytesToMb(long bytes) {
-        return bytes / 1048576;
     }
 
     public static String stringify(Object obj) {
@@ -25,6 +23,16 @@ public class Util {
 
 	@SuppressWarnings("SameParameterValue")
 	public static MeasurementValue buildMeasurementValue(float value, String unit) {
+		return new MeasurementValue(
+				new BigDecimal(value),
+				unit,
+				ValueType.GAUGE,
+				"",
+				StateType.ORIGINAL
+		);
+	}
+
+	public static MeasurementValue buildMeasurementValue(double value, String unit) {
 		return new MeasurementValue(
 				new BigDecimal(value),
 				unit,

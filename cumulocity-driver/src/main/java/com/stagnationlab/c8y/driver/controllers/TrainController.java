@@ -100,7 +100,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 		private final int normalSpeed;
 		private final int requestBatteryVoltageInterval;
 
-		private static final String COMMAND_GET_BATTERY_VOLTAGE = "get-battery-voltage";
+		private static final String COMMAND_GET_BATTERY_VOLTAGE = "battery";
 		private static final String COMMAND_SET_SPEED = "set-speed";
 		private static final String EVENT_OBSTACLE_DETECTED = "obstacle-detected";
 		private static final String EVENT_OBSTACLE_CLEARED = "obstacle-cleared";

@@ -11,7 +11,8 @@ public:
         DEBUG,
         INFO,
         WARN,
-        ERROR
+        ERROR,
+        NONE
     };
 
     class LogHandler {
@@ -26,6 +27,14 @@ public:
 
         void setMinimumLevel(const char *minimumLevel) {
             this->minimumLevel = parseLogLevel(minimumLevel);
+        }
+
+        LogLevel getMinimumLevel() {
+            return minimumLevel;
+        }
+
+        bool shouldLog(LogLevel level) {
+            return level >= minimumLevel;
         }
 
         virtual void handleLogMessage(LogLevel level, const char *component, const char *message) = 0;

@@ -24,7 +24,7 @@ public class TruckController extends AbstractController {
 	private AbstractMultiDacActuator indicatorDriver;
 	private int indicatorChannel = 0;
 
-	private static final String COMMAND_GET_BATTERY_VOLTAGE = "get-battery-voltage";
+	private static final String COMMAND_GET_BATTERY_VOLTAGE = "battery";
 	private static final String EVENT_BATTERY_STATE_CHANGED = "battery-state-changed";
 
 	public TruckController(String id, Map<String, Commander> commanders, Config config, EventBroker eventBroker) {
@@ -91,8 +91,6 @@ public class TruckController extends AbstractController {
 				log.info("truck commander transport has been closed");
 
 				setIsRunning(false);
-
-				log.debug("stopped truck controller");
 
 				if (!isPlanned) {
 					TextToSpeech.INSTANCE.speak("Wireless connection to the truck was lost, attempting to reestablish");

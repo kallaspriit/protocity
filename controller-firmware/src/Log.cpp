@@ -28,7 +28,7 @@ Log::LogHandler *Log::getLogHandler() {
 }
 
 void Log::trace(const char *fmt, ...) {
-    if (logHandler == NULL) {
+    if (logHandler == NULL || !logHandler->shouldLog(LogLevel::TRACE)) {
         return;
     }
 
@@ -42,7 +42,7 @@ void Log::trace(const char *fmt, ...) {
 }
 
 void Log::debug(const char *fmt, ...) {
-    if (Log::logHandler == NULL) {
+    if (Log::logHandler == NULL || !logHandler->shouldLog(LogLevel::DEBUG)) {
         return;
     }
 
@@ -56,7 +56,7 @@ void Log::debug(const char *fmt, ...) {
 }
 
 void Log::info(const char *fmt, ...) {
-    if (Log::logHandler == NULL) {
+    if (Log::logHandler == NULL || !logHandler->shouldLog(LogLevel::INFO)) {
         return;
     }
 
@@ -70,7 +70,7 @@ void Log::info(const char *fmt, ...) {
 }
 
 void Log::warn(const char *fmt, ...) {
-    if (Log::logHandler == NULL) {
+    if (Log::logHandler == NULL || !logHandler->shouldLog(LogLevel::WARN)) {
         return;
     }
 
@@ -84,7 +84,7 @@ void Log::warn(const char *fmt, ...) {
 }
 
 void Log::error(const char *fmt, ...) {
-    if (Log::logHandler == NULL) {
+    if (Log::logHandler == NULL || !logHandler->shouldLog(LogLevel::ERROR)) {
         return;
     }
 

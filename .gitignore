@@ -18,3 +18,4 @@
 /experiments/text-to-speech/.gradle
 /experiments/text-to-speech/build
 /socket-terminal/debug.log.txt
+/experiments/NodeStressTest/node_modules

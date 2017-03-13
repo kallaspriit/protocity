@@ -5,19 +5,21 @@ import com.stagnationlab.c8y.driver.fragments.sensors.MonitoringSensor;
 
 public abstract class AbstractMonitoringSensor extends AbstractDevice {
 
-    private final MonitoringSensor monitoringSensor = new MonitoringSensor();
+    protected final MonitoringSensor state;
 
-	protected AbstractMonitoringSensor(String id) {
+	protected AbstractMonitoringSensor(String id, String name, String host, int port) {
 		super(id);
+
+		state = new MonitoringSensor(name, host, port);
 	}
 
 	@Override
 	protected String getType() {
-		return monitoringSensor.getClass().getSimpleName();
+		return state.getClass().getSimpleName();
 	}
 
 	@Override
 	protected Object getSensorFragment() {
-		return monitoringSensor;
+		return state;
 	}
 }

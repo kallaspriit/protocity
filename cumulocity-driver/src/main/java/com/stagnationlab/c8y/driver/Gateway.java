@@ -18,7 +18,8 @@ import com.stagnationlab.c8y.driver.controllers.TrainController;
 import com.stagnationlab.c8y.driver.controllers.TruckController;
 import com.stagnationlab.c8y.driver.controllers.WeatherController;
 import com.stagnationlab.c8y.driver.devices.AbstractDevice;
-import com.stagnationlab.c8y.driver.fragments.Controller;
+import com.stagnationlab.c8y.driver.devices.AbstractMonitoringSensor;
+import com.stagnationlab.c8y.driver.devices.etherio.EtherioMonitoringSensor;
 import com.stagnationlab.c8y.driver.services.Config;
 import com.stagnationlab.c8y.driver.services.EventBroker;
 import com.stagnationlab.c8y.driver.services.TextToSpeech;
@@ -222,18 +223,14 @@ public class Gateway extends AbstractDevice {
 		int defaultReconnectTimeout = config.getInt("socket.defaultReconnectTimeout");
 
 		String host = config.getString("commander." + name + ".host");
-		int port = config.getInt("commander.\" + id + \".port", defaultPort);
-		int pingInterval = config.getInt("commander.\" + id + \".pingInterval", defaultPingInterval);
-		int reconnectTimeout = config.getInt("commander.\" + id + \".reconnectTimeout", defaultReconnectTimeout);
+		int port = config.getInt("commander." + name + ".port", defaultPort);
+		int pingInterval = config.getInt("commander." + name + ".pingInterval", defaultPingInterval);
+		int reconnectTimeout = config.getInt("commander." + name + ".reconnectTimeout", defaultReconnectTimeout);
 
 		log.info("connecting to controller commander '{}' at {}:{}", name, host, port);
 
 		SocketClient socketClient = new SocketClient(host, port, reconnectTimeout);
 		Commander commander = new Commander(socketClient);
-
-		// add controller to state
-		Controller controller = new Controller(name, host, port, "", Controller.State.UNINITIALIZED);
-		state.addController(controller);
 
 		// listen for socket events
 		socketClient.addEventListener(new MessageTransport.EventListener() {
@@ -244,22 +241,11 @@ public class Gateway extends AbstractDevice {
 				} else {
 					log.info("connecting to socket of controller '{}' at {}:{}", name, host, port);
 				}
-
-				updateControllerState(name, isReconnecting ? Controller.State.RECONNECTING : Controller.State.CONNECTING);
 			}
 
 			@Override
 			public void onOpen(boolean isFirstConnect) {
-				log.info("socket of controller '{}' at {}:{} was {}, requesting version", name, host, port, isFirstConnect ? "connected" : "reconnected");
-
-				commander.sendCommand("version").thenAccept(commandResponse -> {
-					String version = commandResponse.response.getString(0);
-					log.info("commander '{}' version: {}", name, version);
-
-					updateControllerVersion(name, version);
-				});
-
-				updateControllerState(name, Controller.State.CONNECTED);
+				log.info("socket of controller '{}' at {}:{} was {}", name, host, port, isFirstConnect ? "connected" : "reconnected");
 			}
 
 			@Override
@@ -269,8 +255,6 @@ public class Gateway extends AbstractDevice {
 				} else {
 					log.warn("socket of controller '{}' at {}:{} was closed", name, host, port);
 				}
-
-				updateControllerState(name, Controller.State.DISCONNECTED);
 			}
 
 			@Override
@@ -287,14 +271,10 @@ public class Gateway extends AbstractDevice {
 			public void onConnectionFailed(Exception e, boolean wasEverConnected) {
 				if (wasEverConnected) {
 					log.debug("reconnecting to controller '{}' at {}:{} failed ({} - {})", name, host, port, e.getClass().getSimpleName(), e.getMessage());
-
-					updateControllerState(name, Controller.State.DISCONNECTED);
 				} else {
 					log.warn("connecting to controller '{}' at {}:{} failed ({} - {})", name, host, port, e.getClass().getSimpleName(), e.getMessage());
 
 					TextToSpeech.INSTANCE.speak("Connecting to controller \"" + name + "\" failed, some functionality will be disabled");
-
-					updateControllerState(name, Controller.State.CONNECTION_FAILED);
 				}
 			}
 		});
@@ -312,44 +292,23 @@ public class Gateway extends AbstractDevice {
 			}
 		}, pingInterval);
 
+		// create monitor device
+		createControllerMonitor(name, host, port, commander);
+
 		return commander;
 	}
 
-	private void updateControllerState(String name, Controller.State state) {
-		if (!isApiReady || device == null) {
-			log.warn("updating controller '{}' state to '{}' skipped, api not ready yet", name, state.name());
+	private void createControllerMonitor(String name, String host, int port, Commander commander) {
+		log.info("creating monitor for controller '{}'", name);
 
-			return;
-		}
+		AbstractMonitoringSensor monitoringSensor = new EtherioMonitoringSensor(
+				"Controller board " + name,
+				commander,
+				name,
+				host,
+				port
+		);
 
-		Controller controller = this.state.controllerByName(name);
-
-		if (controller == null) {
-			throw new RuntimeException("controller called '{}' not found in gateway state, this should not happen");
-		}
-
-		log.debug("updating controller '{}' state to '{}'", name, state.name());
-
-		controller.setState(state);
-		updateState(this.state);
-	}
-
-	private void updateControllerVersion(String name, String version) {
-		if (!isApiReady || device == null) {
-			log.warn("updating controller '{}' version to '{}' skipped, api not ready yet", name, version);
-
-			return;
-		}
-
-		Controller controller = this.state.controllerByName(name);
-
-		if (controller == null) {
-			throw new RuntimeException("controller called '{}' not found in gateway state, this should not happen");
-		}
-
-		log.debug("updating controller '{}' version to '{}'", name, version);
-
-		controller.setVersion(version);
-		updateState(this.state);
+		registerChild(monitoringSensor);
 	}
 }

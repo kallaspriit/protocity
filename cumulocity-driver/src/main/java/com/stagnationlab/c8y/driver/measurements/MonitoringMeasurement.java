@@ -6,43 +6,24 @@ import com.stagnationlab.c8y.driver.services.Util;
 @SuppressWarnings({ "WeakerAccess", "unused" })
 public class MonitoringMeasurement {
 
-	private float totalMemory;
-	private float usedMemory;
-	private float freeMemory;
-	private float sharedMemory;
-	private float bufferedMemory;
-	private float cachedMemory;
+	private int totalMemory;
+	private int initialMemory;
+	private int usedMemory;
+	private int freeMemory;
+	private float freeMemoryPercentage;
 
 	private static final String UNIT = "bytes";
 
-	MonitoringMeasurement(
-			float totalMemory,
-			float usedMemory,
-			float freeMemory,
-			float sharedMemory,
-			float bufferedMemory,
-			float cachedMemory
+	public MonitoringMeasurement(
+			int totalMemory,
+			int initialMemory,
+			int freeMemory
 	) {
 		this.totalMemory = totalMemory;
-		this.usedMemory = usedMemory;
+		this.initialMemory = initialMemory;
+		this.usedMemory = totalMemory - freeMemory;
 		this.freeMemory = freeMemory;
-		this.sharedMemory = sharedMemory;
-		this.bufferedMemory = bufferedMemory;
-		this.cachedMemory = cachedMemory;
-	}
-
-	public MonitoringMeasurement(
-			float totalMemory,
-			float freeMemory
-	) {
-		this(
-				totalMemory,
-				totalMemory - freeMemory,
-				freeMemory,
-				-1,
-				-1,
-				-1
-		);
+		this.freeMemoryPercentage = (float)freeMemory / (float)totalMemory * 100.0f;
 	}
 
 	public MeasurementValue getTotalMemory() {
@@ -50,7 +31,15 @@ public class MonitoringMeasurement {
 	}
 
 	public void setTotalMemory(MeasurementValue measurementValue) {
-		totalMemory = measurementValue.getValue().floatValue();
+		totalMemory = measurementValue.getValue().intValue();
+	}
+
+	public MeasurementValue getInitialMemory() {
+		return Util.buildMeasurementValue(initialMemory, UNIT);
+	}
+
+	public void setInitialMemory(MeasurementValue measurementValue) {
+		initialMemory = measurementValue.getValue().intValue();
 	}
 
 	public MeasurementValue getUsedMemory() {
@@ -58,7 +47,7 @@ public class MonitoringMeasurement {
 	}
 
 	public void setUsedMemory(MeasurementValue measurementValue) {
-		usedMemory = measurementValue.getValue().floatValue();
+		usedMemory = measurementValue.getValue().intValue();
 	}
 
 	public MeasurementValue getFreeMemory() {
@@ -66,31 +55,14 @@ public class MonitoringMeasurement {
 	}
 
 	public void setFreeMemory(MeasurementValue measurementValue) {
-		freeMemory = measurementValue.getValue().floatValue();
+		freeMemory = measurementValue.getValue().intValue();
 	}
 
-	public MeasurementValue getSharedMemory() {
-		return Util.buildMeasurementValue(sharedMemory, UNIT);
+	public MeasurementValue getFreeMemoryPercentage() {
+		return Util.buildMeasurementValue(freeMemoryPercentage, "%");
 	}
 
-	public void setSharedMemory(MeasurementValue measurementValue) {
-		sharedMemory = measurementValue.getValue().floatValue();
+	public void setFreeMemoryPercentage(MeasurementValue measurementValue) {
+		freeMemoryPercentage = measurementValue.getValue().floatValue();
 	}
-
-	public MeasurementValue getBufferedMemory() {
-		return Util.buildMeasurementValue(bufferedMemory, UNIT);
-	}
-
-	public void setBufferedMemory(MeasurementValue measurementValue) {
-		bufferedMemory = measurementValue.getValue().floatValue();
-	}
-
-	public MeasurementValue getCachedMemory() {
-		return Util.buildMeasurementValue(cachedMemory, UNIT);
-	}
-
-	public void setCachedMemory(MeasurementValue measurementValue) {
-		cachedMemory = measurementValue.getValue().floatValue();
-	}
-
 }
