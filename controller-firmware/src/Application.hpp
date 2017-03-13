@@ -23,7 +23,7 @@ class TCPSocketConnection;
 class Application : SocketServer::SocketServerListener, PortController::PortEventListener {
 
 public:
-	static std::string getVersion() { return "2.31.0"; };
+	static std::string getVersion() { return "2.33.0"; };
 
 	Application(Config *config, Serial *serial);
 
@@ -150,6 +150,9 @@ private:
 	// heartbeat
 	int timeSinceLastHeartbeatUs = 0;
 	int heartbeatCounter = 0;
+
+	// memory
+	int initialFreeMemory = 0;
 
 	// test lifecycle methods
 	void testSetup();				// sets up the tests

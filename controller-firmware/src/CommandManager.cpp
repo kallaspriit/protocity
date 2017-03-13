@@ -91,8 +91,30 @@ CommandManager::Command::Response CommandManager::Command::createSuccessResponse
 CommandManager::Command::Response CommandManager::Command::createSuccessResponse(int value) {
 	CommandManager::Command::Response response(id);
 
-	char buf[10];
+	char buf[32 * 1];
 	sprintf(buf, "%d", value);
+
+	response.addArgument(buf);
+
+	return response;
+}
+
+CommandManager::Command::Response CommandManager::Command::createSuccessResponse(int value1, int value2) {
+	CommandManager::Command::Response response(id);
+
+	char buf[32 * 2];
+	sprintf(buf, "%d:%d", value1, value2);
+
+	response.addArgument(buf);
+
+	return response;
+}
+
+CommandManager::Command::Response CommandManager::Command::createSuccessResponse(int value1, int value2, int value3) {
+	CommandManager::Command::Response response(id);
+
+	char buf[32 * 3];
+	sprintf(buf, "%d:%d:%d", value1, value2, value3);
 
 	response.addArgument(buf);
 
@@ -102,7 +124,7 @@ CommandManager::Command::Response CommandManager::Command::createSuccessResponse
 CommandManager::Command::Response CommandManager::Command::createSuccessResponse(float value) {
 	CommandManager::Command::Response response(id);
 
-	char buf[10];
+	char buf[32 * 1];
 	sprintf(buf, "%f", value);
 
 	response.addArgument(buf);

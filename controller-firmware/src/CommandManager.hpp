@@ -52,6 +52,8 @@ public:
 
 		CommandManager::Command::Response createSuccessResponse();
 		CommandManager::Command::Response createSuccessResponse(int value);
+		CommandManager::Command::Response createSuccessResponse(int value1, int value2);
+		CommandManager::Command::Response createSuccessResponse(int value1, int value2, int value3);
 		CommandManager::Command::Response createSuccessResponse(float value);
 		CommandManager::Command::Response createSuccessResponse(std::string message);
 		CommandManager::Command::Response createFailureResponse();

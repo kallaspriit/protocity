@@ -42,6 +42,8 @@ void Application::setup() {
 	setupEthernetManager();
 	setupSocketServer();
 	setupTimer();
+
+	initialFreeMemory = Debug::getFreeMemoryBytes();
 }
 
 void Application::loop() {
@@ -338,7 +340,7 @@ CommandManager::Command::Response Application::handleMemoryCommand(CommandManage
 
 	int freeMemoryBytes = Debug::getFreeMemoryBytes();
 
-	return command->createSuccessResponse(freeMemoryBytes);
+	return command->createSuccessResponse(freeMemoryBytes, initialFreeMemory, Debug::getTotalMemoryBytes());
 }
 
 CommandManager::Command::Response Application::handleVersionCommand(CommandManager::Command *command) {

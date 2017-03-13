@@ -21,6 +21,7 @@ public:
 	Debug();
 
 	void setLedMode(int index, LedMode mode);
+	static int getTotalMemoryBytes();
 	static int getFreeMemoryBytes();
 
 private:

@@ -4,6 +4,8 @@
 
 #include "Config.hpp"
 
+#include <sdram.h>
+
 #include <algorithm>
 #include <stdio.h>
 #include <stdlib.h>
@@ -154,4 +156,8 @@ int Debug::getFreeMemoryBytes() {
     // __enable_irq();
 
     return counter * FREE_MEMORY_CELL_SIZE;
+}
+
+int Debug::getTotalMemoryBytes() {
+	return SDRAM_SIZE;
 }
