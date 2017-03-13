@@ -1,0 +1,15 @@
+{
+  "name": "node-serial-socket",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "babel-node index",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Priit Kallas <kallaspriit@gmail.com> (http://stagnationlab.com/)",
+  "license": "ISC",
+  "dependencies": {
+    "serialport": "^4.0.7"
+  }
+}
