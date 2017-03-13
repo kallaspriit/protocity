@@ -10,6 +10,8 @@ void Application::setupBefore() {
     pinMode(BATTERY_VOLTAGE_PIN, INPUT);
     pinMode(BATTERY_CHARGE_STATE_PIN, OUTPUT);
     pinMode(CHARGE_DETECTION_PIN, INPUT);
+
+    digitalWrite(BATTERY_CHARGE_STATE_PIN, HIGH); // not charging initially
 }
 
 void Application::setupGreeting() {
