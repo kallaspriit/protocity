@@ -59,6 +59,9 @@ protected:
     virtual float getBatteryVoltage() = 0;
     virtual BatteryChargeState getBatteryChargeState() = 0;
 
+    virtual int getFreeMemory();
+    virtual int getTotalMemory();
+
     // handle events
     virtual void handleClientConnected();
     virtual void handleClientDataAvailable();
@@ -70,8 +73,8 @@ protected:
     virtual void handleCommand(int requestId, String command, String parameters[], int parameterCount);
     virtual void handlePingCommand(int requestId, String parameters[], int parameterCount);
     virtual void handleVersionCommand(int requestId, String parameters[], int parameterCount);
-    virtual void handleGetBatteryVoltageCommand(int requestId, String parameters[], int parameterCount);
-    virtual void handleIsChargingCommand(int requestId, String parameters[], int parameterCount);
+    virtual void handleMemoryCommand(int requestId, String parameters[], int parameterCount);
+    virtual void handleBatteryCommand(int requestId, String parameters[], int parameterCount);
     virtual void handleUnsupportedCommand(int requestId, String command, String parameters[], int parameterCount);
 
     // send messages and events
@@ -80,6 +83,7 @@ protected:
     virtual void sendSuccessMessage(int requestId);
     virtual void sendSuccessMessage(int requestId, int value);
     virtual void sendSuccessMessage(int requestId, int value1, int value2);
+    virtual void sendSuccessMessage(int requestId, int value1, int value2, int value3);
     virtual void sendSuccessMessage(int requestId, String info);
     virtual void sendSuccessMessage(int requestId, String info1, String info2);
     virtual void sendSuccessMessage(int requestId, String info1, String info2, String info3);
@@ -94,12 +98,14 @@ protected:
     virtual void onBatteryStateChanged(BatteryChargeState state, float voltage) {};
 
     // response senders
-    virtual void sendBatteryVoltage(int requestId);
-    virtual void sendIsCharging(int requestId);
+    virtual void sendBatteryState(int requestId);
 
     // debug led handling
     virtual void toggleDebugLed();
     virtual void setDebugLed(int state);
+
+    // statas
+    virtual void logStats();
 
     // helpers
     virtual float calculateAdcVoltage(int reading, int maxReading, float maxReadingVoltage, float resistor1, float resistor2, float calibrationMultiplier);
@@ -138,6 +144,7 @@ protected:
     unsigned long lastBatteryMonitorCheckTime = 0;
     BatteryChargeState lastBatteryChargeState = BatteryChargeState::CHARGE_STATE_UNKNOWN;
     float lastBatteryVoltage = 0.0f;
+    int initialFreeMemory = 0;
 };
 
 #endif

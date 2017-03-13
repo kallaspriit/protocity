@@ -13,7 +13,7 @@ public:
 private:
 
     // provide version number
-    virtual String getVersion() { return "2.17.0"; };
+    virtual String getVersion() { return "2.19.0"; };
 
     // override main setup hooks
     virtual void setupBefore();

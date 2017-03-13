@@ -12,7 +12,7 @@ public:
 
 private:
     // provide version number
-    virtual String getVersion() { return "2.15.0"; };
+    virtual String getVersion() { return "2.16.0"; };
 
     // setup additional dependecies
     virtual void setupBefore();

@@ -16,6 +16,8 @@ void SocketApplication::setup() {
     setupServer();
 
     setupAfter();
+
+    logStats();
 }
 
 void SocketApplication::loop() {
@@ -190,10 +192,10 @@ void SocketApplication::handleRawCommand(int requestId, String command, String p
         handlePingCommand(requestId, parameters, parameterCount);
     } else if (command == "version") {
         handleVersionCommand(requestId, parameters, parameterCount);
-    } else if (command == "get-battery-voltage") {
-        handleGetBatteryVoltageCommand(requestId, parameters, parameterCount);
-    } else if (command == "is-charging") {
-        handleIsChargingCommand(requestId, parameters, parameterCount);
+    } else if (command == "memory") {
+        handleMemoryCommand(requestId, parameters, parameterCount);
+    } else if (command == "battery") {
+        handleBatteryCommand(requestId, parameters, parameterCount);
     } else {
         handleCommand(requestId, command, parameters, parameterCount);
     }
@@ -211,20 +213,16 @@ void SocketApplication::handleVersionCommand(int requestId, String parameters[],
     sendSuccessMessage(requestId, getVersion());
 }
 
-void SocketApplication::handleGetBatteryVoltageCommand(int requestId, String parameters[], int parameterCount) {
+void SocketApplication::handleMemoryCommand(int requestId, String parameters[], int parameterCount) {
+    sendSuccessMessage(requestId, getFreeMemory(), initialFreeMemory, getTotalMemory());
+}
+
+void SocketApplication::handleBatteryCommand(int requestId, String parameters[], int parameterCount) {
     if (parameterCount != 0) {
         return sendErrorMessage(requestId, "expected no parameters, for example '1:get-battery-voltage'");
     }
 
-    sendBatteryVoltage(requestId);
-}
-
-void SocketApplication::handleIsChargingCommand(int requestId, String parameters[], int parameterCount) {
-    if (parameterCount != 0) {
-        return sendErrorMessage(requestId, "expected no parameters, for example '1:is-charging'");
-    }
-
-    sendIsCharging(requestId);
+    sendBatteryState(requestId);
 }
 
 void SocketApplication::handleUnsupportedCommand(int requestId, String command, String parameters[], int parameterCount) {
@@ -274,6 +272,10 @@ void SocketApplication::sendSuccessMessage(int requestId, int value1, int value2
     sendMessage("%d:OK:%d:%d", requestId, value1, value2);
 }
 
+void SocketApplication::sendSuccessMessage(int requestId, int value1, int value2, int value3) {
+    sendMessage("%d:OK:%d:%d:%d", requestId, value1, value2, value3);
+}
+
 void SocketApplication::sendSuccessMessage(int requestId, String info) {
     sendMessage("%d:OK:%s", requestId, info.c_str());
 }
@@ -310,7 +312,7 @@ void SocketApplication::sendErrorMessage(int requestId, String reason) {
     sendMessage("%d:ERROR:%s", requestId, reason.c_str());
 }
 
-void SocketApplication::sendBatteryVoltage(int requestId) {
+void SocketApplication::sendBatteryState(int requestId) {
     BatteryChargeState batteryChargeState = getBatteryChargeState();
     float voltage = getBatteryVoltage();
     int chargePercentage = getBatteryChargePercentage(voltage);
@@ -321,12 +323,6 @@ void SocketApplication::sendBatteryVoltage(int requestId) {
         String(voltage),
         String(chargePercentage)
     );
-}
-
-void SocketApplication::sendIsCharging(int requestId) {
-    BatteryChargeState batteryChargeState = getBatteryChargeState();
-
-    sendSuccessMessage(requestId, batteryChargeState == BatteryChargeState::CHARGE_STATE_CHARGING ? 1 : 0);
 }
 
 float SocketApplication::calculateAdcVoltage(int reading, int maxReading, float maxReadingVoltage, float resistor1, float resistor2, float calibrationMultiplier) {
@@ -362,6 +358,32 @@ int SocketApplication::getBatteryChargePercentage(float voltage) {
     } else {
         return 1;
     }
+}
+
+int SocketApplication::getFreeMemory() {
+    return ESP.getFreeHeap();
+}
+
+int SocketApplication::getTotalMemory() {
+    return ESP.getFlashChipSize();
+}
+
+void SocketApplication::logStats() {
+    int totalMemory = getTotalMemory();
+    int freeMemory = getFreeMemory();
+    float freeMemoryPercentage = (float)freeMemory / (float)totalMemory * 100.0f;
+    int freeSketchSpace = ESP.getFreeSketchSpace();
+    int usedSketchSpace = ESP.getSketchSize();
+    int totalSketchSpace = usedSketchSpace + freeSketchSpace;
+    float sketchPercentage = (float)usedSketchSpace / (float)totalSketchSpace * 100.0f;
+
+    initialFreeMemory = freeMemory;
+
+    log("flash memory:     %4d KB", totalMemory / 1024);
+    log("free memory:      %4d KB (%s%%)", freeMemory / 1024, String(freeMemoryPercentage).c_str());
+    log("sketch space:     %4d KB", totalSketchSpace / 1024);
+    log("sketch size:      %4d KB (%s%%)", usedSketchSpace / 1024, String(sketchPercentage).c_str());
+    log("chip speed:       %4d MHz", ESP.getFlashChipSpeed() / 1000000);
 }
 
 void SocketApplication::log(const char *fmt, ...) {
