@@ -1,5 +1,6 @@
 package com.stagnationlab.c8y.driver.controllers;
 
+import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Map;
 
@@ -15,6 +16,7 @@ import com.stagnationlab.c8y.driver.measurements.SoundMeasurement;
 import com.stagnationlab.c8y.driver.measurements.TemperatureMeasurement;
 import com.stagnationlab.c8y.driver.services.Config;
 import com.stagnationlab.c8y.driver.services.EventBroker;
+import com.stagnationlab.c8y.driver.services.TextToSpeech;
 import com.stagnationlab.etherio.Commander;
 import com.stagnationlab.etherio.MessageTransport;
 import com.stagnationlab.etherio.PortController;
@@ -28,6 +30,7 @@ public class WeatherController extends AbstractController {
 	private boolean isConnected = false;
 
 	private static final String CAPABILITY = "weather-station";
+	private static final String WEATHER_EVENT_CLAP = "clap";
 
 	public WeatherController(String id, Map<String, Commander> commanders, Config config, EventBroker eventBroker) {
 		super(id, commanders, config, eventBroker);
@@ -112,31 +115,58 @@ public class WeatherController extends AbstractController {
 				}
 
 				String sensor = arguments.get(0);
-				float value = Float.valueOf(arguments.get(1));
 
 				switch (sensor) {
 					case WeatherSensor.THERMOMETER:
-						handleThermometerUpdate(value);
+						handleThermometerUpdate(Float.valueOf(arguments.get(1)));
 						break;
 
 					case WeatherSensor.LIGHTMETER:
-						handleLightmeterUpdate(value);
+						handleLightmeterUpdate(Float.valueOf(arguments.get(1)));
 						break;
 
 					case WeatherSensor.HYGROMETER:
-						handleHygrometerUpdate(value);
+						handleHygrometerUpdate(Float.valueOf(arguments.get(1)));
 						break;
 
 					case WeatherSensor.BAROMETER:
-						handleBarometerUpdate(value);
+						handleBarometerUpdate(Float.valueOf(arguments.get(1)));
 						break;
 
 					case WeatherSensor.SOUNDMETER:
-						handleSoundmeterUpdate(value);
+						handleSoundmeterUpdate(Float.valueOf(arguments.get(1)));
+						break;
+
+					case WEATHER_EVENT_CLAP:
+						handleClapEvent(Integer.valueOf(arguments.get(1)), Float.valueOf(arguments.get(2)));
 						break;
 				}
 			}
 		});
+	}
+
+	private void handleClapEvent(int clapCount, float loudestClapLevel) {
+		log.debug("detected {} claps with loudest clap level of {} db", clapCount, loudestClapLevel);
+
+		DecimalFormat df = new DecimalFormat("#.#");
+
+		switch (clapCount) {
+			case 2:
+				TextToSpeech.INSTANCE.speak("The current temperature is " + df.format(state.getTemperature()) + " degrees celsius");
+				break;
+
+			case 3:
+				TextToSpeech.INSTANCE.speak("The current light level is " + df.format(state.getLightLevel()) + " lux");
+				break;
+
+			case 4:
+				TextToSpeech.INSTANCE.speak("The current humidity is " + df.format(state.getHumidity()) + " percent");
+				break;
+		}
+
+		if (clapCount >= 5) {
+			TextToSpeech.INSTANCE.speak("Thank you, thank you very much!");
+		}
 	}
 
 	private void handleThermometerUpdate(float value) {

@@ -158,7 +158,7 @@ public class TruckController extends AbstractController {
 		updateState(state);
 		reportMeasurement(new BatteryMeasurement(batteryVoltage, batteryChargePercentage, isCharging));
 
-		indicatorDriver.setChannelValue(indicatorChannel, isCharging ? 1.0f : 0.0f);
+		indicatorDriver.setChannelValue(indicatorChannel, isCharging ? 0.0f : 1.0f);
 	}
 
 	private void setIsRunning(boolean isRunning) {
