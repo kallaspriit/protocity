@@ -37,6 +37,7 @@ private:
 	void renderBarometer(float value);
 	void renderSoundmeter(float value);
 
+	// readings
 	void runUpdateThread();
 	void restartLcd();
 	void updateReadings();
@@ -45,6 +46,11 @@ private:
 	bool updateHygrometerReading();
 	bool updateBarometerReading();
 	bool updateSoundmeterReading();
+
+	// clap detection
+	void runSoundThread();
+	void updateClapDetection();
+	void resetSilentLoudPattern();
 
 	std::string leftPad(float value, int targetLength, int decimals = 1);
 	void drawProgressBar(int x, int y, int width, int height, int percentage, int backgroundColor, int barColor);
@@ -65,6 +71,7 @@ private:
 	bool isEnabled = false;
 
 	Thread updateThread;
+	Thread soundThread;
 
 	Timer thermometerTimer;
 	Timer lightmeterTimer;
@@ -74,16 +81,13 @@ private:
 
 	const float INVALID_VALUE = -100.0f;
 
-	int updateFps = 10;
-	int updateInterval = 1000 / updateFps;
-
 	float thermometerLastRenderedValue = INVALID_VALUE;
-	float thermometerRenderChangeThreshold = 0.01f;
+	float thermometerRenderChangeThreshold = 0.0626f;
 	int thermometerIntervalMs = 1000;
 
 	float lightmeterLastRenderedValue = INVALID_VALUE;
-	float lightmeterRenderChangeThreshold = 5.0f;
-	int lightmeterIntervalMs = 1000;
+	float lightmeterRenderChangeThreshold = 10.0f;
+	int lightmeterIntervalMs = 14; // 13ms integration time
 	float maximumObservedLightLevel = 300.0f;
 
 	float hygrometerLastRenderedValue = INVALID_VALUE;
@@ -96,10 +100,26 @@ private:
 
 	float soundmeterLastRenderedValue = INVALID_VALUE;
 	float soundmeterRenderChangeThreshold = 5.0f;
-	int soundmeterIntervalMs = 1000;
+	int soundmeterIntervalMs = 100;
+	volatile float soundLevel = 0;
 
 	float forceUpdateInterval = 60000;
 
+	// clap detection config
+	const float SOUNDMETER_LOUD_THRESHOLD = 25.0f;
+	const float SOUNDMETER_SILENT_THRESHOLD = 20.0f;
+	static const int SOUNDMETER_PATTERN_LENGTH = 32;
+	static const int SOUNDMETER_SILENCE_DECISION_THRESHOLD = 2500;
+	static const int SOUNDMETER_CLAP_LOUD_THRESHOLD = 150;
+	static const int SOUNDMETER_CLAP_SILENT_THRESHOLD = 500;
+
+	// clap detection runtime
+	Timer loudTimer;
+	Timer silentTimer;
+	bool wasLoud = false;
+	bool isSoundPatternActive = false;
+	int silentLoudPattern[SOUNDMETER_PATTERN_LENGTH];
+	int silentLoudPatternCount = 0;
 };
 
 #endif

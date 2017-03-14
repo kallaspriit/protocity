@@ -65,6 +65,8 @@ bool WeatherStationCapability::enable() {
     // create lcd controller
     restartLcd();
 
+	isEnabled = true;
+
     // create sensors
     thermometer = new TMP102(sdaPin, sclPin, 0x90);
     lightmeter = new TSL2561(sdaPin, sclPin, TSL2561_ADDR_FLOAT);
@@ -73,8 +75,10 @@ bool WeatherStationCapability::enable() {
     soundmeter = new AnalogIn(portController->getPinName());
 
 	// configure lightmeter
-	lightmeter->setGain(TSL2561_GAIN_0X);
-	lightmeter->setTiming(TSL2561_INTEGRATIONTIME_402MS);
+	//lightmeter->setGain(TSL2561_GAIN_0X);
+	//lightmeter->setTiming(TSL2561_INTEGRATIONTIME_402MS);
+	lightmeter->setGain(TSL2561_GAIN_16X);
+	lightmeter->setTiming(TSL2561_INTEGRATIONTIME_13MS);
 
     // configure barometer
     barometer->Oversample_Ratio(OVERSAMPLE_RATIO_32);
@@ -87,10 +91,12 @@ bool WeatherStationCapability::enable() {
     barometerTimer.start();
     soundmeterTimer.start();
 
+	// clap detection
+	silentTimer.start();
+	resetSilentLoudPattern();
 
-	isEnabled = true;
-
-	// start update thread
+	// start threads
+	soundThread.start(callback(this, &WeatherStationCapability::runSoundThread));
 	updateThread.start(callback(this, &WeatherStationCapability::runUpdateThread));
 
 	return true;
@@ -102,6 +108,8 @@ void WeatherStationCapability::disable() {
 	}
 
 	log.info("disabling weather station");
+
+	isEnabled = false;
 
 	delete lcd;
 	lcd = NULL;
@@ -126,8 +134,6 @@ void WeatherStationCapability::disable() {
     hygrometerTimer.stop();
     barometerTimer.stop();
     soundmeterTimer.stop();
-
-	isEnabled = false;
 }
 
 void WeatherStationCapability::update(int deltaUs) {
@@ -145,11 +151,19 @@ void WeatherStationCapability::runUpdateThread() {
 		}
 
 		updateReadings();
-
-		Thread::wait(updateInterval);
 	}
 
 	log.debug("update thread finished");
+}
+
+void WeatherStationCapability::runSoundThread() {
+	log.debug("starting sound thread");
+
+	while (isEnabled) {
+		updateClapDetection();
+	}
+
+	log.debug("sound thread finished");
 }
 
 void WeatherStationCapability::updateReadings() {
@@ -172,6 +186,89 @@ void WeatherStationCapability::updateReadings() {
     if (updateSoundmeterReading()) {
         sendMeasurement("soundmeter", soundmeterLastRenderedValue);
     }
+}
+
+void WeatherStationCapability::updateClapDetection() {
+	if (!isEnabled || soundmeter == NULL) {
+		return;
+	}
+
+	soundLevel = soundmeter->read() * 100.0f;
+
+	if (soundLevel >= SOUNDMETER_LOUD_THRESHOLD && !wasLoud) {
+		int silentDuration = silentTimer.read_ms();
+
+		silentTimer.reset();
+		silentTimer.stop();
+		loudTimer.start();
+
+		wasLoud = true;
+		isSoundPatternActive = true;
+
+		if (silentLoudPatternCount < SOUNDMETER_PATTERN_LENGTH) {
+			silentLoudPattern[silentLoudPatternCount++] = silentDuration;
+		}
+
+		log.info("got loud sound after %d ms of silence (%f dB)", silentDuration, soundLevel);
+	} else if (soundLevel < SOUNDMETER_SILENT_THRESHOLD) {
+		if (wasLoud) {
+			int loudDuration = loudTimer.read_ms();
+
+			loudTimer.reset();
+			loudTimer.stop();
+			silentTimer.start();
+
+			wasLoud = false;
+
+			if (silentLoudPatternCount < SOUNDMETER_PATTERN_LENGTH) {
+				silentLoudPattern[silentLoudPatternCount++] = loudDuration;
+			}
+
+			log.info("got silence after %d ms of loudness (%f dB)", loudDuration, soundLevel);
+		} else if (isSoundPatternActive) {
+			int silentDuration = silentTimer.read_ms();
+
+			if (silentDuration >= SOUNDMETER_SILENCE_DECISION_THRESHOLD) {
+				log.debug("make pattern decision after %d ms with %d values (%f dB)", silentDuration, silentLoudPatternCount, soundLevel);
+
+				// expecting even number of datapoints
+				if (silentLoudPatternCount % 2 == 0) {
+					bool wereAllClaps = true;
+					int clapCount = 0;
+
+					// detect claps
+					for (int i = 0; i < silentLoudPatternCount; i += 2) {
+						int silenceDuration = silentLoudPattern[i];
+						int loudDuration = silentLoudPattern[i + 1];
+						bool isClap = loudDuration <= SOUNDMETER_CLAP_LOUD_THRESHOLD && (i == 0 || silenceDuration <= SOUNDMETER_CLAP_SILENT_THRESHOLD);
+
+						if (isClap) {
+							clapCount++;
+						} else {
+							wereAllClaps = false;
+						}
+
+						log.debug("  silence for %dms followed by loud sound for %d ms, %s", silenceDuration, loudDuration, isClap ? "detected as a clap" : "not a clap");
+					}
+
+					if (wereAllClaps && clapCount > 0) {
+						log.info("detected claps: %d", clapCount);
+					} else {
+						log.debug("no continuous claps detected");
+					}
+				} else {
+					log.warn("got loud pattern with uneven number of datapoints, this should not happen, ignoring it");
+
+					for (int i = 0; i < silentLoudPatternCount; i++) {
+						log.warn("  %s for %dms", i % 2 == 0 ? "silence" : "loud", silentLoudPattern[i]);
+					}
+				}
+
+				isSoundPatternActive = false;
+				resetSilentLoudPattern();
+			}
+		}
+	}
 }
 
 bool WeatherStationCapability::updateThermometerReading() {
@@ -292,28 +389,40 @@ bool WeatherStationCapability::updateBarometerReading() {
 }
 
 bool WeatherStationCapability::updateSoundmeterReading() {
-    int timeSinceLastReading = soundmeterTimer.read_ms();
+	int timeSinceLastReading = soundmeterTimer.read_ms();
 
-    if (soundmeterLastRenderedValue > 0 && timeSinceLastReading < soundmeterIntervalMs) {
+	if (soundmeterLastRenderedValue > 0 && timeSinceLastReading < soundmeterIntervalMs) {
         return false;
     }
 
-    float current = soundmeter->read() * 100.0f;
-    float diff = fabs(current - soundmeterLastRenderedValue);
+	// use last sound level from the clap detection thread
+	float diff = fabs(soundLevel - soundmeterLastRenderedValue);
 	bool shouldRender = diff >= soundmeterRenderChangeThreshold || timeSinceLastReading >= forceUpdateInterval;
 
-	log.trace("read soundmeter reading: %f (last: %f, diff: %f, render: %s)", current, soundmeterLastRenderedValue, diff, shouldRender ? "yes" : "no");
+	log.trace("read soundmeter reading: %f (last: %f, diff: %f, render: %s)", soundLevel, soundmeterLastRenderedValue, diff, shouldRender ? "yes" : "no");
 
     if (!shouldRender) {
         return false;
     }
 
-    renderSoundmeter(current);
+    renderSoundmeter(soundLevel);
 
-    soundmeterLastRenderedValue = current;
+    soundmeterLastRenderedValue = soundLevel;
     soundmeterTimer.reset();
 
     return true;
+}
+
+void WeatherStationCapability::resetSilentLoudPattern() {
+	isSoundPatternActive = false;
+	wasLoud = false;
+	silentLoudPatternCount = 0;
+	silentTimer.reset();
+	silentTimer.start();
+
+	for (int i = 0; i < SOUNDMETER_PATTERN_LENGTH; i++) {
+		silentLoudPattern[i] = 0;
+	}
 }
 
 void WeatherStationCapability::renderBackground() {
