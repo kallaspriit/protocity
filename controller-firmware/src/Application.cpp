@@ -264,8 +264,6 @@ void Application::onSocketClientDisconnected(TCPSocketConnection* client) {
 void Application::onSocketCommandReceived(const char *command, int length) {
 	commandManager.handleCommand(CommandSource::SOCKET, command, length);
 
-	//consumeQueuedCommands();
-
 	debug.setLedMode(LED_COMMAND_RECEIVED_INDEX, Debug::LedMode::BLINK_ONCE);
 }
 

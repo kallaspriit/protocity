@@ -14,9 +14,7 @@ TLC5940Capability::TLC5940Capability(Serial *serial, PortController *portControl
 {
 	values = new unsigned short[chainLength * CHANNEL_COUNT];
 
-	for (int i = 0; i < chainLength * CHANNEL_COUNT; i++) {
-		values[i] = 0x0000;
-	}
+	reset();
 }
 
 std::string TLC5940Capability::getName() {
@@ -28,7 +26,16 @@ void TLC5940Capability::update(int deltaUs) {
 		return;
 	}
 
-	// nothing to do periodically
+	timeSinceLastRefreshUs += deltaUs;
+
+	// periodically refresh the output values
+	if (timeSinceLastRefreshUs >= REFRESH_INTERVAL_US) {
+		// log.trace("refreshing output values");
+
+		sendData();
+
+		timeSinceLastRefreshUs = 0;
+	}
 }
 
 CommandManager::Command::Response TLC5940Capability::handleCommand(CommandManager::Command *command) {
@@ -134,6 +141,8 @@ CommandManager::Command::Response TLC5940Capability::handleValuesCommand(Command
 }
 
 CommandManager::Command::Response TLC5940Capability::handleTestCommand(CommandManager::Command *command) {
+	bool wasEnabled = isEnabled;
+
 	if (!isEnabled) {
 		log.info("test requested but enable not called, enabling led driver");
 
@@ -153,6 +162,10 @@ CommandManager::Command::Response TLC5940Capability::handleTestCommand(CommandMa
 		}
 
 		Thread::wait(10);
+	}
+
+	if (!wasEnabled) {
+		disable();
 	}
 
 	return command->createSuccessResponse();
@@ -186,6 +199,8 @@ void TLC5940Capability::disable() {
 
 	log.info("disabling TLC5940 led driver");
 
+	reset();
+
 	delete tlc5940;
 	tlc5940 = NULL;
 
@@ -211,7 +226,27 @@ bool TLC5940Capability::setChannelValue(int channel, float value) {
 
 	values[channel] = rawValue;
 
-	tlc5940->setNewGSData(values);
+	sendData();
 
 	return true;
+}
+
+void TLC5940Capability::reset() {
+	for (int i = 0; i < chainLength * CHANNEL_COUNT; i++) {
+		values[i] = 0;
+	}
+
+	if (!isEnabled) {
+		return;
+	}
+
+	sendData();
+}
+
+void TLC5940Capability::sendData() {
+	if (!isEnabled) {
+		return;
+	}
+
+	tlc5940->setNewGSData(values);
 }

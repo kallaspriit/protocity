@@ -63,8 +63,6 @@ void SocketServer::runListenThread() {
 			(*it)->onSocketClientConnected(connectedClient);
 		}
 
-        char buffer[256];
-
         while (connectedClient != NULL) {
 			// check whether the connection is still valid
 			if (!connectedClient->is_connected()) {
@@ -76,7 +74,7 @@ void SocketServer::runListenThread() {
 			}
 
 			// attempt to receive some data
-            int receivedBytes = connectedClient->receive(buffer, sizeof(buffer));
+            int receivedBytes = connectedClient->receive(receiveBuffer, RECEIVE_BUFFER_SIZE);
 
 			// just try again if nothing received
             if (receivedBytes <= 0) {
@@ -84,7 +82,7 @@ void SocketServer::runListenThread() {
 			}
 
 			// extract commands from the received data
-			handleReceivedData(buffer, receivedBytes);
+			handleReceivedData(receiveBuffer, receivedBytes);
         }
     }
 }
