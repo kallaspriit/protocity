@@ -39,6 +39,7 @@ private:
 
 	// readings
 	void runUpdateThread();
+	void clearRenderCache();
 	void restartLcd();
 	void updateReadings();
 	bool updateThermometerReading();
@@ -51,6 +52,9 @@ private:
 	void runSoundThread();
 	void updateClapDetection();
 	void resetSilentLoudPattern();
+	void scheduleRenderClapCount(int clapCount);
+	void renderClapCount(int clapCount);
+	void sendClapEvent(int clapCount, float loudestClapLevel);
 
 	std::string leftPad(float value, int targetLength, int decimals = 1);
 	void drawProgressBar(int x, int y, int width, int height, int percentage, int backgroundColor, int barColor);
@@ -109,9 +113,9 @@ private:
 	const float SOUNDMETER_LOUD_THRESHOLD = 25.0f;
 	const float SOUNDMETER_SILENT_THRESHOLD = 20.0f;
 	static const int SOUNDMETER_PATTERN_LENGTH = 32;
-	static const int SOUNDMETER_SILENCE_DECISION_THRESHOLD = 2500;
 	static const int SOUNDMETER_CLAP_LOUD_THRESHOLD = 150;
 	static const int SOUNDMETER_CLAP_SILENT_THRESHOLD = 500;
+	static const int SHOW_CLAP_COUNT_DURATION = 3000;
 
 	// clap detection runtime
 	Timer loudTimer;
@@ -120,6 +124,9 @@ private:
 	bool isSoundPatternActive = false;
 	int silentLoudPattern[SOUNDMETER_PATTERN_LENGTH];
 	int silentLoudPatternCount = 0;
+	float loudestClapLevel = 0.0f;
+	volatile bool forceSoundLevelRender = false;
+	volatile int scheduledClapCount = 0;
 };
 
 #endif

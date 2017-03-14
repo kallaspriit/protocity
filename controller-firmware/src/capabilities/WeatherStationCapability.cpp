@@ -11,7 +11,18 @@ WeatherStationCapability::WeatherStationCapability(Serial *serial, PortControlle
     txPin(txPin),
     rxPin(rxPin),
     resetPin(resetPin)
-{}
+{
+	// perform initial screen reset, probably not a great idea
+	/*
+	DigitalOut rst(resetPin);
+
+	Thread::wait(5);
+	rst = 0;
+	Thread::wait(5);
+	rst = 1;
+	Thread::wait(3);
+	*/
+}
 
 std::string WeatherStationCapability::getName() {
 	return "weather-station";
@@ -97,7 +108,9 @@ bool WeatherStationCapability::enable() {
 
 	// start threads
 	soundThread.start(callback(this, &WeatherStationCapability::runSoundThread));
+	Thread::wait(100);
 	updateThread.start(callback(this, &WeatherStationCapability::runUpdateThread));
+	Thread::wait(100);
 
 	return true;
 }
@@ -148,6 +161,18 @@ void WeatherStationCapability::runUpdateThread() {
 			log.warn("seems that the LCD has died");
 
 			restartLcd();
+		}
+
+		// no updates while recording sound pattern
+		/*if (isSoundPatternActive) {
+			return;
+		}*/
+
+		// render clap count if scheduled, blocks the thread for some time
+		if (scheduledClapCount > 0) {
+			renderClapCount(scheduledClapCount);
+
+			scheduledClapCount = 0;
 		}
 
 		updateReadings();
@@ -202,8 +227,11 @@ void WeatherStationCapability::updateClapDetection() {
 		silentTimer.stop();
 		loudTimer.start();
 
+		// reset loudest clap level when first loud sound is detected
 		wasLoud = true;
 		isSoundPatternActive = true;
+		loudestClapLevel = soundLevel;
+		forceSoundLevelRender = true;
 
 		if (silentLoudPatternCount < SOUNDMETER_PATTERN_LENGTH) {
 			silentLoudPattern[silentLoudPatternCount++] = silentDuration;
@@ -228,7 +256,7 @@ void WeatherStationCapability::updateClapDetection() {
 		} else if (isSoundPatternActive) {
 			int silentDuration = silentTimer.read_ms();
 
-			if (silentDuration >= SOUNDMETER_SILENCE_DECISION_THRESHOLD) {
+			if (silentDuration >= SOUNDMETER_CLAP_SILENT_THRESHOLD) {
 				log.debug("make pattern decision after %d ms with %d values (%f dB)", silentDuration, silentLoudPatternCount, soundLevel);
 
 				// expecting even number of datapoints
@@ -253,6 +281,11 @@ void WeatherStationCapability::updateClapDetection() {
 
 					if (wereAllClaps && clapCount > 0) {
 						log.info("detected claps: %d", clapCount);
+
+						if (clapCount >= 2) {
+							scheduleRenderClapCount(clapCount);
+							sendClapEvent(clapCount, loudestClapLevel);
+						}
 					} else {
 						log.debug("no continuous claps detected");
 					}
@@ -391,7 +424,7 @@ bool WeatherStationCapability::updateBarometerReading() {
 bool WeatherStationCapability::updateSoundmeterReading() {
 	int timeSinceLastReading = soundmeterTimer.read_ms();
 
-	if (soundmeterLastRenderedValue > 0 && timeSinceLastReading < soundmeterIntervalMs) {
+	if (soundmeterLastRenderedValue > 0 && timeSinceLastReading < soundmeterIntervalMs && !forceSoundLevelRender) {
         return false;
     }
 
@@ -401,16 +434,57 @@ bool WeatherStationCapability::updateSoundmeterReading() {
 
 	log.trace("read soundmeter reading: %f (last: %f, diff: %f, render: %s)", soundLevel, soundmeterLastRenderedValue, diff, shouldRender ? "yes" : "no");
 
-    if (!shouldRender) {
+    if (!shouldRender && !forceSoundLevelRender) {
         return false;
     }
+
+	if (forceSoundLevelRender) {
+		log.debug("performing forced soundmeter render of value %f", soundLevel);
+	}
 
     renderSoundmeter(soundLevel);
 
     soundmeterLastRenderedValue = soundLevel;
     soundmeterTimer.reset();
+	forceSoundLevelRender = false;
 
     return true;
+}
+
+
+void WeatherStationCapability::scheduleRenderClapCount(int clapCount) {
+	log.debug("scheduling showing %d claps on the screen", clapCount);
+
+	scheduledClapCount = clapCount;
+}
+
+void WeatherStationCapability::renderClapCount(int clapCount) {
+	log.debug("rendering %d claps on the screen", clapCount);
+
+	renderBackground();
+
+	lcd->locate(1, 8);
+    lcd->printf("Detected %d claps", clapCount);
+
+	lcd->locate(3, 10);
+	lcd->printf("Loudest %sdB", leftPad(loudestClapLevel, 2, 0).c_str());
+
+	Thread::wait(3000);
+
+	clearRenderCache();
+	renderBackground();
+}
+
+void WeatherStationCapability::sendClapEvent(int clapCount, float loudestClapLevel) {
+	snprintf(
+        sendBuffer,
+        SEND_BUFFER_SIZE,
+        "clap:%d:%f",
+        clapCount,
+        loudestClapLevel
+    );
+
+	portController->emitCapabilityUpdate(getName(), std::string(sendBuffer));
 }
 
 void WeatherStationCapability::resetSilentLoudPattern() {
@@ -431,8 +505,12 @@ void WeatherStationCapability::renderBackground() {
     // flip the display
     lcd->display_control(LANDSCAPE_R);
 
+	// clear the screen
+	lcd->cls();
+
     // draw white rectangle at the top
     lcd->filled_rectangle(0, 0, SIZE_X, 7 * 3, WHITE);
+
 
     // use black text on white background
     lcd->color(BLACK);
@@ -534,6 +612,16 @@ void WeatherStationCapability::drawProgressBar(int x, int y, int width, int heig
     );
 }
 
+void WeatherStationCapability::clearRenderCache() {
+	log.debug("clearing rendered value caches");
+
+	thermometerLastRenderedValue = INVALID_VALUE;
+	lightmeterLastRenderedValue = INVALID_VALUE;
+	hygrometerLastRenderedValue = INVALID_VALUE;
+	barometerLastRenderedValue = INVALID_VALUE;
+	soundmeterLastRenderedValue = INVALID_VALUE;
+}
+
 void WeatherStationCapability::restartLcd() {
 	if (lcd != NULL) {
 		log.debug("restarting lcd, destroying existing lcd controller");
@@ -545,11 +633,7 @@ void WeatherStationCapability::restartLcd() {
 	}
 
 	// make all the values render again
-	thermometerLastRenderedValue = INVALID_VALUE;
-	lightmeterLastRenderedValue = INVALID_VALUE;
-	hygrometerLastRenderedValue = INVALID_VALUE;
-	barometerLastRenderedValue = INVALID_VALUE;
-	soundmeterLastRenderedValue = INVALID_VALUE;
+	clearRenderCache();
 
 	lcd = new uLCD_4DGL(txPin, rxPin, resetPin);
     lcd->baudrate(BAUD_3000000);
