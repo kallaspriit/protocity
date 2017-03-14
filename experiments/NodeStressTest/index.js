@@ -103,6 +103,10 @@ socket.on('connect', () => {
     socket.isOpen = true;
 
     sendPing();
+
+    // setInterval(() => {
+    //     sendPing();
+    // }, 50);
 });
 
 socket.on('data', (rawMessage) => {

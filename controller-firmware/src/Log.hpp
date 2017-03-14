@@ -55,6 +55,9 @@ public:
 
     			case Log::LogLevel::ERROR:
     				return "ERROR";
+
+                case Log::LogLevel::NONE:
+    				return "NONE";
     		}
 
     		return "UNKNOWN";
@@ -71,6 +74,8 @@ public:
                 return Log::LogLevel::WARN;
             } else if (strcmp(name, "ERROR") == 0) {
                 return Log::LogLevel::ERROR;
+            } else if (strcmp(name, "NONE") == 0) {
+                return Log::LogLevel::NONE;
             } else {
                 // should not happen
                 return Log::LogLevel::TRACE;

@@ -13,17 +13,17 @@ public:
 		class Response {
 
 		public:
-			Response(int requestId);
+			static const int MAX_RESPONSE_ARGUMENT_COUNT = 8;
 
-			static const int MAX_ARGUMENT_COUNT = 8;
-			static const int RESPONSE_BUFFER_SIZE = 1024;
-
-			int requestId;
+			int requestId = 0;
 			int argumentCount = 0;
-			std::string arguments[MAX_ARGUMENT_COUNT];
+			std::string arguments[MAX_RESPONSE_ARGUMENT_COUNT];
 			std::string errorMessage = "";
 
-			void addArgument(std::string argument);
+			void reset(int requestId);
+			void addString(std::string argument);
+			void addInt(int argument);
+			void addFloat(float argument);
 			std::string getResponseText();
 
 		private:
@@ -31,17 +31,16 @@ public:
 
 			std::string getSuccessResponseText();
 			std::string getErrorResponseText();
+		}; // class Response
 
-			char *responseBuffer;
-		};
-
-		static const int MAX_ARGUMENT_COUNT = 8;
+		static const int MAX_COMMAND_ARGUMENT_COUNT = 8;
 
 		int sourceId = 0;
 		int id = 0;
 		int argumentCount = 0;
 		std::string name = "";
-		std::string arguments[MAX_ARGUMENT_COUNT];
+		std::string arguments[MAX_COMMAND_ARGUMENT_COUNT];
+		Response response;
 
 		void reset();
 
@@ -63,7 +62,7 @@ public:
 		Log log = Log::getLog("CommandManager::Command");
 
 		void validateArgumentIndex(int argumentIndex);
-	};
+	}; // class Command
 
 	CommandManager();
 

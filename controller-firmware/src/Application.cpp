@@ -156,46 +156,6 @@ void Application::consumeQueuedCommands() {
 	}
 }
 
-void Application::sendQueuedMessages() {
-	while (messageQueue.size() > 0) {
-		std::string message = messageQueue.front();
-		messageQueue.pop();
-
-		// last character is a linefeed \n, remove it
-		log.debug("> %s", message.substr(0, message.length() - 1).c_str());
-
-		if (socketServer.isClientConnected()) {
-			socketServer.sendMessage(message);
-		}
-	}
-}
-
-void Application::updateControllers(int deltaUs) {
-	for (DigitalPortNumberToControllerMap::iterator it = portNumberToControllerMap.begin(); it != portNumberToControllerMap.end(); it++) {
-		it->second->update(deltaUs);
-	}
-}
-
-void Application::updateHeartbeat(int deltaUs) {
-	timeSinceLastHeartbeatUs += deltaUs;
-
-	if (timeSinceLastHeartbeatUs > HEATBEAT_INTERVAL_US) {
-		sendHeartbeat();
-
-		timeSinceLastHeartbeatUs = 0;
-	}
-}
-
-void Application::sendHeartbeat() {
-	if (!socketServer.isClientConnected()) {
-		return;
-	}
-
-	int length = snprintf(sendBuffer, SEND_BUFFER_SIZE, "0:HEARTBEAT:%d\n", heartbeatCounter++);
-
-	socketServer.sendMessage(sendBuffer, length);
-}
-
 void Application::consumeCommand(CommandManager::Command *command) {
 	CommandHandlerMap::iterator commandIt = commandHandlerMap.find(command->name);
 
@@ -238,6 +198,46 @@ void Application::consumeCommand(CommandManager::Command *command) {
 		default:
 			log.error("unexpected command source %d", command->sourceId);
 	}
+}
+
+void Application::sendQueuedMessages() {
+	while (messageQueue.size() > 0) {
+		std::string message = messageQueue.front();
+		messageQueue.pop();
+
+		// last character is a linefeed \n, remove it
+		log.debug("> %s", message.substr(0, message.length() - 1).c_str());
+
+		if (socketServer.isClientConnected()) {
+			socketServer.sendMessage(message);
+		}
+	}
+}
+
+void Application::updateControllers(int deltaUs) {
+	for (DigitalPortNumberToControllerMap::iterator it = portNumberToControllerMap.begin(); it != portNumberToControllerMap.end(); it++) {
+		it->second->update(deltaUs);
+	}
+}
+
+void Application::updateHeartbeat(int deltaUs) {
+	timeSinceLastHeartbeatUs += deltaUs;
+
+	if (timeSinceLastHeartbeatUs > HEATBEAT_INTERVAL_US) {
+		sendHeartbeat();
+
+		timeSinceLastHeartbeatUs = 0;
+	}
+}
+
+void Application::sendHeartbeat() {
+	if (!socketServer.isClientConnected()) {
+		return;
+	}
+
+	int length = snprintf(sendBuffer, SEND_BUFFER_SIZE, "0:HEARTBEAT:%d\n", heartbeatCounter++);
+
+	socketServer.sendMessage(sendBuffer, length);
 }
 
 bool Application::validateCommandArgumentCount(CommandManager::Command *command, int expectedArgumentCount) {

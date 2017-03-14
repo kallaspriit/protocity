@@ -3,11 +3,12 @@
 #include "CommandManager.hpp"
 
 #include <string>
+#include <sstream>
 
 void CommandManager::Command::reset() {
 	name = "";
 
-	for (int i = 0; i < MAX_ARGUMENT_COUNT; i++) {
+	for (int i = 0; i < MAX_COMMAND_ARGUMENT_COUNT; i++) {
 		arguments[i] = "";
 	}
 
@@ -42,12 +43,6 @@ void CommandManager::Command::validateArgumentIndex(int argumentIndex) {
 	}
 }
 
-CommandManager::Command::Response::Response(int requestId) {
-	this->requestId = requestId;
-
-	responseBuffer = new char[RESPONSE_BUFFER_SIZE];
-}
-
 std::string CommandManager::Command::Response::getResponseText() {
 	if (errorMessage.length() == 0) {
 		return getSuccessResponseText();
@@ -57,26 +52,32 @@ std::string CommandManager::Command::Response::getResponseText() {
 }
 
 std::string CommandManager::Command::Response::getSuccessResponseText() {
-	snprintf(responseBuffer, RESPONSE_BUFFER_SIZE, "%d:OK", requestId);
+	std::ostringstream ss;
 
-	std::string responseText = std::string(responseBuffer);
+	ss << requestId << ":OK";
 
 	for (int i = 0; i < argumentCount; i++) {
-		responseText += ":" + arguments[i];
+		ss << ":" << arguments[i];
 	}
 
-	return responseText;
+	return ss.str();
 }
 
 std::string CommandManager::Command::Response::getErrorResponseText() {
-	snprintf(responseBuffer, RESPONSE_BUFFER_SIZE, "%d:ERROR:%s", requestId, errorMessage.c_str());
+	std::ostringstream ss;
 
-	return std::string(responseBuffer);
+	ss << requestId << ":ERROR:" << errorMessage;
 }
 
-void CommandManager::Command::Response::addArgument(std::string argument) {
-	if (argumentCount == MAX_ARGUMENT_COUNT) {
-		log.warn("response can have a maximum of %d arguments\n", MAX_ARGUMENT_COUNT);
+void CommandManager::Command::Response::reset(int requestId) {
+	this->requestId = requestId;
+	this->argumentCount = 0;
+	this->errorMessage = "";
+}
+
+void CommandManager::Command::Response::addString(std::string argument) {
+	if (argumentCount == MAX_RESPONSE_ARGUMENT_COUNT) {
+		log.warn("response can have a maximum of %d arguments\n", MAX_RESPONSE_ARGUMENT_COUNT);
 
 		return;
 	}
@@ -84,58 +85,62 @@ void CommandManager::Command::Response::addArgument(std::string argument) {
 	arguments[argumentCount++] = argument;
 }
 
-CommandManager::Command::Response CommandManager::Command::createSuccessResponse(/*const char* fmt...*/) {
-	return CommandManager::Command::Response(id);
+void CommandManager::Command::Response::addInt(int argument) {
+	std::ostringstream ss;
+
+	ss << argument;
+
+	addString(ss.str());
+}
+
+void CommandManager::Command::Response::addFloat(float argument) {
+	std::ostringstream ss;
+
+	ss << argument;
+
+	addString(ss.str());
+}
+
+CommandManager::Command::Response CommandManager::Command::createSuccessResponse() {
+	response.reset(id);
+
+	return response;
 }
 
 CommandManager::Command::Response CommandManager::Command::createSuccessResponse(int value) {
-	CommandManager::Command::Response response(id);
-
-	char buf[32 * 1];
-	sprintf(buf, "%d", value);
-
-	response.addArgument(buf);
+	response.reset(id);
+	response.addInt(value);
 
 	return response;
 }
 
 CommandManager::Command::Response CommandManager::Command::createSuccessResponse(int value1, int value2) {
-	CommandManager::Command::Response response(id);
-
-	char buf[32 * 2];
-	sprintf(buf, "%d:%d", value1, value2);
-
-	response.addArgument(buf);
+	response.reset(id);
+	response.addInt(value1);
+	response.addInt(value2);
 
 	return response;
 }
 
 CommandManager::Command::Response CommandManager::Command::createSuccessResponse(int value1, int value2, int value3) {
-	CommandManager::Command::Response response(id);
-
-	char buf[32 * 3];
-	sprintf(buf, "%d:%d:%d", value1, value2, value3);
-
-	response.addArgument(buf);
+	response.reset(id);
+	response.addInt(value1);
+	response.addInt(value2);
+	response.addInt(value3);
 
 	return response;
 }
 
 CommandManager::Command::Response CommandManager::Command::createSuccessResponse(float value) {
-	CommandManager::Command::Response response(id);
-
-	char buf[32 * 1];
-	sprintf(buf, "%f", value);
-
-	response.addArgument(buf);
+	response.reset(id);
+	response.addFloat(value);
 
 	return response;
 }
 
 CommandManager::Command::Response CommandManager::Command::createSuccessResponse(std::string message) {
-	CommandManager::Command::Response response(id);
-
-	response.addArgument(message);
+	response.reset(id);
+	response.addString(message);
 
 	return response;
 }
@@ -145,8 +150,7 @@ CommandManager::Command::Response CommandManager::Command::createFailureResponse
 }
 
 CommandManager::Command::Response CommandManager::Command::createFailureResponse(std::string errorMessage) {
-	CommandManager::Command::Response response(id);
-
+	response.reset(id);
 	response.errorMessage = errorMessage;
 
 	return response;
@@ -189,8 +193,8 @@ void CommandManager::handleCommand(int sourceId, const char *commandText, int le
 				command->name = commandNameBuffer;
 				commandNameBuffer = "";
 			} else {
-				if (command->argumentCount == Command::MAX_ARGUMENT_COUNT) {
-					log.debug("command can have a maximum of %d arguments", Command::MAX_ARGUMENT_COUNT);
+				if (command->argumentCount == Command::MAX_COMMAND_ARGUMENT_COUNT) {
+					log.warn("command can have a maximum of %d arguments", Command::MAX_COMMAND_ARGUMENT_COUNT);
 
 					return;
 				}
@@ -232,8 +236,8 @@ void CommandManager::handleCommand(int sourceId, const char *commandText, int le
 
 	// add last argument
 	if (argumentBuffer.size() > 0) {
-		if (command->argumentCount == Command::MAX_ARGUMENT_COUNT) {
-			log.warn("command can have a maximum of %d arguments", Command::MAX_ARGUMENT_COUNT);
+		if (command->argumentCount == Command::MAX_COMMAND_ARGUMENT_COUNT) {
+			log.warn("command can have a maximum of %d arguments", Command::MAX_COMMAND_ARGUMENT_COUNT);
 
 			return;
 		}
