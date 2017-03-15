@@ -179,8 +179,6 @@ std::string NFC::getRecordPayload(NdefRecord &record) {
 
 	for (int j = payloadStartIndex; j < payloadLength; j++) {
 		payloadAsString += (char)payload[j];
-
-		log.info("READ char %c (%d) to %s (%d total)", payload[j], payload[j], payloadAsString.c_str(), payloadLength);
 	}
 
 	return payloadAsString;

@@ -26,15 +26,17 @@ interface TrainStopEventListener {
 @Slf4j
 public class TrainController extends AbstractController implements TrainStopEventListener, Runnable {
 
+	private static final String TAG_READER_CAPABILITY = "PN532";
+	private static final String COMMAND_ENABLE = "enable";
+	private static final String ACTION_ENTER = "enter";
+	private static final String ACTION_EXIT = "exit";
+	private static final String ENTITY_TRAIN = "TRAIN";
+	private static final String ENTITY_TICKET = "TICKET";
+
 	class TrainStop {
 		private final PortController portController;
 		private final String name;
 		private final List<TrainStopEventListener> eventListeners = new ArrayList<>();
-
-		private static final String TAG_READER_CAPABILITY = "PN532";
-		private static final String ENTITY_TRAIN = "TRAIN";
-		private static final String ACTION_ENTER = "enter";
-		private static final String ACTION_EXIT = "exit";
 
 		TrainStop(PortController portController, String name) {
 			this.portController = portController;
@@ -389,6 +391,8 @@ public class TrainController extends AbstractController implements TrainStopEven
 	private Thread thread;
 	private int currentOperationIndex = 0;
 
+	private PortController ticketController;
+
 	public TrainController(String id, Map<String, Commander> commanders, Config config, EventBroker eventBroker) {
 		super(id, commanders, config, eventBroker);
 	}
@@ -409,6 +413,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 		setupTrain();
 		setupStops();
+		setupTicketTerminal();
 	}
 
 	@Override
@@ -559,6 +564,72 @@ public class TrainController extends AbstractController implements TrainStopEven
 		for (int i = 0; i < stopCount; i++) {
 			setupStop(i);
 		}
+	}
+
+	private void setupTicketTerminal() {
+		String commanderName = config.getString("train.ticket.commander");
+		int port = config.getInt("train.ticket.port");
+
+		log.debug("configuring ticket terminal on commander {} port {}", commanderName, port);
+
+		Commander ticketCommander = getCommanderByName(commanderName);
+		ticketController = new PortController(port, ticketCommander);
+
+		ticketCommander.getMessageTransport().addEventListener(new MessageTransport.EventListener() {
+			@Override
+			public void onOpen(boolean isFirstConnect) {
+				log.debug("ticket commander transport was opened");
+
+				ticketController.sendPortCommand(TAG_READER_CAPABILITY, COMMAND_ENABLE);
+
+				if (isFirstConnect) {
+					ticketController.addEventListener(new PortController.PortEventListener() {
+						@Override
+						public void onPortCapabilityUpdate(int id, String capabilityName, List<String> arguments) {
+							if (!capabilityName.equals(TAG_READER_CAPABILITY)) {
+								return;
+							}
+
+							String action = arguments.get(0);
+							String entity = arguments.get(1);
+
+							log.trace("got ticket controller tag reader action {} for {}", action, entity);
+
+							switch (action) {
+								case ACTION_ENTER:
+									handleTicketEnter(entity);
+							}
+						}
+					});
+				}
+			}
+		});
+	}
+
+	private void handleTicketEnter(String entity) {
+		boolean isValidEntityProvided = false;
+
+		if (entity.length() == ENTITY_TICKET.length()) {
+			// tag reader messes up last character for some reason, workaround
+			String expectedEntity = ENTITY_TICKET.substring(0, ENTITY_TICKET.length() - 1);
+			String providedEntity = entity.substring(0, entity.length() - 1);
+
+			isValidEntityProvided = providedEntity.equals(expectedEntity);
+		}
+
+		if (!isValidEntityProvided) {
+			log.debug("tag reader enter triggered on {} but expected {}", entity, ENTITY_TICKET);
+
+			TextToSpeech.INSTANCE.speak("Hey, " + entity + " can not be used to buy a train ticket!");
+
+			return;
+		}
+
+		handleTrainTicketBought();
+	}
+
+	private void handleTrainTicketBought() {
+		log.debug("train ticket was bought");
 	}
 
 	private void setupStop(int stopNumber) {
