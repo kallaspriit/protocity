@@ -13,7 +13,7 @@ public:
 private:
 
     // provide version number
-    virtual String getVersion() { return "2.23.0"; };
+    virtual String getVersion() { return "2.26.0"; };
 
     // override main setup hooks
     virtual void setupBefore();
@@ -73,10 +73,11 @@ private:
     const int MAX_ANALOG_WRITE_VALUE = 1023;
 
     // obstacle detection config, apply some hysteresis
-    const float OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM = 15.0f;
+    const float OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM = 8.0f;
     const float OBSTACLE_CLEARED_DISTANCE_THRESHOLD_CM = OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM + 0.1f;
     const float OBSTACLE_DISTSNCE_CHANGED_THRESHOLD_CM = 0.5f;
-    const unsigned long OBSTACLE_DETECTED_THRESHOLD_DURATION = 50;
+    // const unsigned long OBSTACLE_DETECTED_THRESHOLD_DURATION = 50;
+    const unsigned long OBSTACLE_DETECTED_THRESHOLD_DURATION = 0;
 
     // how often to run the main loop
     const unsigned long LOOP_INTERVAL = 10;
@@ -85,6 +86,9 @@ private:
     const float BATTERY_VOLTAGE_DIVIDER_RESISTOR_1 = 8200.0f;       // between input and output
     const float BATTERY_VOLTAGE_DIVIDER_RESISTOR_2 = 15000.0f;      // between input and ground
     const float BATTERY_VOLTAGE_CALIBRATION_MULTIPLIER = 0.99f;     // multimeter-measured voltage / reported voltage
+
+    // battery voltage speed adjustment, power at full charge is 100%, power at 0% is the below %
+    const int LOW_BATTERY_OUTPUT = 120;
 
     // dependencies
     MCP320X adc;
