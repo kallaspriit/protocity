@@ -146,7 +146,7 @@ bool NFC::performCheck() {
 
 		if (wasTagPresent) {
 			log.debug("tag %s exited", activeTagUid.c_str());
-			
+
 			for (NfcEventListenerList::iterator it = nfcEventListeners.begin(); it != nfcEventListeners.end(); ++it) {
 				(*it)->onTagExit(activeTagUid);
 			}
@@ -179,6 +179,8 @@ std::string NFC::getRecordPayload(NdefRecord &record) {
 
 	for (int j = payloadStartIndex; j < payloadLength; j++) {
 		payloadAsString += (char)payload[j];
+
+		log.info("READ char %c (%d) to %s (%d total)", payload[j], payload[j], payloadAsString.c_str(), payloadLength);
 	}
 
 	return payloadAsString;
