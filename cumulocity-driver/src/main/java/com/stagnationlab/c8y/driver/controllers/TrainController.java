@@ -299,12 +299,17 @@ public class TrainController extends AbstractController implements TrainStopEven
 		}
 
 		@Override
+		public String getName() {
+			return "DRIVE:" + targetStopName;
+		}
+
+		@Override
 		public void start() {
 			isStarted = true;
 
 			train.forward();
 
-			TextToSpeech.INSTANCE.speak("Next stop: " + targetStopName, true);
+			TextToSpeech.INSTANCE.speak("Next stop: " + targetStopName, false);
 
 			reportNextStationName(targetStopName);
 		}
@@ -339,13 +344,13 @@ public class TrainController extends AbstractController implements TrainStopEven
 		public void onTrainExit(String stopName) {
 		}
 
-		public String getName() {
-			return "DRIVE:" + targetStopName;
-		}
-
 		@Override
 		public boolean isComplete() {
 			return isStarted && hasEnteredStop && Util.since(stopTime) >= 1000;
+		}
+
+		String getTargetStopName() {
+			return targetStopName;
 		}
 	}
 
@@ -384,6 +389,31 @@ public class TrainController extends AbstractController implements TrainStopEven
 		}
 	}
 
+	class IdleTrainOperation extends TrainOperation {
+
+		IdleTrainOperation(Train train) {
+			super(train);
+		}
+
+		@Override
+		public void start() {
+		}
+
+		@Override
+		public void reset() {
+		}
+
+		@Override
+		public String getName() {
+			return "IDLE";
+		}
+
+		@Override
+		public boolean isComplete() {
+			return false;
+		}
+	}
+
 	private final com.stagnationlab.c8y.driver.fragments.controllers.Train state = new com.stagnationlab.c8y.driver.fragments.controllers.Train();
 	private final List<TrainOperation> operations = new ArrayList<>();
 	private final Map<Integer, TrainStop> stopMap = new HashMap<>();
@@ -412,6 +442,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 		log.info("setting up train controller");
 
 		setupTrain();
+		setupStartOperations();
 		setupStops();
 		setupTicketTerminal();
 	}
@@ -474,7 +505,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 				log.debug("stopped train controller");
 
 				if (!isPlanned) {
-					TextToSpeech.INSTANCE.speak("Wireless connection to the train was lost, attempting to reestablish");
+					TextToSpeech.INSTANCE.speak("Wireless connection to the train was lost, attempting to reestablish", false);
 				}
 			}
 		});
@@ -530,23 +561,35 @@ public class TrainController extends AbstractController implements TrainStopEven
 		TrainOperation currentOperation = getCurrentOperation();
 
 		if (currentOperation.isComplete()) {
-			log.debug("completed operation: {}", currentOperation.getName());
-
-			currentOperation.reset();
-
-			currentOperationIndex = (currentOperationIndex + 1) % operations.size();
-
-			TrainOperation nextOperation = getCurrentOperation();
-
-			log.debug("starting next operation: {}", nextOperation.getName());
-
-			nextOperation.start();
-			reportCurrentOperationIndex();
+			startNextOperation();
 		}
+	}
+
+	private void startNextOperation() {
+		TrainOperation currentOperation = getCurrentOperation();
+
+		log.debug("completed operation: {}", currentOperation.getName());
+
+		currentOperation.reset();
+
+		currentOperationIndex = (currentOperationIndex + 1) % operations.size();
+
+		TrainOperation nextOperation = getCurrentOperation();
+
+		log.debug("starting next operation: {}", nextOperation.getName());
+
+		nextOperation.start();
+		reportCurrentOperationIndex();
 	}
 
 	private TrainOperation getCurrentOperation() {
 		return operations.get(currentOperationIndex);
+	}
+
+	private TrainOperation getPreviousOperation() {
+		int previousOperationIndex = (currentOperationIndex - 1) % operations.size();
+
+		return operations.get(previousOperationIndex);
 	}
 
 	private void setupTrain() {
@@ -564,6 +607,30 @@ public class TrainController extends AbstractController implements TrainStopEven
 		for (int i = 0; i < stopCount; i++) {
 			setupStop(i);
 		}
+	}
+
+	private void setupStop(int stopNumber) {
+		String commanderName = config.getString("train.stop." + stopNumber + ".commander");
+		int port = config.getInt("train.stop." + stopNumber + ".port");
+		int waitTime = config.getInt("train.stop." + stopNumber + ".waitTime");
+		String name = config.getString("train.stop." + stopNumber + ".name");
+
+		Commander commander = getCommanderByName(commanderName);
+		TrainStop trainStop = createStop(commander, port, name);
+
+		registerStop(stopNumber, trainStop);
+
+		createTrainStopOperations(train, trainStop, waitTime);
+	}
+
+	private void createTrainStopOperations(Train train, TrainStop trainStop, int waitTime) {
+		registerOperation(
+				new DriveToStopTrainOperation(train, trainStop.getName())
+		);
+
+		registerOperation(
+				new WaitTrainOperation(train, waitTime)
+		);
 	}
 
 	private void setupTicketTerminal() {
@@ -606,6 +673,14 @@ public class TrainController extends AbstractController implements TrainStopEven
 		});
 	}
 
+	private void setupStartOperations() {
+		// add the idle operation, operations for stops will be added after it
+
+		registerOperation(
+				new IdleTrainOperation(train)
+		);
+	}
+
 	private void handleTicketEnter(String entity) {
 		boolean isValidEntityProvided = false;
 
@@ -620,7 +695,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 		if (!isValidEntityProvided) {
 			log.debug("tag reader enter triggered on {} but expected {}", entity, ENTITY_TICKET);
 
-			TextToSpeech.INSTANCE.speak("Hey, " + entity + " can not be used to buy a train ticket!");
+			TextToSpeech.INSTANCE.speak("Hey, " + entity + " can not be used to buy a train ticket!", true);
 
 			return;
 		}
@@ -630,30 +705,39 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 	private void handleTrainTicketBought() {
 		log.debug("train ticket was bought");
-	}
 
-	private void setupStop(int stopNumber) {
-		String commanderName = config.getString("train.stop." + stopNumber + ".commander");
-		int port = config.getInt("train.stop." + stopNumber + ".port");
-		int waitTime = config.getInt("train.stop." + stopNumber + ".waitTime");
-		String name = config.getString("train.stop." + stopNumber + ".name");
+		TrainOperation currentOperation = getCurrentOperation();
 
-		Commander commander = getCommanderByName(commanderName);
-		TrainStop trainStop = createStop(commander, port, name);
+		// decide what to do based on current train operation
+		if (currentOperation instanceof IdleTrainOperation) {
+			log.debug("train is currently idle, starting new loop");
 
-		registerStop(stopNumber, trainStop);
+			TextToSpeech.INSTANCE.speak("Train ticket has been bought", true);
 
-		createTrainStopOperations(train, trainStop, waitTime);
-	}
+			startNextOperation();
+		} else if (currentOperation instanceof DriveToStopTrainOperation) {
+			String targetStopName =((DriveToStopTrainOperation) currentOperation).getTargetStopName();
 
-	private void createTrainStopOperations(Train train, TrainStop trainStop, int waitTime) {
-		registerOperation(
-				new DriveToStopTrainOperation(train, trainStop.getName())
-		);
+			log.debug("train is currently en route to {}, wait for it to arrive at central station and become idle", targetStopName);
 
-		registerOperation(
-				new WaitTrainOperation(train, waitTime)
-		);
+			TextToSpeech.INSTANCE.speak("Train is currently en-route to " + targetStopName + ", please wait for it to return", true);
+		} else if (currentOperation instanceof WaitTrainOperation) {
+			String currentStopName = "";
+
+			TrainOperation previousOperation = getPreviousOperation();
+
+			if (previousOperation instanceof DriveToStopTrainOperation) {
+				currentStopName = ((DriveToStopTrainOperation) previousOperation).getTargetStopName();
+			}
+
+			if (currentStopName.length() > 0) {
+				log.debug("train is currently waiting in {}, wait for it to arrive at central station and become idle", currentStopName);
+
+				TextToSpeech.INSTANCE.speak("Train is currently waiting in " + currentStopName + ", please wait for it to return", true);
+			} else {
+				TextToSpeech.INSTANCE.speak("Please wait for the train to return to Central Station", true);
+			}
+		}
 	}
 
 	private TrainStop createStop(Commander commander, int port, String name) {

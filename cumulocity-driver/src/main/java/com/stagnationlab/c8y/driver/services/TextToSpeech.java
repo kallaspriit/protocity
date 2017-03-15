@@ -120,11 +120,6 @@ public enum TextToSpeech {
 		}
 	}
 
-	@SuppressWarnings("unused")
-	public void speak(String message) {
-		speak(message, false);
-	}
-
 	@SuppressWarnings("WeakerAccess")
 	public boolean isPlaying() {
 		return playMessageTask != null;

@@ -152,20 +152,20 @@ public class WeatherController extends AbstractController {
 
 		switch (clapCount) {
 			case 2:
-				TextToSpeech.INSTANCE.speak("The current temperature is " + df.format(state.getTemperature()) + " degrees celsius");
+				TextToSpeech.INSTANCE.speak("The current temperature is " + df.format(state.getTemperature()) + " degrees celsius", true);
 				break;
 
 			case 3:
-				TextToSpeech.INSTANCE.speak("The current light level is " + df.format(state.getLightLevel()) + " lux");
+				TextToSpeech.INSTANCE.speak("The current light level is " + df.format(state.getLightLevel()) + " lux", true);
 				break;
 
 			case 4:
-				TextToSpeech.INSTANCE.speak("The current humidity is " + df.format(state.getHumidity()) + " percent");
+				TextToSpeech.INSTANCE.speak("The current humidity is " + df.format(state.getHumidity()) + " percent", true);
 				break;
 		}
 
 		if (clapCount >= 5) {
-			TextToSpeech.INSTANCE.speak("Thank you, thank you very much!");
+			TextToSpeech.INSTANCE.speak("Thank you, thank you very much!", true);
 		}
 	}
 

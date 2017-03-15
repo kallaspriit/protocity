@@ -68,6 +68,8 @@ public class Gateway extends AbstractDevice {
 		setupOperations();
 		setupCommanders();
 		setupControllers();
+
+		log.info("gateway synchronous setup complete");
 	}
 
 	@Override
@@ -274,7 +276,7 @@ public class Gateway extends AbstractDevice {
 				} else {
 					log.warn("connecting to controller '{}' at {}:{} failed ({} - {})", name, host, port, e.getClass().getSimpleName(), e.getMessage());
 
-					TextToSpeech.INSTANCE.speak("Connecting to controller \"" + name + "\" failed, some functionality will be disabled");
+					TextToSpeech.INSTANCE.speak("Connecting to controller \"" + name + "\" failed, some functionality will be disabled", false);
 				}
 			}
 		});

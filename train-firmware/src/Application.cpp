@@ -66,7 +66,14 @@ void Application::loopObstacleDetection(unsigned long deltaTime) {
     float obstacleDistanceThreshold = isObstacleDetected ? OBSTACLE_CLEARED_DISTANCE_THRESHOLD_CM : OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM;
     bool isObstacleNear = obstacleDistance < obstacleDistanceThreshold;
 
-    // sendEventMessage("d", String(obstacleDistance));
+    // report new obstacle distance if it changes by considerable amount
+    float reportedDistanceDiff = fabs(obstacleDistance - lastReportedObstacleDistance);
+
+    if (reportedDistanceDiff >= OBSTACLE_DISTSNCE_CHANGED_THRESHOLD_CM) {
+        sendEventMessage("obstacle-changed", String(obstacleDistance));
+
+        lastReportedObstacleDistance = obstacleDistance;
+    }
 
     if (isObstacleNear) {
         obstacleDetectedDuration += deltaTime;

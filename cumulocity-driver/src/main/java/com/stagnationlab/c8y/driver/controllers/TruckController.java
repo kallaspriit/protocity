@@ -93,7 +93,7 @@ public class TruckController extends AbstractController {
 				setIsRunning(false);
 
 				if (!isPlanned) {
-					TextToSpeech.INSTANCE.speak("Wireless connection to the truck was lost, attempting to reestablish");
+					TextToSpeech.INSTANCE.speak("Wireless connection to the truck was lost, attempting to re-establish", false);
 				}
 			}
 		});
