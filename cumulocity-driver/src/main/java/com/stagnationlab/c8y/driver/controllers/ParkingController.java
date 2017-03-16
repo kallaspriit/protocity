@@ -125,6 +125,11 @@ public class ParkingController extends AbstractController {
 			public void onTagExit() {
 				free(index);
 			}
+
+			@Override
+			public void onTagUidEvent(String action, String uid) {
+				// ignore
+			}
 		});
 	}
 

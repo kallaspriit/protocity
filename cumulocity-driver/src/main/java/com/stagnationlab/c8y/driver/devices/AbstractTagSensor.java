@@ -12,6 +12,7 @@ public class AbstractTagSensor extends AbstractDevice {
 	public interface TagEventListener {
 		void onTagEnter(String tagName);
 		void onTagExit();
+		void onTagUidEvent(String action, String uid);
 	}
 
 	protected final TagSensor state = new TagSensor();
@@ -50,6 +51,20 @@ public class AbstractTagSensor extends AbstractDevice {
 		state.setTagActive(false);
 
 		reportEvent(new TagExitEvent());
+		updateState(state);
+	}
+
+	protected void emitTagUidEvent(String action, String uid) {
+		for (TagEventListener tagEventListener : tagEventListeners) {
+			tagEventListener.onTagUidEvent(action, uid);
+		}
+
+		if (action.equals("enter")) {
+			state.setTagUid(uid);
+		} else {
+			state.setTagUid("");
+		}
+
 		updateState(state);
 	}
 

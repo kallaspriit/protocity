@@ -94,6 +94,10 @@ public class EtherioTagSensor extends AbstractTagSensor {
 						emitTagExit();
 						break;
 
+					case "uid":
+						emitTagUidEvent(arguments.get(1), arguments.get(2));
+						break;
+
 					default:
 						log.warn("unexpected tag event '{}' observed", event);
 						break;

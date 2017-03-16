@@ -13,7 +13,7 @@ public:
 private:
 
     // provide version number
-    virtual String getVersion() { return "2.27.0"; };
+    virtual String getVersion() { return "2.28.0"; };
 
     // override main setup hooks
     virtual void setupBefore();
@@ -87,9 +87,6 @@ private:
     const float BATTERY_VOLTAGE_DIVIDER_RESISTOR_1 = 8200.0f;       // between input and output
     const float BATTERY_VOLTAGE_DIVIDER_RESISTOR_2 = 15000.0f;      // between input and ground
     const float BATTERY_VOLTAGE_CALIBRATION_MULTIPLIER = 0.99f;     // multimeter-measured voltage / reported voltage
-
-    // battery voltage speed adjustment, power at full charge is 100%, power at 0% is the below %
-    const int LOW_BATTERY_OUTPUT = 120;
 
     // dependencies
     MCP320X adc;

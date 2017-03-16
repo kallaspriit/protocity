@@ -1,9 +1,11 @@
 package com.stagnationlab.c8y.driver.fragments.sensors;
 
+@SuppressWarnings("unused")
 public class TagSensor {
 
 	private boolean isRunning;
 	private String tagName;
+	private String tagUid;
 	private boolean isTagActive;
 
 	public TagSensor() {
@@ -30,6 +32,14 @@ public class TagSensor {
 
 	public void setTagName(String tagName) {
 		this.tagName = tagName;
+	}
+
+	public String getTagUid() {
+		return tagUid;
+	}
+
+	public void setTagUid(String tagUid) {
+		this.tagUid = tagUid;
 	}
 
 	public boolean isTagActive() {

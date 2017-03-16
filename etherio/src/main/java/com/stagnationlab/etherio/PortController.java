@@ -71,6 +71,10 @@ public class PortController implements Commander.RemoteCommandListener {
         commander.addRemoteCommandListener(this);
     }
 
+    public Commander getCommander() {
+        return commander;
+    }
+
     public void addEventListener(PortEventListener listener) {
         portEventListeners.add(listener);
     }

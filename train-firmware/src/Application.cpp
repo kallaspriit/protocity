@@ -234,14 +234,9 @@ void Application::setMotorSpeed(int speed) {
 
     speed = min(max(speed, -100), 100);
 
-    // adjust the output power by battery percentage
-    int batteryPercentage = getBatteryChargePercentage(lastBatteryVoltage);
-    float adjustPercentage = (float)map(batteryPercentage, 0, 100, LOW_BATTERY_OUTPUT, 100);
-    int adjustedSpeed = (float)speed * (adjustPercentage / 100.0f);
+    int analogOutValue = (int)(((float)abs(speed) / 100.0f) * (float)MAX_ANALOG_WRITE_VALUE);
 
-    int analogOutValue = (int)(((float)abs(adjustedSpeed) / 100.0f) * (float)MAX_ANALOG_WRITE_VALUE);
-
-    log("setting motor to %s at %d%% speed (%d%% adjusted - %d)", speed > 0 ? "move forward" : speed < 0 ? "move in reverse" : "stop", speed, adjustedSpeed, analogOutValue);
+    log("setting motor to %s at %d%% speed (%d)", speed > 0 ? "move forward" : speed < 0 ? "move in reverse" : "stop", speed, analogOutValue);
 
     motorSpeed = speed;
 

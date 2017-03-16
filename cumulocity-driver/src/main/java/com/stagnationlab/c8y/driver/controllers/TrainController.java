@@ -31,22 +31,41 @@ public class TrainController extends AbstractController implements TrainStopEven
 	private static final String ACTION_ENTER = "enter";
 	private static final String ACTION_EXIT = "exit";
 	private static final String ACTION_UID = "uid";
-	private static final String ENTITY_TRAIN = "TRAIN";
-	private static final String ENTITY_TICKET = "TICKET";
+	private static final long MINIMUM_TICKET_BUYING_TIMEOUT = 3000;
 
 	class TrainStop {
 		private final PortController portController;
 		private final String name;
 		private final List<TrainStopEventListener> eventListeners = new ArrayList<>();
+		private final List<String> trainTagUidList;
 
-		TrainStop(PortController portController, String name) {
+		TrainStop(PortController portController, String name, List<String> trainTagUidList) {
 			this.portController = portController;
 			this.name = name;
+			this.trainTagUidList = trainTagUidList;
+		}
+
+		void addEventListener(TrainStopEventListener eventListener) {
+			eventListeners.add(eventListener);
 		}
 
 		void initialize() {
-			portController.sendPortCommand(TAG_READER_CAPABILITY, "enable");
 
+
+			portController.getCommander().getMessageTransport().addEventListener(new MessageTransport.EventListener() {
+
+				@Override
+				public void onOpen(boolean isFirstConnect) {
+					if (isFirstConnect) {
+						setupEventListeners();
+					}
+
+					startTagListener();
+				}
+			});
+		}
+
+		private void setupEventListeners() {
 			portController.addEventListener(new PortController.PortEventListener() {
 				@Override
 				public void onPortCapabilityUpdate(int id, String capabilityName, List<String> arguments) {
@@ -69,27 +88,44 @@ public class TrainController extends AbstractController implements TrainStopEven
 			});
 		}
 
+		private void startTagListener() {
+			// request the NFC capability on transport open
+			portController.sendPortCommand(TAG_READER_CAPABILITY, "enable");
+		}
+
 		private void handleTagEvent(String action, String uid) {
 			log.debug("got tag '{}' for '{}'", action, uid);
+
+			switch (action) {
+				case ACTION_ENTER:
+					handleTagEnter(uid);
+					break;
+
+				case ACTION_EXIT:
+					handleTagExit(uid);
+					break;
+			}
 		}
 
-		void addEventListener(TrainStopEventListener eventListener) {
-			eventListeners.add(eventListener);
-		}
+		private void handleTagEnter(String uid) {
+			if (!trainTagUidList.contains(uid)) {
+				return;
+			}
 
-		/*
-		private void handleTrainEnterEvent() {
-			log.debug("train entered '{}'", name);
+			log.debug("train tag '{}' entered", uid);
 
 			eventListeners.forEach((listener) -> listener.onTrainEnter(name));
 		}
 
-		private void handleTrainExitEvent() {
-			log.debug("train exited '{}'", name);
+		private void handleTagExit(String uid) {
+			if (!trainTagUidList.contains(uid)) {
+				return;
+			}
+
+			log.debug("train tag '{}' exited", uid);
 
 			eventListeners.forEach((listener) -> listener.onTrainExit(name));
 		}
-		*/
 
 		public String getName() {
 			return name;
@@ -450,6 +486,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 	private Train train;
 	private Thread thread;
 	private int currentOperationIndex = 0;
+	private long lastTicketActivationTime = 0;
 
 	private PortController ticketController;
 
@@ -635,37 +672,39 @@ public class TrainController extends AbstractController implements TrainStopEven
 		log.debug("configuring {} stops", stopCount);
 
 		for (int i = 0; i < stopCount; i++) {
-			setupStop(i);
+			setupStop(i, stopCount);
 		}
 	}
 
-	private void setupStop(int stopNumber) {
+	private void setupStop(int stopNumber, int stopCount) {
 		String commanderName = config.getString("train.stop." + stopNumber + ".commander");
 		int port = config.getInt("train.stop." + stopNumber + ".port");
 		int waitTime = config.getInt("train.stop." + stopNumber + ".waitTime");
 		String name = config.getString("train.stop." + stopNumber + ".name");
+		List<String> trainTagUidList = config.getStringArray("train.tagUidList");
 
 		Commander commander = getCommanderByName(commanderName);
-		TrainStop trainStop = createStop(commander, port, name);
+		TrainStop trainStop = createStop(commander, port, name, trainTagUidList);
 
 		registerStop(stopNumber, trainStop);
 
-		createTrainStopOperations(train, trainStop, waitTime);
-	}
-
-	private void createTrainStopOperations(Train train, TrainStop trainStop, int waitTime) {
+		// stop at given station
 		registerOperation(
 				new DriveToStopTrainOperation(train, trainStop.getName())
 		);
 
-		registerOperation(
-				new WaitTrainOperation(train, waitTime)
-		);
+		// don't add the stop after the last station
+		if (stopNumber < stopCount - 1) {
+			registerOperation(
+					new WaitTrainOperation(train, waitTime)
+			);
+		}
 	}
 
 	private void setupTicketTerminal() {
 		String commanderName = config.getString("train.ticket.commander");
 		int port = config.getInt("train.ticket.port");
+		List<String> tagUidList = config.getStringArray("train.ticket.tagUidList");
 
 		log.debug("configuring ticket terminal on commander {} port {}", commanderName, port);
 
@@ -687,14 +726,19 @@ public class TrainController extends AbstractController implements TrainStopEven
 								return;
 							}
 
-							String action = arguments.get(0);
-							String entity = arguments.get(1);
+							String type = arguments.get(0);
 
-							log.trace("got ticket controller tag reader action {} for {}", action, entity);
+							switch (type) {
+								case ACTION_UID: {
+									String action = arguments.get(1);
+									String uid = arguments.get(2);
 
-							switch (action) {
-								case ACTION_ENTER:
-									handleTicketEnter(entity);
+									if (action.equals(ACTION_ENTER) && tagUidList.contains(uid)) {
+										handleTrainTicketBought();
+									}
+
+									break;
+								}
 							}
 						}
 					});
@@ -711,29 +755,13 @@ public class TrainController extends AbstractController implements TrainStopEven
 		);
 	}
 
-	private void handleTicketEnter(String entity) {
-		boolean isValidEntityProvided = false;
-
-		if (entity.length() == ENTITY_TICKET.length()) {
-			// tag reader messes up last character for some reason, workaround
-			String expectedEntity = ENTITY_TICKET.substring(0, ENTITY_TICKET.length() - 1);
-			String providedEntity = entity.substring(0, entity.length() - 1);
-
-			isValidEntityProvided = providedEntity.equals(expectedEntity);
-		}
-
-		if (!isValidEntityProvided) {
-			log.debug("tag reader enter triggered on {} but expected {}", entity, ENTITY_TICKET);
-
-			TextToSpeech.INSTANCE.speak("Hey, " + entity + " can not be used to buy a train ticket!", true);
+	private void handleTrainTicketBought() {
+		if (Util.since(lastTicketActivationTime) < MINIMUM_TICKET_BUYING_TIMEOUT) {
+			log.debug("requested buying tickete too soon, ignoring it");
 
 			return;
 		}
 
-		handleTrainTicketBought();
-	}
-
-	private void handleTrainTicketBought() {
 		log.debug("train ticket was bought");
 
 		TrainOperation currentOperation = getCurrentOperation();
@@ -768,12 +796,14 @@ public class TrainController extends AbstractController implements TrainStopEven
 				TextToSpeech.INSTANCE.speak("Please wait for the train to return to Central Station", true);
 			}
 		}
+
+		lastTicketActivationTime = Util.now();
 	}
 
-	private TrainStop createStop(Commander commander, int port, String name) {
+	private TrainStop createStop(Commander commander, int port, String name, List<String> trainTagUidList) {
 		PortController portController = new PortController(port, commander);
 
-		return new TrainStop(portController, name);
+		return new TrainStop(portController, name, trainTagUidList);
 	}
 
 	private void registerStop(int stopNumber, TrainStop trainStop) {

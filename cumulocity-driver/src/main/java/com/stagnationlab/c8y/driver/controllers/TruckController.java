@@ -151,6 +151,14 @@ public class TruckController extends AbstractController {
 	private void handleBatteryChargeStateChanged(boolean isCharging, float batteryVoltage, int batteryChargePercentage) {
 		log.debug("truck is now {}, battery voltage: {}V ({})", isCharging ? "charging" : "not charging", batteryVoltage, batteryChargePercentage);
 
+		if (state.getIsCharging() != isCharging) {
+			if (isCharging) {
+				TextToSpeech.INSTANCE.speak("Electric truck is now charging", true);
+			} else {
+				TextToSpeech.INSTANCE.speak("Electric truck is not charging any more, the battery is at " + batteryChargePercentage + " percent", true);
+			}
+		}
+
 		state.setIsCharging(isCharging);
 		state.setBatteryVoltage(batteryVoltage);
 		state.setBatteryChargePercentage(batteryChargePercentage);
