@@ -70,6 +70,8 @@ public:
 	int getQueuedCommandCount();
 	CommandManager::Command *getNextCommand();
 
+	static std::string escapeArgument(std::string argument);
+
 private:
 	Log log = Log::getLog("CommandManager");
 

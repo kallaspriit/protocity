@@ -25,6 +25,18 @@ public:
         return elems;
     }
 
+    static std::string stringReplaceAll(std::string str, const std::string from, const std::string to) {
+        std::string::size_type n = 0;
+
+        while ((n = str.find(from, n)) != std::string::npos) {
+            str.replace(n, from.size(), to);
+
+            n += to.size();
+        }
+
+        return str;
+    }
+
 };
 
 #endif

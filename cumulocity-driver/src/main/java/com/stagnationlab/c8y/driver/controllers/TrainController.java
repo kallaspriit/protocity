@@ -30,6 +30,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 	private static final String COMMAND_ENABLE = "enable";
 	private static final String ACTION_ENTER = "enter";
 	private static final String ACTION_EXIT = "exit";
+	private static final String ACTION_UID = "uid";
 	private static final String ENTITY_TRAIN = "TRAIN";
 	private static final String ENTITY_TICKET = "TICKET";
 
@@ -53,32 +54,30 @@ public class TrainController extends AbstractController implements TrainStopEven
 						return;
 					}
 
-					String action = arguments.get(0);
-					String entity = arguments.get(1);
+					String type = arguments.get(0);
 
-					if (!entity.equals(ENTITY_TRAIN)) {
-						log.debug("tag reader event {} triggered on {} but expected {}", action, entity, ENTITY_TRAIN);
+					switch (type) {
+						case ACTION_UID: {
+							String action = arguments.get(1);
+							String uid = arguments.get(2);
 
-						return;
-					}
-
-					switch (action) {
-						case ACTION_ENTER:
-							handleTrainEnterEvent();
+							handleTagEvent(action, uid);
 							break;
-
-						case ACTION_EXIT:
-							handleTrainExitEvent();
-							break;
+						}
 					}
 				}
 			});
+		}
+
+		private void handleTagEvent(String action, String uid) {
+			log.debug("got tag '{}' for '{}'", action, uid);
 		}
 
 		void addEventListener(TrainStopEventListener eventListener) {
 			eventListeners.add(eventListener);
 		}
 
+		/*
 		private void handleTrainEnterEvent() {
 			log.debug("train entered '{}'", name);
 
@@ -90,6 +89,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 			eventListeners.forEach((listener) -> listener.onTrainExit(name));
 		}
+		*/
 
 		public String getName() {
 			return name;

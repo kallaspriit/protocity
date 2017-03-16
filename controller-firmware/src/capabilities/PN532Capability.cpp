@@ -105,7 +105,7 @@ void PN532Capability::onTagRead(NfcTag &tag) {
 
 void PN532Capability::onTagEnter(NfcTag &tag) {
 	// report the uid even if there is no payload
-	snprintf(sendBuffer, SEND_BUFFER_SIZE, "uid:enter:%s", tag.getUidString().c_str());
+	snprintf(sendBuffer, SEND_BUFFER_SIZE, "uid:enter:%s", CommandManager::escapeArgument(tag.getUidString()).c_str());
 	portController->emitCapabilityUpdate(getName(), std::string(sendBuffer));
 
 	if (!tag.hasNdefMessage()) {
@@ -156,7 +156,7 @@ void PN532Capability::onTagEnter(NfcTag &tag) {
 
 void PN532Capability::onTagExit(std::string lastTagUid) {
 	// report the uid even if there is no payload
-	snprintf(sendBuffer, SEND_BUFFER_SIZE, "uid:exit:%s", lastTagUid.c_str());
+	snprintf(sendBuffer, SEND_BUFFER_SIZE, "uid:exit:%s", CommandManager::escapeArgument(lastTagUid).c_str());
 	portController->emitCapabilityUpdate(getName(), std::string(sendBuffer));
 
 	if (activeTagName.size() == 0) {

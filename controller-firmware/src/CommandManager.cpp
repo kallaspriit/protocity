@@ -1,9 +1,11 @@
 #include "mbed.h"
 
 #include "CommandManager.hpp"
+#include "Util.hpp"
 
 #include <string>
 #include <sstream>
+#include <algorithm>
 
 void CommandManager::Command::reset() {
 	name = "";
@@ -67,6 +69,8 @@ std::string CommandManager::Command::Response::getErrorResponseText() {
 	std::ostringstream ss;
 
 	ss << requestId << ":ERROR:" << errorMessage;
+
+	return ss.str();
 }
 
 void CommandManager::Command::Response::reset(int requestId) {
@@ -271,4 +275,8 @@ CommandManager::Command *CommandManager::getNextCommand() {
 	commandQueueHead++;
 
 	return command;
+}
+
+std::string CommandManager::escapeArgument(std::string argument) {
+	return Util::stringReplaceAll(argument, ":", "\\:");
 }
