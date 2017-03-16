@@ -13,7 +13,7 @@ public:
 private:
 
     // provide version number
-    virtual String getVersion() { return "2.28.0"; };
+    virtual String getVersion() { return "2.34.0"; };
 
     // override main setup hooks
     virtual void setupBefore();
@@ -42,8 +42,8 @@ private:
     void handleSetObstacleParametersCommand(int requestId, String parameters[], int parameterCount);
 
     // disable debug led functionality (pin used for charge detection)
-    virtual void toggleDebugLed() {};
-    virtual void setDebugLed(int state) {};
+    virtual void setupDebugLed();
+    virtual void setDebugLed(int state);
 
     // send state to client
     void sendMotorSpeed(int requestId);
@@ -74,7 +74,7 @@ private:
     const int MAX_ANALOG_WRITE_VALUE = 1023;
 
     // obstacle detection config, apply some hysteresis
-    const float DEFAULT_OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM = 5.0f;
+    const float DEFAULT_OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM = 10.0f;
     const float DEFAULT_OBSTACLE_CLEARED_DISTANCE_THRESHOLD_CM = DEFAULT_OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM + 0.1f;
     const float OBSTACLE_DISTSNCE_CHANGED_THRESHOLD_CM = 0.5f;
     // const unsigned long OBSTACLE_DETECTED_THRESHOLD_DURATION = 50;

@@ -29,7 +29,7 @@ private:
 
 	bool enable();
 	void disable();
-	bool setChannelValue(int channel, float value);
+	bool setChannelValue(int channel, float value, bool autosend);
 	void reset();
 	void sendData();
 

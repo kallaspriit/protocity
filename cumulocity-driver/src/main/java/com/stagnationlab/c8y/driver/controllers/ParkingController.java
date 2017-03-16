@@ -14,6 +14,7 @@ import com.stagnationlab.c8y.driver.services.Config;
 import com.stagnationlab.c8y.driver.services.EventBroker;
 import com.stagnationlab.c8y.driver.services.TextToSpeech;
 import com.stagnationlab.etherio.Commander;
+import com.stagnationlab.etherio.MessageTransport;
 
 @Slf4j
 public class ParkingController extends AbstractController {
@@ -23,6 +24,7 @@ public class ParkingController extends AbstractController {
 	private final Map<Integer, AbstractTagSensor> sensorsMap = new HashMap<>();
 	private final Map<Integer, Integer> ledChannelMap = new HashMap<>();
 	private final Map<Integer, String> slotNameMap = new HashMap<>();
+	private Commander slotIndicatorsCommander = null;
 	private int slotCount = 0;
 
 	public ParkingController(String id, Map<String, Commander> commanders, Config config, EventBroker eventBroker) {
@@ -53,11 +55,21 @@ public class ParkingController extends AbstractController {
 
 		log.info("starting parking controller");
 
-		for (int i = 0; i < slotCount; i++) {
-			setSlotFree(i, true);
+		slotIndicatorsCommander.getMessageTransport().addEventListener(new MessageTransport.EventListener() {
+			@Override
+			public void onOpen(boolean isFirstConnect) {
+				log.debug("connection to parking slot indicators commander has been {}", isFirstConnect ? "established" : "re-established");
 
-			registerEventListeners(i, sensorsMap.get(i));
-		}
+				for (int i = 0; i < slotCount; i++) {
+					if (isFirstConnect) {
+						registerEventListeners(i, sensorsMap.get(i));
+					}
+
+					// indicate initially free slot
+					setSlotFree(i, true);
+				}
+			}
+		});
 
 		// update initial state
 		state.setIsRunning(true);
@@ -108,8 +120,8 @@ public class ParkingController extends AbstractController {
 
 		log.debug("setting up slot indicators on commander {} port {} with {} channels", commanderName, port, channelCount);
 
-		Commander commander = getCommanderByName(commanderName);
-		ledDriver = new EtherioMultiDacActuator("Parking controller led driver for commander " + commanderName, commander, port, channelCount);
+		slotIndicatorsCommander = getCommanderByName(commanderName);
+		ledDriver = new EtherioMultiDacActuator("Parking controller led driver for commander " + commanderName, slotIndicatorsCommander, port, channelCount);
 
 		registerChild(ledDriver);
 	}

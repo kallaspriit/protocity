@@ -74,7 +74,7 @@ public class Commander implements MessageTransport.EventListener {
 		String message = command.toString();
 
 		if (!messageTransport.isConnected()) {
-			log.warn("sending message '{}' requested but message transport is not connected", message);
+			log.warn("sending message '{}' to {} requested but message transport is not connected", message, messageTransport.getDescription());
 
 			CompletableFuture<CommandResponse> promise = new CompletableFuture<>();
 			promise.cancel(false);
@@ -117,7 +117,7 @@ public class Commander implements MessageTransport.EventListener {
 		try {
 			responseCommand = Command.parse(message);
 		} catch (Exception e) {
-			log.warn("got invalid response '{}' ({})", message, e.getMessage());
+			log.warn("got invalid response '{}' from {} ({})", message, messageTransport.getDescription(), e.getMessage());
 
 			return;
 		}
@@ -125,16 +125,16 @@ public class Commander implements MessageTransport.EventListener {
 		try {
 			handleResponse(responseCommand);
 		} catch (Exception e) {
-			log.warn("handling command '{}' failed ({} - {})", responseCommand.toString(), e.getClass().getSimpleName(), e.getMessage());
+			log.warn("handling command '{}' from {} failed ({} - {})", responseCommand.toString(), messageTransport.getDescription(), e.getClass().getSimpleName(), e.getMessage());
 		}
 	}
 
 	@Override
 	public void onConnectionFailed(Exception e, boolean wasEverOpened) {
 		if (wasEverOpened) {
-			log.debug("reconnecting to socket failed ({} - {})", e.getClass().getSimpleName(), e.getMessage());
+			log.debug("reconnecting to {} failed ({} - {})", messageTransport.getDescription(), e.getClass().getSimpleName(), e.getMessage());
 		} else {
-			log.debug("connecting to socket failed ({} - {})", e.getClass().getSimpleName(), e.getMessage());
+			log.debug("connecting to {} failed ({} - {})", messageTransport.getDescription(), e.getClass().getSimpleName(), e.getMessage());
 		}
 	}
 
@@ -158,6 +158,13 @@ public class Commander implements MessageTransport.EventListener {
 		}
 
 		log.debug("> {}", responseCommand.toString());
+
+		// show response error in console
+		if (responseCommand.name.equals("ERROR") && responseCommand.getArguments().size() >= 1) {
+			String responseErrorMessage = responseCommand.getString(0);
+
+			log.warn("command #{} '{}' on {} failed: {}", responseCommand.id, commandPromise.commandResponse.command.toString(), messageTransport.getDescription(), responseErrorMessage);
+		}
 
 		commandPromise.commandResponse.response = responseCommand;
 		commandPromise.promise.complete(commandPromise.commandResponse);

@@ -6,6 +6,7 @@ import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
+import com.stagnationlab.c8y.driver.Gateway;
 import com.stagnationlab.c8y.driver.constants.ControllerEvent;
 import com.stagnationlab.c8y.driver.constants.WeatherSensor;
 import com.stagnationlab.c8y.driver.fragments.controllers.Weather;
@@ -29,8 +30,9 @@ public class WeatherController extends AbstractController {
 	private PortController portController;
 	private boolean isConnected = false;
 
-	private static final String CAPABILITY = "weather-station";
+	private static final String WEATHER_STATION_CAPABILITY = "weather-station";
 	private static final String WEATHER_EVENT_CLAP = "clap";
+	private static final String COMMAND_ENABLE = "enable";
 
 	public WeatherController(String id, Map<String, Commander> commanders, Config config, EventBroker eventBroker) {
 		super(id, commanders, config, eventBroker);
@@ -72,10 +74,11 @@ public class WeatherController extends AbstractController {
 				log.info("connection to weather controller commander has been {}", isFirstConnect ? "established" : "re-established");
 
 				if (isFirstConnect) {
-					setupEventListener();
+					addEventListeners();
 				}
 
-				portController.sendPortCommand(CAPABILITY, "enable");
+				portController.sendPortCommand(WEATHER_STATION_CAPABILITY, COMMAND_ENABLE)
+						.thenAccept(Gateway::handlePortCommandResponse);
 
 				isConnected = true;
 
@@ -104,13 +107,13 @@ public class WeatherController extends AbstractController {
 		super.shutdown();
 	}
 
-	private void setupEventListener() {
+	private void addEventListeners() {
 		log.debug("setting up weather event listener");
 
 		portController.addEventListener(new PortController.PortEventListener() {
 			@Override
 			public void onPortCapabilityUpdate(int id, String capabilityName, List<String> arguments) {
-				if (!capabilityName.equals(CAPABILITY)) {
+				if (!capabilityName.equals(WEATHER_STATION_CAPABILITY)) {
 					return;
 				}
 

@@ -77,6 +77,10 @@ public class SocketClient implements MessageTransport {
 		this.reconnectInterval = reconnectInterval;
 	}
 
+	public String getDescription() {
+		return hostName + ":" + portNumber;
+	}
+
 	@SuppressWarnings("unused")
 	public void setPingStrategy(PingStrategy pingStrategy, int pingInterval) {
 		this.pingStrategy = pingStrategy;

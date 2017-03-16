@@ -4,6 +4,7 @@ import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
+import com.stagnationlab.c8y.driver.Gateway;
 import com.stagnationlab.c8y.driver.devices.AbstractTagSensor;
 import com.stagnationlab.etherio.Commander;
 import com.stagnationlab.etherio.MessageTransport;
@@ -16,7 +17,9 @@ public class EtherioTagSensor extends AbstractTagSensor {
 	private final int portNumber;
 	private PortController portController;
 
-	private static final String CAPABILITY = "PN532";
+	private static final String TAG_SENSOR_CAPABILITY = "PN532";
+	public static final String COMMAND_ENABLE = "enable";
+	private static final String RESPONSE_OK = "OK";
 
 	public EtherioTagSensor(String id, Commander commander, int portNumber) {
 		super(id);
@@ -47,11 +50,15 @@ public class EtherioTagSensor extends AbstractTagSensor {
 					setupEventListener();
 				}
 
-				portController.sendPortCommand(CAPABILITY, "enable").thenAccept(commandResponse -> {
-					log.debug("tag sensor '{}' has been enabled", id);
+				portController.sendPortCommand(TAG_SENSOR_CAPABILITY, COMMAND_ENABLE).thenAccept(commandResponse -> {
+					if (commandResponse.response.name.equals(RESPONSE_OK)) {
+						log.debug("tag sensor '{}' has been enabled", id);
 
-					state.setIsRunning(true);
-					updateState(state);
+						state.setIsRunning(true);
+						updateState(state);
+					}
+
+					Gateway.handlePortCommandResponse(commandResponse);
 				});
 			}
 
@@ -79,7 +86,7 @@ public class EtherioTagSensor extends AbstractTagSensor {
 		portController.addEventListener(new PortController.PortEventListener() {
 			@Override
 			public void onPortCapabilityUpdate(int id, String capabilityName, List<String> arguments) {
-				if (!capabilityName.equals(CAPABILITY)) {
+				if (!capabilityName.equals(TAG_SENSOR_CAPABILITY)) {
 					return;
 				}
 

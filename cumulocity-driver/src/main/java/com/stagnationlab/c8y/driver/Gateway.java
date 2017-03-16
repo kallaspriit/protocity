@@ -23,6 +23,7 @@ import com.stagnationlab.c8y.driver.devices.etherio.EtherioMonitoringSensor;
 import com.stagnationlab.c8y.driver.services.Config;
 import com.stagnationlab.c8y.driver.services.EventBroker;
 import com.stagnationlab.c8y.driver.services.TextToSpeech;
+import com.stagnationlab.etherio.Command;
 import com.stagnationlab.etherio.Commander;
 import com.stagnationlab.etherio.MessageTransport;
 import com.stagnationlab.etherio.SocketClient;
@@ -91,6 +92,8 @@ public class Gateway extends AbstractDevice {
 	public void shutdown() {
 		log.info("shutting down gateway");
 
+		TextToSpeech.INSTANCE.speak("Shutting down", true);
+
 		for (String commanderName : commanders.keySet()) {
 			Commander commander = commanders.get(commanderName);
 
@@ -109,6 +112,18 @@ public class Gateway extends AbstractDevice {
 		super.shutdown();
 
 		log.info("graceful shutdown complete");
+	}
+
+	public static void handlePortCommandResponse(Commander.CommandResponse commandResponse) {
+		Command response = commandResponse.response;
+
+		if (!response.name.equals("ERROR")) {
+			return;
+		}
+
+		String errorMessage = response.getString(0);
+
+		TextToSpeech.INSTANCE.speak(errorMessage, false);
 	}
 
 	private void establishCommanderConnections() {

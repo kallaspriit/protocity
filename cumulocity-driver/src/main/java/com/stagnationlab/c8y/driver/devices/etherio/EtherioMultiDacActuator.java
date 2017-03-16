@@ -4,6 +4,7 @@ import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
+import com.stagnationlab.c8y.driver.Gateway;
 import com.stagnationlab.c8y.driver.devices.AbstractMultiDacActuator;
 import com.stagnationlab.etherio.Commander;
 import com.stagnationlab.etherio.MessageTransport;
@@ -16,7 +17,11 @@ public class EtherioMultiDacActuator extends AbstractMultiDacActuator {
 	private final int portNumber;
 	private PortController portController;
 
-	private static final String CAPABILITY = "TLC5940";
+	private static final String DAC_CAPABILITY = "TLC5940";
+	private static final String COMMAND_ENABLE = "enable";
+	private static final String COMMAND_VALUE = "value";
+	private static final String COMMAND_VALUES = "values";
+	private static final String RESPONSE_OK = "OK";
 
 	public EtherioMultiDacActuator(String id, Commander commander, int portNumber, int channelCount) {
 		super(id, channelCount);
@@ -41,11 +46,15 @@ public class EtherioMultiDacActuator extends AbstractMultiDacActuator {
 			public void onOpen(boolean isFirstConnect) {
 				log.debug("connection to multi-dac actuator '{}' commander has been {}, enabling it", id, isFirstConnect ? "established" : "re-established");
 
-				portController.sendPortCommand(CAPABILITY, "enable").thenAccept(commandResponse -> {
-					log.debug("multi-dac actuator '{}' has been enabled", id);
+				portController.sendPortCommand(DAC_CAPABILITY, COMMAND_ENABLE).thenAccept(commandResponse -> {
+					if (commandResponse.response.name.equals(RESPONSE_OK)) {
+						log.debug("multi-dac actuator '{}' has been enabled", id);
 
-					state.setIsRunning(true);
-					updateState(state);
+						state.setIsRunning(true);
+						updateState(state);
+					}
+
+					Gateway.handlePortCommandResponse(commandResponse);
 				});
 			}
 
@@ -71,7 +80,8 @@ public class EtherioMultiDacActuator extends AbstractMultiDacActuator {
 
 	@Override
 	protected void applyChannelValue(int channel, float value) {
-		portController.sendPortCommand(CAPABILITY, "value", channel, value);
+		portController.sendPortCommand(DAC_CAPABILITY, COMMAND_VALUE, channel, value)
+				.thenAccept(Gateway::handlePortCommandResponse);
 	}
 
 	@Override
@@ -91,6 +101,7 @@ public class EtherioMultiDacActuator extends AbstractMultiDacActuator {
 			isFirst = false;
 		}
 
-		portController.sendPortCommand(CAPABILITY, "values", valuesArg);
+		portController.sendPortCommand(DAC_CAPABILITY, COMMAND_VALUES, valuesArg)
+				.thenAccept(Gateway::handlePortCommandResponse);
 	}
 }

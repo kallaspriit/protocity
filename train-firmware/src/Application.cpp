@@ -24,7 +24,6 @@ void Application::setupPinModes() {
 
     pinMode(MOTOR_CONTROL_PIN_A, OUTPUT);
     pinMode(MOTOR_CONTROL_PIN_B, OUTPUT);
-
 }
 
 void Application::setupChargeDetection() {
@@ -69,7 +68,7 @@ void Application::loopObstacleDetection(unsigned long deltaTime) {
     // report new obstacle distance if it changes by considerable amount
     float reportedDistanceDiff = fabs(obstacleDistance - lastReportedObstacleDistance);
 
-    if (reportedDistanceDiff >= OBSTACLE_DISTSNCE_CHANGED_THRESHOLD_CM) {
+    if (isObstacleDetected && reportedDistanceDiff >= OBSTACLE_DISTSNCE_CHANGED_THRESHOLD_CM) {
         sendEventMessage("obstacle-changed", String(obstacleDistance));
 
         lastReportedObstacleDistance = obstacleDistance;
@@ -224,6 +223,8 @@ float Application::getObstacleDistance() {
     float voltage = calculateAdcVoltage(reading, MAX_ADC_READ_VALUE, MAX_ADC_READ_VOLTAGE, 0, 1, 1.0);
     float distance = max(min(13.0f * pow(voltage, -1), 30.0f), 4.0f);
 
+    // log("obstacle distance: %s cm (reading: %d, voltage: %s)", String(distance).c_str(), reading, String(voltage).c_str());
+
     return distance;
 }
 
@@ -257,4 +258,12 @@ void Application::setMotorSpeed(int speed) {
 
 void Application::stopMotor() {
     setMotorSpeed(0);
+}
+
+void Application::setupDebugLed() {
+    log("setting up debug led requested, ignoring it");
+}
+
+void Application::setDebugLed(int state) {
+    log("setting debug led to %s requested", state == HIGH ? "ON" : "OFF");
 }

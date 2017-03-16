@@ -9,9 +9,9 @@ void SocketApplication::setup() {
     setupBefore();
 
     // generic
-    setupDebugLed();
     setupSerial();
     setupGreeting();
+    setupDebugLed();
     setupWifiConnection();
     setupServer();
 
@@ -32,6 +32,8 @@ void SocketApplication::loop() {
 }
 
 void SocketApplication::setupDebugLed() {
+    log("setting up debug led");
+
     pinMode(DEBUG_LED_PIN, OUTPUT);
 }
 

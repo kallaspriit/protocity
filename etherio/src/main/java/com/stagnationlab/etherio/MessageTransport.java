@@ -11,6 +11,8 @@ public interface MessageTransport {
 	    default void onConnectionFailed(Exception e, boolean wasEverOpened) {}
     }
 
+    String getDescription();
+
 	boolean connect(int connectionTimeout);
 
     void close();

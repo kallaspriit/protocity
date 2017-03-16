@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
+import com.stagnationlab.c8y.driver.Gateway;
 import com.stagnationlab.c8y.driver.measurements.BatteryMeasurement;
 import com.stagnationlab.c8y.driver.services.Config;
 import com.stagnationlab.c8y.driver.services.EventBroker;
@@ -90,7 +91,8 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 		private void startTagListener() {
 			// request the NFC capability on transport open
-			portController.sendPortCommand(TAG_READER_CAPABILITY, "enable");
+			portController.sendPortCommand(TAG_READER_CAPABILITY, COMMAND_ENABLE)
+				.thenAccept(Gateway::handlePortCommandResponse);
 		}
 
 		private void handleTagEvent(String action, String uid) {
@@ -280,7 +282,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 		}
 
 		private void handleBatteryChargeStateChanged(boolean isCharging, float batteryVoltage, int batteryChargePercentage) {
-			log.debug("train is now {}, battery voltage: {}V ({})", isCharging ? "charging" : "not charging", batteryVoltage, batteryChargePercentage);
+			log.debug("train is {}, battery voltage: {}V ({}%)", isCharging ? "charging" : "not charging", batteryVoltage, batteryChargePercentage);
 
 			state.setIsCharging(isCharging);
 			state.setBatteryVoltage(batteryVoltage);
@@ -297,6 +299,10 @@ public class TrainController extends AbstractController implements TrainStopEven
 			state.setObstacleDistance(obstacleDistance);
 
 			updateState(state);
+
+			if (state.getTargetSpeed() > 0) {
+				TextToSpeech.INSTANCE.speak("Obstacle was detected, stopping the train", true);
+			}
 		}
 
 		private void handleObstacleClearedEvent() {
@@ -305,6 +311,10 @@ public class TrainController extends AbstractController implements TrainStopEven
 			state.setIsObstacleDetected(false);
 
 			updateState(state);
+
+			if (state.getTargetSpeed() > 0) {
+				TextToSpeech.INSTANCE.speak("Resuming operation", true);
+			}
 		}
 
 		private void handleSpeedChangedEvent(int realSpeed, int targetSpeed) {
@@ -480,6 +490,32 @@ public class TrainController extends AbstractController implements TrainStopEven
 		}
 	}
 
+	class TripCompleteTrainOperation extends TrainOperation {
+
+		TripCompleteTrainOperation(Train train) {
+			super(train);
+		}
+
+		@Override
+		public void start() {
+			TextToSpeech.INSTANCE.speak("Trip complete, the ticket price was deducted rom your mobile wallet", true);
+		}
+
+		@Override
+		public void reset() {
+		}
+
+		@Override
+		public String getName() {
+			return "TRIP-COMPLETE";
+		}
+
+		@Override
+		public boolean isComplete() {
+			return true;
+		}
+	}
+
 	private final com.stagnationlab.c8y.driver.fragments.controllers.Train state = new com.stagnationlab.c8y.driver.fragments.controllers.Train();
 	private final List<TrainOperation> operations = new ArrayList<>();
 	private final Map<Integer, TrainStop> stopMap = new HashMap<>();
@@ -512,6 +548,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 		setupStartOperations();
 		setupStops();
 		setupTicketTerminal();
+		setupEndOperations();
 	}
 
 	@Override
@@ -714,9 +751,10 @@ public class TrainController extends AbstractController implements TrainStopEven
 		ticketCommander.getMessageTransport().addEventListener(new MessageTransport.EventListener() {
 			@Override
 			public void onOpen(boolean isFirstConnect) {
-				log.debug("ticket commander transport was opened");
+				log.debug("ticket commander transport was opened, enabling tag reader");
 
-				ticketController.sendPortCommand(TAG_READER_CAPABILITY, COMMAND_ENABLE);
+				ticketController.sendPortCommand(TAG_READER_CAPABILITY, COMMAND_ENABLE)
+						.thenAccept(Gateway::handlePortCommandResponse);
 
 				if (isFirstConnect) {
 					ticketController.addEventListener(new PortController.PortEventListener() {
@@ -749,9 +787,15 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 	private void setupStartOperations() {
 		// add the idle operation, operations for stops will be added after it
-
 		registerOperation(
 				new IdleTrainOperation(train)
+		);
+	}
+
+	private void setupEndOperations() {
+		// the trip has been completed
+		registerOperation(
+				new TripCompleteTrainOperation(train)
 		);
 	}
 

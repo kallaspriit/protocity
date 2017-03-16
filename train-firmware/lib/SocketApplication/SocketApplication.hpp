@@ -19,6 +19,7 @@ class SocketApplication {
 
 public:
     SocketApplication(int port);
+    virtual ~SocketApplication() {}
 
     virtual void setup();
     virtual void loop();

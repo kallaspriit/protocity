@@ -90,7 +90,7 @@ CommandManager::Command::Response TLC5940Capability::handleValueCommand(CommandM
 	int channel = command->getInt(3);
 	float value = command->getFloat(4);
 
-	if (!setChannelValue(channel, value)) {
+	if (!setChannelValue(channel, value, true)) {
 		return command->createFailureResponse("setting requested value failed, check parameters");
 	}
 
@@ -132,10 +132,13 @@ CommandManager::Command::Response TLC5940Capability::handleValuesCommand(Command
 
 		log.trace(" setting channel %d to %f", channel, value);
 
-		if (!setChannelValue(channel, value)) {
+		if (!setChannelValue(channel, value, false)) {
 			return command->createFailureResponse("setting requested values failed, check parameters");
 		}
 	}
+
+	// manually send the data in the end
+	sendData();
 
 	return command->createSuccessResponse();
 }
@@ -152,16 +155,22 @@ CommandManager::Command::Response TLC5940Capability::handleTestCommand(CommandMa
 	}
 
 	int channelCount = chainLength * CHANNEL_COUNT;
+	int step = 2;
+	int times = 3;
 
-	// fade all channels in and out once, blocks the thread!
-	for (int i = 0; i <= 200; i++) {
-		float value = (float)(i < 100 ? i : 200 - i) / 100.0f;
+	// fade all channels in and out, blocks the thread!
+	for (int i = 0; i < times; i++) {
+		for (int j = 0; j <= 200; j += step) {
+			float value = (float)(j < 100 ? j : 200 - j) / 100.0f;
 
-		for (int channel = 0; channel < channelCount; channel++) {
-			setChannelValue(channel, value);
+			for (int channel = 0; channel < channelCount; channel++) {
+				setChannelValue(channel, value, false);
+			}
+
+			sendData();
+
+			Thread::wait(10);
 		}
-
-		Thread::wait(10);
 	}
 
 	if (!wasEnabled) {
@@ -186,8 +195,11 @@ bool TLC5940Capability::enable() {
 
 	// initialize all channels to off state
 	for (int channel = 0; channel < channelCount; channel++) {
-		setChannelValue(channel, 0.0f);
+		setChannelValue(channel, 0.0f, false);
 	}
+
+	// manually send the data in the end
+	sendData();
 
 	return true;
 }
@@ -207,7 +219,7 @@ void TLC5940Capability::disable() {
 	isEnabled = false;
 }
 
-bool TLC5940Capability::setChannelValue(int channel, float value) {
+bool TLC5940Capability::setChannelValue(int channel, float value, bool autosend) {
 	if (!isEnabled || tlc5940 == NULL) {
 		return false;
 	}
@@ -226,7 +238,9 @@ bool TLC5940Capability::setChannelValue(int channel, float value) {
 
 	values[channel] = rawValue;
 
-	sendData();
+	if (autosend) {
+		sendData();
+	}
 
 	return true;
 }
