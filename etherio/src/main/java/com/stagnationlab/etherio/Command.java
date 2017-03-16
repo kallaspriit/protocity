@@ -4,6 +4,7 @@ package com.stagnationlab.etherio;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class Command {
@@ -61,19 +62,21 @@ public class Command {
         return command;
     }
 
-    public static Command parse(String command) {
-        String[] tokens = command.split(":");
+    public static Command parse(String command) throws IllegalArgumentException {
+        // split on : ignoring escaped \: separators
+        List<String> tokens = Arrays.stream(command.split("(?<!\\\\):"))
+		        .map(token -> token.replaceAll("\\\\:", ":")).collect(Collectors.toList());
 
-        if (tokens.length < 2) {
+        if (tokens.size() < 2) {
             throw new IllegalArgumentException("Expected at least command id and name");
         }
 
-        int id = Integer.parseInt(tokens[0]);
-        String name = tokens[1];
+        int id = Integer.parseInt(tokens.get(0));
+        String name = tokens.get(1);
         List<String> arguments = new ArrayList<>();
 
-        if (tokens.length >= 3) {
-            arguments.addAll(Arrays.asList(tokens).subList(2, tokens.length));
+        if (tokens.size() >= 3) {
+            arguments.addAll(tokens.subList(2, tokens.size()));
         }
 
         return new Command(id, name, arguments.toArray());
