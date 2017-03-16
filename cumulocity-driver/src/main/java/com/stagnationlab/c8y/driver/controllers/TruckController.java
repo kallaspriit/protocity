@@ -20,7 +20,8 @@ import com.stagnationlab.etherio.MessageTransport;
 public class TruckController extends AbstractController {
 
 	private final Truck state = new Truck();
-	private Commander commander;
+	private Commander truckCommander;
+	private Commander indicatorCommander;
 	private AbstractMultiDacActuator indicatorDriver;
 	private int indicatorChannel = 0;
 
@@ -51,7 +52,7 @@ public class TruckController extends AbstractController {
 
 	private void setupTruck() {
 		String commanderName = config.getString("truck.commander");
-		commander = getCommanderByName(commanderName);
+		truckCommander = getCommanderByName(commanderName);
 	}
 
 	private void setupIndicator() {
@@ -60,8 +61,8 @@ public class TruckController extends AbstractController {
 		int channelCount = config.getInt("truck.indicator.channels");
 		indicatorChannel = config.getInt("truck.indicator.channel");
 
-		Commander commander = getCommanderByName(commanderName);
-		indicatorDriver = new EtherioMultiDacActuator("Truck controller indicator led driver", commander, port, channelCount);
+		indicatorCommander = getCommanderByName(commanderName);
+		indicatorDriver = new EtherioMultiDacActuator("Truck controller indicator led driver", indicatorCommander, port, channelCount);
 
 		registerChild(indicatorDriver);
 	}
@@ -70,9 +71,10 @@ public class TruckController extends AbstractController {
 	public void start() {
 		super.start();
 
-		log.info("starting train controller");
+		log.info("starting truck controller");
 
-		commander.getMessageTransport().addEventListener(new MessageTransport.EventListener() {
+		// listen for truck commander connectivity events
+		truckCommander.getMessageTransport().addEventListener(new MessageTransport.EventListener() {
 			@Override
 			public void onOpen(boolean isFirstConnect) {
 				log.debug("connection to truck commander has been {}", isFirstConnect ? "established" : "re-established");
@@ -97,6 +99,22 @@ public class TruckController extends AbstractController {
 				}
 			}
 		});
+
+		// listen for indicator commander connectivity events
+		indicatorCommander.getMessageTransport().addEventListener(new MessageTransport.EventListener() {
+			@Override
+			public void onOpen(boolean isFirstConnect) {
+				log.debug("connection to indicator commander has been {}", isFirstConnect ? "established" : "re-established");
+
+				// response to this will make the indicator output correct
+				requestBatteryVoltage();
+			}
+
+			@Override
+			public void onClose(boolean isPlanned) {
+				log.info("truck indicator transport has been closed");
+			}
+		});
 	}
 
 	@Override
@@ -110,7 +128,7 @@ public class TruckController extends AbstractController {
 	}
 
 	private void requestBatteryVoltage() {
-		commander.sendCommand(COMMAND_GET_BATTERY_VOLTAGE).thenAccept((Commander.CommandResponse result) -> {
+		truckCommander.sendCommand(COMMAND_GET_BATTERY_VOLTAGE).thenAccept((Commander.CommandResponse result) -> {
 			boolean isCharging = result.response.getInt(0) == 1;
 			float batteryVoltage = result.response.getFloat(1);
 			int batteryChargePercentage = result.response.getInt(2);
@@ -122,7 +140,7 @@ public class TruckController extends AbstractController {
 	private void setupEventListeners() {
 		log.debug("setting up event listeners");
 
-		commander.addRemoteCommandListener((Command command) -> {
+		truckCommander.addRemoteCommandListener((Command command) -> {
 			log.trace("got train event: {}", command.name);
 
 			List<String> arguments = command.getArguments();
