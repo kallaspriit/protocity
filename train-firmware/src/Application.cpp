@@ -63,7 +63,7 @@ void Application::loopAfter() {
 
 void Application::loopObstacleDetection(unsigned long deltaTime) {
     float obstacleDistance = getObstacleDistance();
-    float obstacleDistanceThreshold = isObstacleDetected ? OBSTACLE_CLEARED_DISTANCE_THRESHOLD_CM : OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM;
+    float obstacleDistanceThreshold = isObstacleDetected ? obstacleClearedDistanceThreshold : obstacleDetectedDistanceThreshold;
     bool isObstacleNear = obstacleDistance < obstacleDistanceThreshold;
 
     // report new obstacle distance if it changes by considerable amount
@@ -131,6 +131,8 @@ void Application::handleCommand(int requestId, String command, String parameters
         handleGetSpeedCommand(requestId, parameters, parameterCount);
     } else if (command == "get-obstacle-distance") {
         handleGetObstacleDistanceCommand(requestId, parameters, parameterCount);
+    } else if (command == "set-obstacle-parameters") {
+        handleSetObstacleParametersCommand(requestId, parameters, parameterCount);
     } else {
         handleUnsupportedCommand(requestId, command, parameters, parameterCount);
     }
@@ -160,6 +162,17 @@ void Application::handleGetObstacleDistanceCommand(int requestId, String paramet
     }
 
     sendObstacleDistance(requestId);
+}
+
+void Application::handleSetObstacleParametersCommand(int requestId, String parameters[], int parameterCount) {
+    if (parameterCount != 2) {
+        return sendErrorMessage(requestId, "expected 2 parameters, for example '1:set-obstacle-parameters:10.0:11.0'");
+    }
+
+    obstacleDetectedDistanceThreshold = parameters[0].toFloat();
+    obstacleClearedDistanceThreshold = parameters[1].toFloat();
+
+    log("obstacle is now detected at %s cm and cleared at %s cm", String(obstacleDetectedDistanceThreshold).c_str(), String(obstacleClearedDistanceThreshold).c_str());
 }
 
 void Application::sendMotorSpeed(int requestId) {

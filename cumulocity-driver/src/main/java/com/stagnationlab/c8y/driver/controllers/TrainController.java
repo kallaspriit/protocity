@@ -103,9 +103,11 @@ public class TrainController extends AbstractController implements TrainStopEven
 		private final int requestBatteryVoltageInterval;
 
 		private static final String COMMAND_GET_BATTERY_VOLTAGE = "battery";
+		private static final String SET_OBSTACLE_PARAMETERS = "set-obstacle-parameters";
 		private static final String COMMAND_SET_SPEED = "set-speed";
 		private static final String EVENT_OBSTACLE_DETECTED = "obstacle-detected";
 		private static final String EVENT_OBSTACLE_CLEARED = "obstacle-cleared";
+		private static final String EVENT_OBSTACLE_CHANGED = "obstacle-changed";
 		private static final String EVENT_SPEED_CHANGED = "speed-changed";
 		private static final String EVENT_BATTERY_STATE_CHANGED = "battery-state-changed";
 
@@ -143,6 +145,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 			setupEventListeners();
 			requestBatteryVoltage();
+			setObstacleParameters();
 		}
 
 		void shutdown() {
@@ -177,6 +180,13 @@ public class TrainController extends AbstractController implements TrainStopEven
 						break;
 					}
 
+					case EVENT_OBSTACLE_CHANGED: {
+						float obstacleDistance = command.getFloat(0);
+
+						handleObstacleChangedEvent(obstacleDistance);
+						break;
+					}
+
 					case EVENT_SPEED_CHANGED: {
 						int realSpeed = command.getInt(0);
 						int targetSpeed = command.getInt(1);
@@ -203,6 +213,17 @@ public class TrainController extends AbstractController implements TrainStopEven
 			areEventListenersAdded = true;
 		}
 
+		private void handleObstacleChangedEvent(float obstacleDistance) {
+			// only update the state if an obstacle is detected
+			if (state.getIsObstacleDetected()) {
+				log.debug("train obstacle distance changed to {} cm", obstacleDistance);
+
+				state.setObstacleDistance(obstacleDistance);
+
+				updateState(state);
+			}
+		}
+
 		private void requestBatteryVoltage() {
 			commander.sendCommand(COMMAND_GET_BATTERY_VOLTAGE).thenAccept((Commander.CommandResponse result) -> {
 				boolean isCharging = result.response.getInt(0) == 1;
@@ -211,6 +232,15 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 				handleBatteryChargeStateChanged(isCharging, batteryVoltage, batteryChargePercentage);
 			});
+		}
+
+		private void setObstacleParameters() {
+			float obstacleDetectedThreshold = config.getFloat("train.obstacleDetectedThreshold");
+			float obstacleClearedThreshold = config.getFloat("train.obstacleClearedThreshold");
+
+			log.debug("setting detected obstacle distance at {}cm and cleared at {}cm", obstacleDetectedThreshold, obstacleClearedThreshold);
+
+			commander.sendCommand(SET_OBSTACLE_PARAMETERS, obstacleDetectedThreshold, obstacleClearedThreshold);
 		}
 
 		private void handleBatteryChargeStateChanged(boolean isCharging, float batteryVoltage, int batteryChargePercentage) {

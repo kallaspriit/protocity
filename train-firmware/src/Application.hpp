@@ -13,7 +13,7 @@ public:
 private:
 
     // provide version number
-    virtual String getVersion() { return "2.26.0"; };
+    virtual String getVersion() { return "2.27.0"; };
 
     // override main setup hooks
     virtual void setupBefore();
@@ -39,6 +39,7 @@ private:
     void handleSetSpeedCommand(int requestId, String parameters[], int parameterCount);
     void handleGetSpeedCommand(int requestId, String parameters[], int parameterCount);
     void handleGetObstacleDistanceCommand(int requestId, String parameters[], int parameterCount);
+    void handleSetObstacleParametersCommand(int requestId, String parameters[], int parameterCount);
 
     // disable debug led functionality (pin used for charge detection)
     virtual void toggleDebugLed() {};
@@ -73,8 +74,8 @@ private:
     const int MAX_ANALOG_WRITE_VALUE = 1023;
 
     // obstacle detection config, apply some hysteresis
-    const float OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM = 8.0f;
-    const float OBSTACLE_CLEARED_DISTANCE_THRESHOLD_CM = OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM + 0.1f;
+    const float DEFAULT_OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM = 5.0f;
+    const float DEFAULT_OBSTACLE_CLEARED_DISTANCE_THRESHOLD_CM = DEFAULT_OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM + 0.1f;
     const float OBSTACLE_DISTSNCE_CHANGED_THRESHOLD_CM = 0.5f;
     // const unsigned long OBSTACLE_DETECTED_THRESHOLD_DURATION = 50;
     const unsigned long OBSTACLE_DETECTED_THRESHOLD_DURATION = 0;
@@ -99,6 +100,8 @@ private:
     unsigned long lastLoopTime = 0;
     int obstacleDetectedDuration = 0;
     bool isObstacleDetected = false;
+    float obstacleDetectedDistanceThreshold = DEFAULT_OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM;
+    float obstacleClearedDistanceThreshold = DEFAULT_OBSTACLE_CLEARED_DISTANCE_THRESHOLD_CM;
     float lastReportedObstacleDistance = -OBSTACLE_DISTSNCE_CHANGED_THRESHOLD_CM;
 };
 

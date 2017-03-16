@@ -30,7 +30,7 @@ private:
 
 int main() {
 	// set log handler to use along with the minimum level of detail to show
-	Log::setLogHandler(new SerialLogHandler(Log::LogLevel::DEBUG));
+	Log::setLogHandler(new SerialLogHandler(Log::LogLevel::TRACE));
 
 	Config config;
 	Log log = Log::getLog("main");

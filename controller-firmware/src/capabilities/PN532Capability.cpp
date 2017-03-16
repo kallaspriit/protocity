@@ -104,14 +104,24 @@ void PN532Capability::onTagRead(NfcTag &tag) {
 }
 
 void PN532Capability::onTagEnter(NfcTag &tag) {
-	log.trace("enter '%s' tag with uid: %s", tag.getTagType().c_str(), tag.getUidString().c_str());
+	// report the uid even if there is no payload
+	snprintf(sendBuffer, SEND_BUFFER_SIZE, "uid:enter:%s", tag.getUidString().c_str());
+	portController->emitCapabilityUpdate(getName(), std::string(sendBuffer));
 
 	if (!tag.hasNdefMessage()) {
+		log.trace("enter %s but it does not contain a ndef message (%s)", tag.getUidString().c_str(), tag.getTagType().c_str());
+
 		return;
 	}
 
 	NdefMessage message = tag.getNdefMessage();
 	int recordCount = message.getRecordCount();
+
+	if (recordCount == 0) {
+		log.trace("enter %s but it contains no records (%s)", tag.getUidString().c_str(), tag.getTagType().c_str());
+
+		return;
+	}
 
 	std::string tagName = "";
 
@@ -128,11 +138,16 @@ void PN532Capability::onTagEnter(NfcTag &tag) {
 		}
 	}
 
-	if (tagName.size() > 0 && tagName != activeTagName) {
-		log.debug("'%s' (%s) ENTER", tagName.c_str(), tag.getUidString().c_str());
+	if (tagName.size() == 0) {
+		log.trace("no text record with tag name could be found (uid: %s)", tag.getUidString().c_str());
+
+		return;
+	}
+
+	if (tagName != activeTagName) {
+		log.debug("ENTER '%s' (uid: %s)", tagName.c_str(), tag.getUidString().c_str());
 
 		snprintf(sendBuffer, SEND_BUFFER_SIZE, "enter:%s", tagName.c_str());
-
 		portController->emitCapabilityUpdate(getName(), std::string(sendBuffer));
 
 		activeTagName = tagName;
@@ -140,11 +155,15 @@ void PN532Capability::onTagEnter(NfcTag &tag) {
 }
 
 void PN532Capability::onTagExit(std::string lastTagUid) {
+	// report the uid even if there is no payload
+	snprintf(sendBuffer, SEND_BUFFER_SIZE, "uid:exit:%s", lastTagUid.c_str());
+	portController->emitCapabilityUpdate(getName(), std::string(sendBuffer));
+
 	if (activeTagName.size() == 0) {
 		return;
 	}
 
-	log.debug("'%s' (%s) EXIT", activeTagName.c_str(), lastTagUid.c_str());
+	log.debug("EXIT '%s' (uid: %s)", activeTagName.c_str(), lastTagUid.c_str());
 
 	snprintf(sendBuffer, SEND_BUFFER_SIZE, "exit:%s", activeTagName.c_str());
 
