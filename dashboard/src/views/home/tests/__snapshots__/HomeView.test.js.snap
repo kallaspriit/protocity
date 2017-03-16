@@ -1,0 +1,322 @@
+exports[`HomeView api to be called 1`] = `
+<HomeView
+  apiError={null}
+  decrement={[Function]}
+  increment={[Function]}
+  isLoading={false}
+  loadApi={[Function]}
+  value={2}>
+  <div
+    className="HomeView babelPlugin babelPlugin babelPlugin btn123 isVisible"
+    onClick={[Function]}>
+    <img
+      alt="lolcat"
+      src="test-file-stub" />
+    <button
+      className="btn btn-decrement"
+      onClick={[Function]}>
+      -
+    </button>
+    2
+    <button
+      className="btn btn-increment"
+      onClick={[Function]}>
+      +
+    </button>
+    <br />
+    <button
+      className="btn btn-load-data"
+      onClick={[Function]}>
+      Load data from apisdg fgsdfg
+    </button>
+    <button
+      className="btn btn-load-data"
+      onClick={[Function]}>
+      Test api error
+    </button>
+    <p>
+      API state: 
+      Data not loaded
+    </p>
+    <br />
+    <input />
+  </div>
+</HomeView>
+`;
+
+exports[`HomeView have correct error state 1`] = `
+<HomeView
+  apiError="Api error"
+  decrement={[Function]}
+  increment={[Function]}
+  isLoading={false}
+  loadApi={[Function]}
+  value={2}>
+  <div
+    className="HomeView babelPlugin babelPlugin babelPlugin btn123 isVisible"
+    onClick={[Function]}>
+    <img
+      alt="lolcat"
+      src="test-file-stub" />
+    <button
+      className="btn btn-decrement"
+      onClick={[Function]}>
+      -
+    </button>
+    2
+    <button
+      className="btn btn-increment"
+      onClick={[Function]}>
+      +
+    </button>
+    <br />
+    <button
+      className="btn btn-load-data"
+      onClick={[Function]}>
+      Load data from apisdg fgsdfg
+    </button>
+    <button
+      className="btn btn-load-data"
+      onClick={[Function]}>
+      Test api error
+    </button>
+    <p>
+      API state: 
+      Api error
+    </p>
+    <br />
+    <input />
+  </div>
+</HomeView>
+`;
+
+exports[`HomeView have correct loading state 1`] = `
+<HomeView
+  apiError={null}
+  decrement={[Function]}
+  increment={[Function]}
+  isLoading={true}
+  loadApi={[Function]}
+  value={2}>
+  <div
+    className="HomeView babelPlugin babelPlugin babelPlugin btn123 isVisible"
+    onClick={[Function]}>
+    <img
+      alt="lolcat"
+      src="test-file-stub" />
+    <button
+      className="btn btn-decrement"
+      onClick={[Function]}>
+      -
+    </button>
+    2
+    <button
+      className="btn btn-increment"
+      onClick={[Function]}>
+      +
+    </button>
+    <br />
+    <button
+      className="btn btn-load-data"
+      onClick={[Function]}>
+      Load data from apisdg fgsdfg
+    </button>
+    <button
+      className="btn btn-load-data"
+      onClick={[Function]}>
+      Test api error
+    </button>
+    <p>
+      API state: 
+      Loading...
+    </p>
+    <br />
+    <input />
+  </div>
+</HomeView>
+`;
+
+exports[`HomeView have correct props 1`] = `
+<HomeView
+  apiError={null}
+  decrement={[Function]}
+  increment={[Function]}
+  isLoading={false}
+  loadApi={[Function]}
+  value={2}>
+  <div
+    className="HomeView babelPlugin babelPlugin babelPlugin btn123 isVisible"
+    onClick={[Function]}>
+    <img
+      alt="lolcat"
+      src="test-file-stub" />
+    <button
+      className="btn btn-decrement"
+      onClick={[Function]}>
+      -
+    </button>
+    2
+    <button
+      className="btn btn-increment"
+      onClick={[Function]}>
+      +
+    </button>
+    <br />
+    <button
+      className="btn btn-load-data"
+      onClick={[Function]}>
+      Load data from apisdg fgsdfg
+    </button>
+    <button
+      className="btn btn-load-data"
+      onClick={[Function]}>
+      Test api error
+    </button>
+    <p>
+      API state: 
+      Data not loaded
+    </p>
+    <br />
+    <input />
+  </div>
+</HomeView>
+`;
+
+exports[`HomeView have correct success state 1`] = `
+<HomeView
+  apiData="Test api success"
+  apiError={null}
+  decrement={[Function]}
+  increment={[Function]}
+  isLoading={false}
+  loadApi={[Function]}
+  value={2}>
+  <div
+    className="HomeView babelPlugin babelPlugin babelPlugin btn123 isVisible"
+    onClick={[Function]}>
+    <img
+      alt="lolcat"
+      src="test-file-stub" />
+    <button
+      className="btn btn-decrement"
+      onClick={[Function]}>
+      -
+    </button>
+    2
+    <button
+      className="btn btn-increment"
+      onClick={[Function]}>
+      +
+    </button>
+    <br />
+    <button
+      className="btn btn-load-data"
+      onClick={[Function]}>
+      Load data from apisdg fgsdfg
+    </button>
+    <button
+      className="btn btn-load-data"
+      onClick={[Function]}>
+      Test api error
+    </button>
+    <p>
+      API state: 
+      Test api success
+    </p>
+    <br />
+    <input />
+  </div>
+</HomeView>
+`;
+
+exports[`HomeView increment to be called 1`] = `
+<HomeView
+  apiError={null}
+  decrement={[Function]}
+  increment={[Function]}
+  isLoading={false}
+  loadApi={[Function]}
+  value={2}>
+  <div
+    className="HomeView babelPlugin babelPlugin babelPlugin btn123 isVisible"
+    onClick={[Function]}>
+    <img
+      alt="lolcat"
+      src="test-file-stub" />
+    <button
+      className="btn btn-decrement"
+      onClick={[Function]}>
+      -
+    </button>
+    2
+    <button
+      className="btn btn-increment"
+      onClick={[Function]}>
+      +
+    </button>
+    <br />
+    <button
+      className="btn btn-load-data"
+      onClick={[Function]}>
+      Load data from apisdg fgsdfg
+    </button>
+    <button
+      className="btn btn-load-data"
+      onClick={[Function]}>
+      Test api error
+    </button>
+    <p>
+      API state: 
+      Data not loaded
+    </p>
+    <br />
+    <input />
+  </div>
+</HomeView>
+`;
+
+exports[`HomeView renders correctly 1`] = `
+<HomeView
+  apiError={null}
+  decrement={[Function]}
+  increment={[Function]}
+  isLoading={false}
+  loadApi={[Function]}
+  value={1}>
+  <div
+    className="HomeView babelPlugin babelPlugin babelPlugin btn123 isVisible"
+    onClick={[Function]}>
+    <img
+      alt="lolcat"
+      src="test-file-stub" />
+    <button
+      className="btn btn-decrement"
+      onClick={[Function]}>
+      -
+    </button>
+    1
+    <button
+      className="btn btn-increment"
+      onClick={[Function]}>
+      +
+    </button>
+    <br />
+    <button
+      className="btn btn-load-data"
+      onClick={[Function]}>
+      Load data from apisdg fgsdfg
+    </button>
+    <button
+      className="btn btn-load-data"
+      onClick={[Function]}>
+      Test api error
+    </button>
+    <p>
+      API state: 
+      Data not loaded
+    </p>
+    <br />
+    <input />
+  </div>
+</HomeView>
+`;

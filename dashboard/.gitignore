@@ -1,0 +1,7 @@
+.idea/
+.vscode/crome
+build/
+node_modules/
+npm-debug.log
+config/developer.js
+coverage/
