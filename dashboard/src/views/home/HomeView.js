@@ -1,11 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import './HomeView.scss';
+import './home-view.scss';
 
 const HomeView = () => (
 	<div className="home-view">
-		<Link to="test">test</Link>
+		<Link to="train">train view</Link>
+		<Link to="truck">truck view</Link>
 	</div>
 );
+
+// trainview
+// truckview
+// parkingview
+// weatherview
 
 export default HomeView;
