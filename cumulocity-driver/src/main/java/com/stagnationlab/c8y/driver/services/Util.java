@@ -32,16 +32,6 @@ public final class Util {
 		);
 	}
 
-	public static MeasurementValue buildMeasurementValue(double value, String unit) {
-		return new MeasurementValue(
-				new BigDecimal(value),
-				unit,
-				ValueType.GAUGE,
-				"",
-				StateType.ORIGINAL
-		);
-	}
-
 	public static String buildOperationName(Class reference) {
     	return reference.getCanonicalName().replaceAll("\\.", "_");
 	}
@@ -68,6 +58,12 @@ public final class Util {
 
 	public static long since(long millis) {
     	return now() - millis;
+	}
+
+	public static float round(float value, int decimalPlaces) {
+		float factor = (float)Math.pow(10.0, decimalPlaces);
+
+		return (float)Math.round(value * factor) / factor;
 	}
 
 }

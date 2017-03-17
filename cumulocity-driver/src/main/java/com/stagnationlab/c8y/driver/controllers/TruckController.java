@@ -14,6 +14,7 @@ import com.stagnationlab.c8y.driver.measurements.BatteryMeasurement;
 import com.stagnationlab.c8y.driver.services.Config;
 import com.stagnationlab.c8y.driver.services.EventBroker;
 import com.stagnationlab.c8y.driver.services.TextToSpeech;
+import com.stagnationlab.c8y.driver.services.Util;
 import com.stagnationlab.etherio.Command;
 import com.stagnationlab.etherio.Commander;
 import com.stagnationlab.etherio.MessageTransport;
@@ -146,7 +147,7 @@ public class TruckController extends AbstractController {
 	private void requestBatteryVoltage() {
 		truckCommander.sendCommand(COMMAND_GET_BATTERY_VOLTAGE).thenAccept((Commander.CommandResponse result) -> {
 			boolean isCharging = result.response.getInt(0) == 1;
-			float batteryVoltage = result.response.getFloat(1);
+			float batteryVoltage = Util.round(result.response.getFloat(1), 2);
 			int batteryChargePercentage = result.response.getInt(2);
 
 			handleBatteryChargeStateChanged(isCharging, batteryVoltage, batteryChargePercentage);
@@ -168,7 +169,7 @@ public class TruckController extends AbstractController {
 			switch (command.name) {
 				case EVENT_BATTERY_STATE_CHANGED: {
 					boolean isCharging = command.getInt(0) == 1;
-					float batteryVoltage = command.getFloat(1);
+					float batteryVoltage = Util.round(command.getFloat(1), 2);
 					int batteryChargePercentage = command.getInt(2);
 
 					handleBatteryChargeStateChanged(isCharging, batteryVoltage, batteryChargePercentage);

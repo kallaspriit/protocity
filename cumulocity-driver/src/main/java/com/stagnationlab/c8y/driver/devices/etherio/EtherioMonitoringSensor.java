@@ -71,6 +71,13 @@ public class EtherioMonitoringSensor extends AbstractMonitoringSensor {
 		});
 	}
 
+	@Override
+	public void shutdown() {
+		super.shutdown();
+
+		stopPoller();
+	}
+
 	private void requestForVersion() {
 		log.debug("requesting for version of '{}'", id);
 
@@ -112,6 +119,10 @@ public class EtherioMonitoringSensor extends AbstractMonitoringSensor {
 	}
 
 	private void stopPoller() {
+		if (pollerInterval == null || pollerInterval.isDone() || pollerInterval.isCancelled()) {
+			return;
+		}
+
 		log.debug("stopping poller for '{}'", id);
 
 		pollerInterval.cancel(true);

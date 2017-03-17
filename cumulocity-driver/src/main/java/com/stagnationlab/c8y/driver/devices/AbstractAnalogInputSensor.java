@@ -1,8 +1,11 @@
 package com.stagnationlab.c8y.driver.devices;
 
+import lombok.extern.slf4j.Slf4j;
+
 import com.stagnationlab.c8y.driver.fragments.sensors.AnalogInputSensor;
 import com.stagnationlab.c8y.driver.measurements.AnalogMeasurement;
 
+@Slf4j
 public class AbstractAnalogInputSensor extends AbstractDevice {
 
 	protected final AnalogInputSensor state = new AnalogInputSensor();
@@ -25,6 +28,8 @@ public class AbstractAnalogInputSensor extends AbstractDevice {
 	}
 
 	protected void handleValueChange(float value) {
+		log.trace("analog input '{}' value changed to {}", id, value);
+
 		state.setValue(value);
 		updateState(state);
 

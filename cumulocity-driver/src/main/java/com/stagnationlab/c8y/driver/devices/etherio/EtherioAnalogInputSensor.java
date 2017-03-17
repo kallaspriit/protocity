@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import com.stagnationlab.c8y.driver.Gateway;
 import com.stagnationlab.c8y.driver.devices.AbstractAnalogInputSensor;
+import com.stagnationlab.c8y.driver.services.Util;
 import com.stagnationlab.etherio.Commander;
 import com.stagnationlab.etherio.MessageTransport;
 import com.stagnationlab.etherio.PortController;
@@ -87,6 +88,13 @@ public class EtherioAnalogInputSensor extends AbstractAnalogInputSensor {
 		});
 	}
 
+	@Override
+	public void shutdown() {
+		super.shutdown();
+
+		stopPoller();
+	}
+
 	private void startValueListener() {
 		portController.listenAnalogValueChange(CHANGE_THRESHOLD, MIN_INTERVAL_MS);
 	}
@@ -108,13 +116,17 @@ public class EtherioAnalogInputSensor extends AbstractAnalogInputSensor {
 	}
 
 	private void stopPoller() {
+		if (pollerInterval == null || pollerInterval.isDone() || pollerInterval.isCancelled()) {
+			return;
+		}
+
 		log.debug("stopping poller for '{}'", id);
 
 		pollerInterval.cancel(true);
 	}
 
 	private float getTransformedValue(float value) {
-		return Math.round(value * VALUE_MULTIPLIER);
+		return Util.round(value * VALUE_MULTIPLIER, 1);
 	}
 
 }

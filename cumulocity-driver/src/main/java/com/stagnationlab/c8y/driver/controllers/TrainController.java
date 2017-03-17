@@ -235,7 +235,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 					case EVENT_BATTERY_STATE_CHANGED: {
 						boolean isCharging = command.getInt(0) == 1;
-						float batteryVoltage = command.getFloat(1);
+						float batteryVoltage = Util.round(command.getFloat(1), 2);
 						int batteryChargePercentage = command.getInt(2);
 
 						handleBatteryChargeStateChanged(isCharging, batteryVoltage, batteryChargePercentage);
@@ -265,7 +265,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 		private void requestBatteryVoltage() {
 			commander.sendCommand(COMMAND_GET_BATTERY_VOLTAGE).thenAccept((Commander.CommandResponse result) -> {
 				boolean isCharging = result.response.getInt(0) == 1;
-				float batteryVoltage = result.response.getFloat(1);
+				float batteryVoltage = Util.round(result.response.getFloat(1), 2);
 				int batteryChargePercentage = result.response.getInt(2);
 
 				handleBatteryChargeStateChanged(isCharging, batteryVoltage, batteryChargePercentage);
