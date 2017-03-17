@@ -5,8 +5,8 @@ import com.stagnationlab.c8y.driver.measurements.AnalogMeasurement;
 
 public class AbstractAnalogInputSensor extends AbstractDevice {
 
-	private final AnalogInputSensor analogInputSensor = new AnalogInputSensor();
-	private final String unit;
+	protected final AnalogInputSensor state = new AnalogInputSensor();
+	protected final String unit;
 
 	protected AbstractAnalogInputSensor(String id, String unit) {
 		super(id);
@@ -16,23 +16,23 @@ public class AbstractAnalogInputSensor extends AbstractDevice {
 
 	@Override
 	protected String getType() {
-		return analogInputSensor.getClass().getSimpleName();
+		return state.getClass().getSimpleName();
 	}
 
 	@Override
 	protected Object getSensorFragment() {
-		return analogInputSensor;
+		return state;
 	}
 
-	protected void setValue(float value) {
-		analogInputSensor.setValue(value);
+	protected void handleValueChange(float value) {
+		state.setValue(value);
+		updateState(state);
 
-		updateState(analogInputSensor);
 		sendMeasurement();
 	}
 
 	private void sendMeasurement() {
-		AnalogMeasurement measurement = new AnalogMeasurement(analogInputSensor.getValue(), unit);
+		AnalogMeasurement measurement = new AnalogMeasurement(state.getValue(), unit);
 
 		reportMeasurement(measurement);
 	}

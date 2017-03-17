@@ -16,9 +16,9 @@ public class EtherioMonitoringSensor extends AbstractMonitoringSensor {
 	private final Commander commander;
 	private ScheduledFuture<?> pollerInterval;
 
-	private static final int POLL_INTERVAL = 60000;
 	private static final String COMMAND_GET_VERSION = "version";
 	private static final String COMMAND_GET_MEMORY = "memory";
+	private static final int POLL_INTERVAL = 60000;
 
 	public EtherioMonitoringSensor(String id, Commander commander, String name, String host, int port) {
 		super(id, name, host, port);
@@ -36,7 +36,6 @@ public class EtherioMonitoringSensor extends AbstractMonitoringSensor {
 				log.debug("connection to monitoring commander of '{}' has been {}", id, isFirstConnect ? "established" : "re-established");
 
 				requestForVersion();
-
 				startPoller();
 
 				state.setState(MonitoringSensor.State.CONNECTED);

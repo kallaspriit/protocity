@@ -47,7 +47,7 @@ public class EtherioTagSensor extends AbstractTagSensor {
 				log.debug("connection to tag sensor '{}' commander has been {}, enabling it", id, isFirstConnect ? "established" : "re-established");
 
 				if (isFirstConnect) {
-					setupEventListener();
+					addEventListeners();
 				}
 
 				portController.sendPortCommand(TAG_SENSOR_CAPABILITY, COMMAND_ENABLE).thenAccept(commandResponse -> {
@@ -82,7 +82,7 @@ public class EtherioTagSensor extends AbstractTagSensor {
 		super.shutdown();
 	}
 
-	private void setupEventListener() {
+	private void addEventListeners() {
 		portController.addEventListener(new PortController.PortEventListener() {
 			@Override
 			public void onPortCapabilityUpdate(int id, String capabilityName, List<String> arguments) {

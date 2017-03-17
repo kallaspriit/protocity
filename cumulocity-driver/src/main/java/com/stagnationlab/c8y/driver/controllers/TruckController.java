@@ -5,7 +5,9 @@ import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
+import com.stagnationlab.c8y.driver.devices.AbstractAnalogInputSensor;
 import com.stagnationlab.c8y.driver.devices.AbstractMultiDacActuator;
+import com.stagnationlab.c8y.driver.devices.etherio.EtherioAnalogInputSensor;
 import com.stagnationlab.c8y.driver.devices.etherio.EtherioMultiDacActuator;
 import com.stagnationlab.c8y.driver.fragments.controllers.Truck;
 import com.stagnationlab.c8y.driver.measurements.BatteryMeasurement;
@@ -48,6 +50,7 @@ public class TruckController extends AbstractController {
 
 		setupTruck();
 		setupIndicator();
+		setupSolarPanel();
 	}
 
 	private void setupTruck() {
@@ -65,6 +68,19 @@ public class TruckController extends AbstractController {
 		indicatorDriver = new EtherioMultiDacActuator("Truck controller indicator led driver", indicatorCommander, port, channelCount);
 
 		registerChild(indicatorDriver);
+	}
+
+	private void setupSolarPanel() {
+		String commanderName = config.getString("truck.solar.commander");
+		int port = config.getInt("truck.solar.port");
+
+		log.debug("setting up solar panel on commander {} port {}", commanderName, port);
+
+		Commander solarCommander = getCommanderByName(commanderName);
+
+		AbstractAnalogInputSensor solarPanelSensor = new EtherioAnalogInputSensor("Truck solar panel", solarCommander, port, "kW");
+
+		registerChild(solarPanelSensor);
 	}
 
 	@Override
