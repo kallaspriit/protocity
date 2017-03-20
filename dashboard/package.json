@@ -57,7 +57,7 @@
     "rimraf": "^2.6.1",
     "sass-loader": "^6.0.2",
     "strip-ansi": "^3.0.1",
-    "style-loader": "^0.13.2",
+    "style-loader": "^0.14.1",
     "webpack": "^2.2.1",
     "webpack-dev-server": "^2.4.1"
   },
