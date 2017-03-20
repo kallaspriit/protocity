@@ -1,10 +1,74 @@
+@import "~normalize.css";
+
+@font-face {
+	font-family: Pebble;
+	src: url("./fonts/Pebble_W_Rg.ttf");
+	font-weight: regular;
+}
+
 * {
 	box-sizing: border-box;
 }
 
+html {
+	font-size: 10px;
+}
+
 body {
-	font: 14px/1.4 Arial, sans-serif;
-	color: #111;
+	font: 1.8rem/1.4 "HelveticaNeueLTPro-Roman", Arial, Helvetica, sans-serif;
+	color: #000;
 	background: #efefef;
 	margin: 0 auto;
+}
+
+h1, 
+.h1 {
+	font-family: Pebble, Arial, Helvetica, sans-serif;
+	font-size: 3.4rem;
+	text-transform: uppercase;
+}
+
+h2,
+.h2 {
+	font-size: 1.9rem;
+	font-weight: normal;
+}
+
+.header {
+	display: flex;
+	align-items: center;
+	// height: 130px;
+	height: 12%;
+	padding-left: 40px;
+
+	 &__bg {
+	 	// background-image: url('./backgrounds/bg-weather.svg');
+	 	&--weather {
+			background: #000 no-repeat 50%;
+			background-size: cover;
+	 		background-image: url('./backgrounds/bg-weather.svg');
+	 		background-image: url('./backgrounds/images.jpg');
+	 	}
+	}
+
+	&__icon {
+		flex-grow: 0;
+		height: 20px;
+		padding-right: 40px; 
+	}
+
+	&__title {
+		flex-grow: 2;
+		color:#fff;
+		padding-top:12px;
+	}
+}
+
+.content {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	// height: 410px;
+	height: 38%;
+	padding: 0 40px;
 }

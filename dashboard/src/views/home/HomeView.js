@@ -6,6 +6,7 @@ const HomeView = () => (
 	<div className="home-view">
 		<Link to="train">train view</Link>
 		<Link to="truck">truck view</Link>
+		<Link to="weather">weather view</Link>
 	</div>
 );
 

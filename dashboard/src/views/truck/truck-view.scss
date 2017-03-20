@@ -1,3 +1,9 @@
 .truck-view {
-	
-}
+	display: flex;
+	flex-direction: column;
+	width: 50vw;
+	height: 100vh;
+	background: #fff;
+	min-width: 400px;
+} 
+
