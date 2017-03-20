@@ -27,6 +27,10 @@ public class AbstractAnalogInputSensor extends AbstractDevice {
 		return state;
 	}
 
+	public AnalogInputSensor getState() {
+		return state;
+	}
+
 	protected void handleValueChange(float value) {
 		log.trace("analog input '{}' value changed to {}", id, value);
 

@@ -26,7 +26,9 @@ public class TruckController extends AbstractController {
 	private Commander truckCommander;
 	private Commander indicatorCommander;
 	private AbstractMultiDacActuator indicatorDriver;
+	private AbstractAnalogInputSensor solarPanelSensor;
 	private int indicatorChannel = 0;
+	private float truckBaseChargePower = 0.0f;
 
 	private static final String COMMAND_GET_BATTERY_VOLTAGE = "battery";
 	private static final String EVENT_BATTERY_STATE_CHANGED = "battery-state-changed";
@@ -74,12 +76,13 @@ public class TruckController extends AbstractController {
 	private void setupSolarPanel() {
 		String commanderName = config.getString("truck.solar.commander");
 		int port = config.getInt("truck.solar.port");
+		truckBaseChargePower = config.getFloat("truck.solar.baseChargePower");
 
 		log.debug("setting up solar panel on commander {} port {}", commanderName, port);
 
 		Commander solarCommander = getCommanderByName(commanderName);
 
-		AbstractAnalogInputSensor solarPanelSensor = new EtherioAnalogInputSensor("Truck solar panel", solarCommander, port, "kW");
+		solarPanelSensor = new EtherioAnalogInputSensor("Truck solar panel", solarCommander, port, "kW");
 
 		registerChild(solarPanelSensor);
 	}
@@ -147,7 +150,7 @@ public class TruckController extends AbstractController {
 	private void requestBatteryVoltage() {
 		truckCommander.sendCommand(COMMAND_GET_BATTERY_VOLTAGE).thenAccept((Commander.CommandResponse result) -> {
 			boolean isCharging = result.response.getInt(0) == 1;
-			float batteryVoltage = Util.round(result.response.getFloat(1), 2);
+			float batteryVoltage = result.response.getFloat(1);
 			int batteryChargePercentage = result.response.getInt(2);
 
 			handleBatteryChargeStateChanged(isCharging, batteryVoltage, batteryChargePercentage);
@@ -169,7 +172,7 @@ public class TruckController extends AbstractController {
 			switch (command.name) {
 				case EVENT_BATTERY_STATE_CHANGED: {
 					boolean isCharging = command.getInt(0) == 1;
-					float batteryVoltage = Util.round(command.getFloat(1), 2);
+					float batteryVoltage = command.getFloat(1);
 					int batteryChargePercentage = command.getInt(2);
 
 					handleBatteryChargeStateChanged(isCharging, batteryVoltage, batteryChargePercentage);
@@ -195,18 +198,42 @@ public class TruckController extends AbstractController {
 		}
 
 		state.setIsCharging(isCharging);
-		state.setBatteryVoltage(batteryVoltage);
+		state.setBatteryVoltage(Util.round(batteryVoltage, 2));
 		state.setBatteryChargePercentage(batteryChargePercentage);
 
 		updateState(state);
 		reportMeasurement(new BatteryMeasurement(batteryVoltage, batteryChargePercentage, isCharging));
 
 		indicatorDriver.setChannelValue(indicatorChannel, isCharging ? 0.0f : 1.0f);
+
+		updateGridPower(isCharging, batteryChargePercentage, solarPanelSensor.getState().getValue());
+	}
+
+	// TODO call this also when grid output changes
+	private void updateGridPower(boolean isCharging, int batteryChargePercentage, float gridOutputPower) {
+		float truckChargePower = calculateTruckChargePower(isCharging, batteryChargePercentage);
+		float gridUsagePower = calculateGridUsagePower(truckChargePower, gridOutputPower);
+
+		log.debug("truck charge power: {}kW, grid output: {}kW, grid usage: {}kW", truckChargePower, gridOutputPower, gridUsagePower);
+
+		// TODO report to Cumulocity
 	}
 
 	private void setIsRunning(boolean isRunning) {
 		state.setIsRunning(isRunning);
 
 		updateState(state);
+	}
+
+	private float calculateTruckChargePower(boolean isCharging, int batteryChargePercentage) {
+		if (!isCharging) {
+			return 0.0f;
+		}
+
+		return truckBaseChargePower * (float)Util.map((double)batteryChargePercentage, 50.0, 100.0, (double)truckBaseChargePower, (double)truckBaseChargePower * 0.2);
+	}
+
+	private float calculateGridUsagePower(float truckChargePower, float solarPanelOutputPower) {
+		return solarPanelOutputPower - truckChargePower;
 	}
 }
