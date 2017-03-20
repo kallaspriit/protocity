@@ -2,6 +2,7 @@ package com.stagnationlab.c8y.driver.controllers;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ScheduledFuture;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -11,8 +12,11 @@ import com.stagnationlab.c8y.driver.devices.etherio.EtherioAnalogInputSensor;
 import com.stagnationlab.c8y.driver.devices.etherio.EtherioMultiDacActuator;
 import com.stagnationlab.c8y.driver.fragments.controllers.Truck;
 import com.stagnationlab.c8y.driver.measurements.BatteryMeasurement;
+import com.stagnationlab.c8y.driver.measurements.ChargePowerMeasurement;
+import com.stagnationlab.c8y.driver.measurements.GridPowerBalanceMeasurement;
 import com.stagnationlab.c8y.driver.services.Config;
 import com.stagnationlab.c8y.driver.services.EventBroker;
+import com.stagnationlab.c8y.driver.services.SimulatedVariance;
 import com.stagnationlab.c8y.driver.services.TextToSpeech;
 import com.stagnationlab.c8y.driver.services.Util;
 import com.stagnationlab.etherio.Command;
@@ -29,7 +33,10 @@ public class TruckController extends AbstractController {
 	private AbstractAnalogInputSensor solarPanelSensor;
 	private int indicatorChannel = 0;
 	private float truckBaseChargePower = 0.0f;
+	private SimulatedVariance chargePowerVariance;
+	private ScheduledFuture<?> chargePowerInterval;
 
+	public static final int CHARGE_POWER_INTERVAL_MS = 10000;
 	private static final String COMMAND_GET_BATTERY_VOLTAGE = "battery";
 	private static final String EVENT_BATTERY_STATE_CHANGED = "battery-state-changed";
 
@@ -52,6 +59,7 @@ public class TruckController extends AbstractController {
 		log.info("setting up truck controller");
 
 		setupTruck();
+		setupChargeVariance();
 		setupIndicator();
 		setupSolarPanel();
 	}
@@ -59,6 +67,20 @@ public class TruckController extends AbstractController {
 	private void setupTruck() {
 		String commanderName = config.getString("truck.commander");
 		truckCommander = getCommanderByName(commanderName);
+	}
+
+	private void setupChargeVariance() {
+		float maxVelocity = config.getFloat("truck.charge.variance.maxVelocity");
+		float maxChangePercentage = config.getFloat("truck.charge.variance.maxChangePercentage");
+		float minValue = config.getFloat("truck.charge.variance.minValue");
+		float maxValue = config.getFloat("truck.charge.variance.maxValue");
+
+		chargePowerVariance = new SimulatedVariance(
+				maxVelocity,
+				maxChangePercentage,
+				minValue,
+				maxValue
+		);
 	}
 
 	private void setupIndicator() {
@@ -83,6 +105,8 @@ public class TruckController extends AbstractController {
 		Commander solarCommander = getCommanderByName(commanderName);
 
 		solarPanelSensor = new EtherioAnalogInputSensor("Truck solar panel", solarCommander, port, "kW");
+
+		solarPanelSensor.addListener(this::onSolarPanelOutputChange);
 
 		registerChild(solarPanelSensor);
 	}
@@ -191,9 +215,9 @@ public class TruckController extends AbstractController {
 
 		if (state.getIsCharging() != isCharging) {
 			if (isCharging) {
-				TextToSpeech.INSTANCE.speak("Electric truck is now charging", true);
+				handleTruckStartedCharging();
 			} else {
-				TextToSpeech.INSTANCE.speak("Electric truck is not charging any more, the battery is at " + batteryChargePercentage + " percent", true);
+				handleTruckStoppedCharging();
 			}
 		}
 
@@ -202,21 +226,59 @@ public class TruckController extends AbstractController {
 		state.setBatteryChargePercentage(batteryChargePercentage);
 
 		updateState(state);
+
 		reportMeasurement(new BatteryMeasurement(batteryVoltage, batteryChargePercentage, isCharging));
 
 		indicatorDriver.setChannelValue(indicatorChannel, isCharging ? 0.0f : 1.0f);
 
-		updateGridPower(isCharging, batteryChargePercentage, solarPanelSensor.getState().getValue());
+		updateGridPower();
 	}
 
-	// TODO call this also when grid output changes
-	private void updateGridPower(boolean isCharging, int batteryChargePercentage, float gridOutputPower) {
+	private void handleTruckStartedCharging() {
+		TextToSpeech.INSTANCE.speak("Electric truck is now charging", true);
+
+		// simulate periodic change of charging power
+		clearChargeInterval();
+
+		chargePowerInterval = setInterval(this::updateGridPower, CHARGE_POWER_INTERVAL_MS);
+	}
+
+	private void handleTruckStoppedCharging() {
+		TextToSpeech.INSTANCE.speak("Electric truck is not charging any more, the battery is at " + state.getBatteryChargePercentage() + " percent", true);
+
+		clearChargeInterval();
+	}
+
+	private void clearChargeInterval() {
+		if (chargePowerInterval != null && !chargePowerInterval.isCancelled()) {
+			chargePowerInterval.cancel(true);
+		}
+	}
+
+	private void onSolarPanelOutputChange(float solarOutputPower) {
+		log.debug("solar panel output changed to {}kW", solarOutputPower);
+
+		updateGridPower();
+	}
+
+	private void updateGridPower() {
+		boolean isCharging = state.getIsCharging();
+		int batteryChargePercentage = state.getBatteryChargePercentage();
+		float solarOutputPower = solarPanelSensor.getState().getValue();
 		float truckChargePower = calculateTruckChargePower(isCharging, batteryChargePercentage);
-		float gridUsagePower = calculateGridUsagePower(truckChargePower, gridOutputPower);
+		float gridPowerBalance = calculateGridPowerBalance(truckChargePower, solarOutputPower);
 
-		log.debug("truck charge power: {}kW, grid output: {}kW, grid usage: {}kW", truckChargePower, gridOutputPower, gridUsagePower);
+		log.debug(
+				"truck {}, solar panel output: {}kW, {} the grid: {}kW"
+				, isCharging ? "charging at " + Util.round(truckChargePower, 1) + "kW" : "not charging",
+				Util.round(solarOutputPower, 1),
+				gridPowerBalance > 0 ? "selling to" : "buying from",
+				Util.round(Math.abs(gridPowerBalance), 1)
+		);
 
-		// TODO report to Cumulocity
+		// report charge power and grid power balance measurements
+		reportMeasurement(new ChargePowerMeasurement(calculateTruckChargePower(isCharging, batteryChargePercentage), "kW"));
+		reportMeasurement(new GridPowerBalanceMeasurement(Util.round(gridPowerBalance, 1), "kW"));
 	}
 
 	private void setIsRunning(boolean isRunning) {
@@ -230,10 +292,14 @@ public class TruckController extends AbstractController {
 			return 0.0f;
 		}
 
-		return truckBaseChargePower * (float)Util.map((double)batteryChargePercentage, 50.0, 100.0, (double)truckBaseChargePower, (double)truckBaseChargePower * 0.2);
+		// make the chart a bit more interesting by introducing slight variations
+		float value = truckBaseChargePower * Util.map(batteryChargePercentage, 50.0f, 100.0f, 1.0f, 0.2f);
+		float variance = chargePowerVariance.getUpdatedVariance();
+
+		return value + variance;
 	}
 
-	private float calculateGridUsagePower(float truckChargePower, float solarPanelOutputPower) {
+	private float calculateGridPowerBalance(float truckChargePower, float solarPanelOutputPower) {
 		return solarPanelOutputPower - truckChargePower;
 	}
 }

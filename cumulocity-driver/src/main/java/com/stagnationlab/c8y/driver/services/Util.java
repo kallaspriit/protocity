@@ -2,6 +2,7 @@ package com.stagnationlab.c8y.driver.services;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
+import java.util.Random;
 
 import org.svenson.JSON;
 
@@ -11,11 +12,9 @@ import com.cumulocity.model.measurement.ValueType;
 
 public final class Util {
 
-	private Util() {}
+	private static Random random = new Random();
 
-    public static double map(double value, double inMin, double inMax, double outMin, double outMax) {
-        return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
-    }
+	private Util() {}
 
     public static String stringify(Object obj) {
         return JSON.defaultJSON().forValue(obj);
@@ -64,6 +63,14 @@ public final class Util {
 		float factor = (float)Math.pow(10.0, decimalPlaces);
 
 		return (float)Math.round(value * factor) / factor;
+	}
+
+	// http://stackoverflow.com/a/9723994
+	public static float getRandomFloatInRange(float min, float max) {
+		float range = max - min;
+		float scaled = random.nextFloat() * range;
+
+		return scaled + min;
 	}
 
 }
