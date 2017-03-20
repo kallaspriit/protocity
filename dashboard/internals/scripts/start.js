@@ -1,6 +1,4 @@
-/* eslint-disable no-console, import/first, import/no-dynamic-require, global-require */
-
-process.env.NODE_ENV = 'development';
+/* eslint-disable no-console, import/no-dynamic-require, global-require */
 
 import chalk from 'chalk';
 import webpack from 'webpack';

@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "lint": "eslint .",
-    "start": "babel-node ./internals/scripts/start.js",
-    "build": "babel-node ./internals/scripts/build.js",
-    "test": "babel-node ./internals/scripts/test.js --env=jsdom"
+    "start": "cross-env NODE_ENV=development babel-node ./internals/scripts/start.js",
+    "build": "cross-env NODE_ENV=production babel-node ./internals/scripts/build.js",
+    "test": "cross-env NODE_ENV=test babel-node ./internals/scripts/test.js --env=jsdom"
   },
   "author": "",
   "license": "ISC",
@@ -35,9 +35,10 @@
     "enzyme-to-json": "^1.5.0",
     "eslint": "^3.17.1",
     "eslint-config-sl": "^3.0.0",
-    "extract-text-webpack-plugin": "^2.0.0",
+    "extract-text-webpack-plugin": "^2.1.0",
     "file-loader": "^0.10.1",
     "filesize": "^3.5.5",
+    "fs-extra": "^2.1.2",
     "gzip-size": "^3.0.0",
     "hard-source-webpack-plugin": "^0.3.11",
     "html-loader": "^0.4.5",
@@ -80,6 +81,7 @@
   },
   "dependencies": {
     "classnames": "^2.2.5",
+    "cross-env": "^3.2.4",
     "normalize.css": "^5.0.0",
     "react": "^15.4.2",
     "react-dom": "^15.4.2",

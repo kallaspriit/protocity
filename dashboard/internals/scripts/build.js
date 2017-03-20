@@ -1,84 +1,68 @@
-/* eslint-disable no-console, import/first */
-/* eslint no-param-reassign: ["error", { "props": false }] */
+/* eslint-disable no-console, import/no-dynamic-require, global-require */
 
-// Do this as the first thing so that any code reading it knows the right env.
-process.env.NODE_ENV = 'production';
-
-import fs from 'fs';
-import { sync as rimrafSync } from 'rimraf';
 import chalk from 'chalk';
-import filesize from 'filesize';
-import { sync as gzipSize } from 'gzip-size';
-import recursive from 'recursive-readdir';
+import fs from 'fs-extra';
 import path from 'path';
 import webpack from 'webpack';
-import stripAnsi from 'strip-ansi';
+import checkRequiredFiles from 'react-dev-utils/checkRequiredFiles';
+import FileSizeReporter from 'react-dev-utils/FileSizeReporter';
 import config from '../webpack/webpack.prod.babel';
+import paths from '../paths';
 
-const buildPath = path.resolve(__dirname, '../build');
+process.on('unhandledRejection', (err) => {
+	throw err;
+});
 
-// Input: /User/dan/app/build/static/js/main.82be8.js
-// Output: /static/js/main.js
-function removeFileNameHash(fileName) {
-	return fileName
-		.replace(buildPath, '')
-		.replace(/\/?(.*)(\.\w+)(\.js|\.css)/, (match, p1, p2, p3) => p1 + p3);
+// https://github.com/motdotla/dotenv
+require('dotenv').config({ silent: true });
+
+const measureFileSizesBeforeBuild = FileSizeReporter.measureFileSizesBeforeBuild;
+const printFileSizesAfterBuild = FileSizeReporter.printFileSizesAfterBuild;
+
+// Warn and crash if required files are missing
+if (!checkRequiredFiles([paths.indexHtml, paths.indexJs])) {
+	process.exit(1);
 }
 
-// Input: 1024, 2048
-// Output: "(+1 KB)"
-function getDifferenceLabel(currentSize, previousSize) {
-	const FIFTY_KILOBYTES = 1024 * 50;
-	const difference = currentSize - previousSize;
-	const fileSize = !Number.isNaN(difference) ? filesize(difference) : 0;
-	if (difference >= FIFTY_KILOBYTES) {
-		return chalk.red(`+${fileSize}`);
-	} else if (difference < FIFTY_KILOBYTES && difference > 0) {
-		return chalk.yellow(`+${fileSize}`);
-	} else if (difference < 0) {
-		return chalk.green(fileSize);
-	}
-	return '';
-}
 
-// Print a detailed summary of build files.
-function printFileSizes(stats, previousSizeMap) {
-	const assets = stats.toJson().assets
-		.filter(asset => /\.(js|css)$/.test(asset.name))
-		.map((asset) => {
-			const fileContents = fs.readFileSync(`${buildPath}/${asset.name}`);
-			const size = gzipSize(fileContents);
-			const previousSize = previousSizeMap[`\\${removeFileNameHash(asset.name)}`];
-			const difference = getDifferenceLabel(size, previousSize);
-			return {
-				folder: path.join('build', path.dirname(asset.name)),
-				name: path.basename(asset.name),
-				size,
-				sizeLabel: filesize(size) + (difference ? ` (${difference})` : ''),
-			};
-		});
-	assets.sort((a, b) => b.size - a.size);
-	const longestSizeLabelLength = Math.max.apply(null,
-		assets.map(a => stripAnsi(a.sizeLabel).length),
-	);
-	assets.forEach((asset) => {
-		let sizeLabel = asset.sizeLabel;
-		const sizeLength = stripAnsi(sizeLabel).length;
-		if (sizeLength < longestSizeLabelLength) {
-			const rightPadding = ' '.repeat(longestSizeLabelLength - sizeLength);
-			sizeLabel += rightPadding;
-		}
-		console.log(` ${sizeLabel} ${chalk.dim(asset.folder + path.sep)}${chalk.cyan(asset.name)}`);
+// Print out errors
+function printErrors(summary, errors) {
+	console.log(chalk.red(summary));
+	console.log();
+	errors.forEach((err) => {
+		console.log(err.message || err);
+		console.log();
 	});
 }
 
 // Create the production build and print the deployment instructions.
-function build(previousSizeMap) {
+function build(previousFileSizes) {
 	console.log('Creating an optimized production build...');
-	webpack(config).run((err, stats) => {
+
+	let compiler;
+	try {
+		compiler = webpack(config);
+	} catch (err) {
+		printErrors('Failed to compile.', [err]);
+		process.exit(1);
+	}
+
+	compiler.run((err, stats) => {
 		if (err) {
-			console.error('Failed to create a production build. Reason:');
-			console.error(err.message || err);
+			printErrors('Failed to compile.', [err]);
+			process.exit(1);
+		}
+
+		if (stats.compilation.errors.length) {
+			printErrors('Failed to compile.', stats.compilation.errors);
+			process.exit(1);
+		}
+
+		if (process.env.CI && stats.compilation.warnings.length) {
+			printErrors(
+				'Failed to compile. When process.env.CI = true, warnings are treated as failures.',
+				stats.compilation.warnings,
+			);
 			process.exit(1);
 		}
 
@@ -87,27 +71,35 @@ function build(previousSizeMap) {
 
 		console.log('File sizes after gzip:');
 		console.log();
-		printFileSizes(stats, previousSizeMap);
+		printFileSizesAfterBuild(stats, previousFileSizes);
+		console.log();
+
+		console.log(`The ${chalk.cyan(path.relative(process.cwd(), paths.build))} folder is ready to be deployed.`);
+		console.log('You may serve it with a static server:');
+		console.log();
+
+		console.log(`  ${chalk.cyan('npm')} install -g serve`);
+		console.log(`  ${chalk.cyan('serve')} -s build`);
 		console.log();
 	});
 }
 
-// First, read the current file sizes in build directory.
-// This lets us display how much they changed later.
-recursive(buildPath, (err, fileNames) => {
-	const previousSizeMap = (fileNames || [])
-		.filter(fileName => /\.(js|css)$/.test(fileName))
-		.reduce((memo, fileName) => {
-			const contents = fs.readFileSync(fileName);
-			const key = removeFileNameHash(fileName);
-			memo[key] = gzipSize(contents);
-			return memo;
-		}, {});
+function copyPublicFolder() {
+	fs.copySync(paths.public, paths.build, {
+		dereference: true,
+		filter: file => file !== paths.indexHtml,
+	});
+}
 
+
+measureFileSizesBeforeBuild(paths.build).then((previousFileSizes) => {
 	// Remove all content but keep the directory so that
 	// if you're in it, you don't end up in Trash
-	rimrafSync(`${buildPath}/*`);
+	fs.emptyDirSync(paths.build);
 
 	// Start the webpack build
-	build(previousSizeMap);
+	build(previousFileSizes);
+
+	// Merge with the public folder
+	copyPublicFolder();
 });

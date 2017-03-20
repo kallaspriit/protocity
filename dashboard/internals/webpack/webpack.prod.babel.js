@@ -1,74 +1,48 @@
-import path from 'path';
 import webpack from 'webpack';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
-import ExtractTextPlugin from 'extract-text-webpack-plugin';
-import autoprefixer from 'autoprefixer';
+import paths from '../paths';
+import webpackBase from './webpack.base.babel';
 
-const srcPath = path.resolve(__dirname, '..', 'src');
-const buildPath = path.resolve(__dirname, '..', 'build');
-
-export default {
-	bail: true,
-	devtool: 'source-map',
-	entry: path.join(srcPath, 'index'),
-	output: {
-		path: buildPath,
-		filename: '[name].[chunkhash].js',
-		chunkFilename: '[name].[chunkhash].chunk.js',
-		publicPath: '/',
-	},
-
-	module: {
-		loaders: [{
-			test: /\.js$/,
-			exclude: /node_modules/,
-			loader: 'babel-loader',
-			query: {
-				plugins: [
-					'transform-react-inline-elements',
-					'transform-react-constant-elements',
-				],
-			},
-		}, {
-			test: /\.scss/,
-			loader: ExtractTextPlugin.extract({
-				fallbackLoader: 'style',
-				loader: ['css?sourceMap!postcss?sourceMap!sass?sourceMap'],
-			}),
-			exclude: /node_modules/,
-		}, {
-			test: /\.(jpg|jpeg|gif|png|svg|woff|woff2)$/,
-			loader: `url?limit=10000&name=[path][name].[ext]&context=${__dirname}`,
-			exclude: /node_modules/,
-		}],
-	},
-
-	postcss: () => [
-		autoprefixer({
-			browsers: [
-				'>1%',
-				'last 4 versions',
-				'Firefox ESR',
-				'not ie < 9',
-			],
-		}),
+export default (webpackBase)({
+	// In production, we skip all hot-reloading stuff
+	entry: [
+		paths.indexJs,
 	],
+
+	// Utilize long-term caching by adding content hashes (not compilation hashes) to compiled assets
+	output: {
+		filename: '[name].[hash:8].js',
+		chunkFilename: '[name].[hash:8].chunk.js',
+	},
 
 	plugins: [
-		new HtmlWebpackPlugin({
-			inject: true,
-			template: path.join(srcPath, 'index.template.html'),
-			favicon: path.join(srcPath, 'gfx/favicon.ico'),
+		new webpack.optimize.CommonsChunkPlugin({
+			name: 'vendor',
+			children: true,
+			minChunks: 2,
+			async: true,
 		}),
-		new webpack.DefinePlugin({ 'process.env.NODE_ENV': '"production"' }),
-		new webpack.optimize.OccurrenceOrderPlugin(),
-		new webpack.optimize.DedupePlugin(),
-		new ExtractTextPlugin('[name].[contenthash].css'),
-		new webpack.optimize.UglifyJsPlugin({
-			sourceMap: true,
-			compressor: {
-				warnings: false,
+
+		// Minify and optimize the index.html
+		new HtmlWebpackPlugin({
+			template: paths.indexHtml,
+			minify: {
+				removeComments: true,
+				collapseWhitespace: true,
+				removeRedundantAttributes: true,
+				useShortDoctype: true,
+				removeEmptyAttributes: true,
+				removeStyleLinkTypeAttributes: true,
+				keepClosingSlash: true,
+				minifyJS: true,
+				minifyCSS: true,
+				minifyURLs: true,
 			},
+			inject: true,
 		}),
 	],
-};
+
+	performance: {
+		assetFilter: assetFilename => !(/(\.map$)|(^(main\.|favicon\.))/.test(assetFilename)),
+	},
+});

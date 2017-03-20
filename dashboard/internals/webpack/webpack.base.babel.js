@@ -1,5 +1,6 @@
 import webpack from 'webpack';
 import autoprefixer from 'autoprefixer';
+import ExtractTextPlugin from 'extract-text-webpack-plugin';
 import InterpolateHtmlPlugin from 'react-dev-utils/InterpolateHtmlPlugin';
 import dotenv from 'dotenv';
 import paths from '../paths';
@@ -15,6 +16,30 @@ const includedPaths = [
 	paths.src,
 	paths.config,
 ];
+
+const extractSass = new ExtractTextPlugin({
+	filename: '[name].[contenthash:8].css',
+	disable: process.env.NODE_ENV === 'development',
+});
+
+const postCssOptions = {
+	plugins: () => ([
+		autoprefixer({
+			browsers: [
+				'>1%',
+				'last 4 versions',
+				'Firefox ESR',
+				'not ie < 11',
+			],
+		}),
+	]),
+};
+
+const fileLoaderOptions = {
+	hash: 'sha512',
+	digest: 'hex',
+	name: process.env.NODE_ENV === 'production' ? 'static/gfx/[name].[hash:8].[ext]' : '[path][name].[ext]',
+}
 
 const publicUrl = '';
 const env = getClientEnvironment(publicUrl);
@@ -41,32 +66,14 @@ export default options => ({
 		}, {
 			test: /\.scss/,
 			include: includedPaths,
-			use: [
-				'style-loader',
-				{
-					loader: 'css-loader',
-					options: { sourceMap: true, importLoaders: 1, fixUrls: true },
-				},
-				{
-					loader: 'postcss-loader',
-					options: {
-						plugins: () => ([
-							autoprefixer({
-								browsers: [
-									'>1%',
-									'last 4 versions',
-									'Firefox ESR',
-									'not ie < 11',
-								],
-							}),
-						]),
-					},
-				},
-				{
-					loader: 'sass-loader',
-					query: { outputStyle: 'expanded' },
-				},
-			],
+			use: extractSass.extract({
+				fallback: 'style-loader',
+				use: [
+					{ loader: 'css-loader', options: { sourceMap: true, importLoaders: 1, fixUrls: true } },
+					{ loader: 'postcss-loader', options: postCssOptions },
+					{ loader: 'sass-loader', query: { outputStyle: 'expanded' } },
+				],
+			}),
 		}, {
 			test: /\.(ttf|woff|woff2)$/,
 			loader: 'file-loader',
@@ -75,11 +82,7 @@ export default options => ({
 			loaders: [
 				{
 					loader: 'file-loader',
-					query: {
-						hash: 'sha512',
-						digest: 'hex',
-						name: '[path][name].[ext]',
-					},
+					query: fileLoaderOptions,
 				},
 				{
 					loader: 'image-webpack-loader',
@@ -106,6 +109,7 @@ export default options => ({
 		new InterpolateHtmlPlugin({
 			PUBLIC_URL: publicUrl,
 		}),
+		extractSass,
 	]),
 	resolve: {
 		modules: ['src', 'node_modules'],
