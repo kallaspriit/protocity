@@ -10,6 +10,7 @@ import com.cumulocity.rest.representation.operation.OperationRepresentation;
 import com.stagnationlab.c8y.driver.constants.ControllerEvent;
 import com.stagnationlab.c8y.driver.devices.AbstractMultiDacActuator;
 import com.stagnationlab.c8y.driver.devices.etherio.EtherioMultiDacActuator;
+import com.stagnationlab.c8y.driver.events.LightingControllerActivatedEvent;
 import com.stagnationlab.c8y.driver.fragments.controllers.Lighting;
 import com.stagnationlab.c8y.driver.operations.SetAllChannelsValue;
 import com.stagnationlab.c8y.driver.operations.SetChannelValue;
@@ -133,6 +134,12 @@ public class LightingController extends AbstractController {
 
 			setAllLightLevels(outputLightLevel);
 
+			if (lastAutomaticLightLevel == 0.0f && outputLightLevel > 0.0f) {
+				handleLightsTurnedOn();
+			} else if (lastAutomaticLightLevel > 0.0f && outputLightLevel == 0.0f) {
+				handleLightsTurnedOff();
+			}
+
 			lastAutomaticLightLevel = outputLightLevel;
 
 			state.setDetectedLightLevel(detectedLightLevel);
@@ -140,6 +147,16 @@ public class LightingController extends AbstractController {
 
 			updateState(state);
 		}
+	}
+
+	private void handleLightsTurnedOn() {
+		log.debug("lights turned on, reporting event");
+
+		reportEvent(new LightingControllerActivatedEvent());
+	}
+
+	private void handleLightsTurnedOff() {
+		log.debug("lights turned off");
 	}
 
 	private void setupLedDrivers() {
