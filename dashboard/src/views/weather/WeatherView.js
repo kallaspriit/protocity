@@ -3,7 +3,7 @@ import './weather-view.scss';
 
 const WeatherView = () => (
 	<div className="weather-view">
-		<div className="header header__bg--weather">
+		<div className="header header--weather">
 			<img className="header__icon" src="../../gfx/icons/weather.svg" alt="icon" />
 			<h1 className="header__title">Weather station</h1>
 		</div>
@@ -50,7 +50,7 @@ const WeatherView = () => (
 			</div>
 		</div>
 
-		<div className="header">
+		<div className="header header--street">
 			<img className="header__icon" src="../../gfx/icons/weather.svg" alt="icon" />
 			<h1 className="header__title">Street lighting</h1>
 		</div>

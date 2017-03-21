@@ -37,18 +37,26 @@ h2,
 .header {
 	display: flex;
 	align-items: center;
-	// height: 130px;
 	height: 12%;
 	padding-left: 40px;
+	margin-bottom: 40px;
+	background: #000 no-repeat 50%;
+	background-size: cover;
 
-	 &__bg {
-	 	// background-image: url('./backgrounds/bg-weather.svg');
-	 	&--weather {
-			background: #000 no-repeat 50%;
-			background-size: cover;
-	 		background-image: url('./backgrounds/bg-weather.svg');
-	 		background-image: url('./backgrounds/images.jpg');
-	 	}
+	&--weather {	
+		background-image: url('./backgrounds/bg-weather.svg');
+	}
+
+	&--street {
+		background-image: url('./backgrounds/bg-street.svg');
+	}
+
+	&--solar {
+		background-image: url('./backgrounds/bg-solar.svg');
+	}
+
+	&--truck {
+		background-image: url('./backgrounds/bg-truck.svg');
 	}
 
 	&__icon {
@@ -60,15 +68,136 @@ h2,
 	&__title {
 		flex-grow: 2;
 		color:#fff;
-		padding-top:12px;
 	}
 }
 
 .content {
 	display: flex;
 	justify-content: space-between;
-	align-items: center;
-	// height: 410px;
+	// align-items: center;
 	height: 38%;
 	padding: 0 40px;
+}
+
+.data {
+	width: 14.58%;
+	display: flex;
+	flex-direction: column;
+
+	&__title {
+		margin-bottom: 25px;
+		margin-top: 0;
+		// font-size: 1em;
+		white-space: nowrap;
+	}
+
+	&__chart {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		height: 180px;
+		box-shadow: 0px 0px 5px 1px rgba(0,0,0,0.75);
+
+		&--large {
+			height: 71.42%;
+			// min-height: 300px;
+		}
+	}
+
+	&__value {
+		font-family: Pebble;
+		font-size: 28px;
+		margin-bottom: 0;
+	}
+
+	&__measure {
+		font-size: 16px;
+		margin-top: 0;
+	}
+
+	&--large {
+		justify-content: flex-start;
+		min-width: 43.75%;
+
+		&:first-child{
+			margin-right: 40px;
+		}
+	}
+
+	&__train {
+		// margin: 40px auto;
+		height: 100%;
+		width: 100%;
+		background: grey;
+	}
+
+	&__message {
+		position: relative;
+
+		&:before {
+			position: absolute;
+			top: 4px;
+			right: 110%;
+			// height: 20px;
+			height: 1em;
+			width: 1.5em;
+			background-repeat: no-repeat;
+			content: '';
+			display: inline-block;
+			vertical-align: middle;
+			line-height: 10px;
+		}
+
+		&--battery:before {
+			background-image: url('../gfx/icons/battery-half.svg');
+		}
+
+		&--battery-charging:before {
+			background-image: url('../gfx/icons/battery-charging.svg');
+		}
+
+		&--energy:before {
+			background-image: url('../gfx/icons/energy.svg');
+		}
+
+		&--energy-use:before {
+			background-image: url('../gfx/icons/energy-consumption.svg');
+		}
+
+		&--cost:before {
+			background-image: url('../gfx/icons/cost.svg');
+		}
+
+		&--overall {
+			align-self: flex-start;
+			padding-left: 30px;
+			font-size: .8em;
+
+			&:before {
+				left: 4%;
+				height: .8em;
+				background-image: url('../gfx/icons/energy-consumption.svg');
+			}
+		}
+
+		&--alert {
+			position: relative;
+			text-align: center;
+			width: 200px;
+			color: #e12364;
+			// background: rgba(225,35,100, .3);
+			// width: 100%;
+			// padding-top: 1.2em;
+
+			&:before {
+				position: absolute;
+				// bottom: 1.2em;
+				bottom: 100%;
+				left: 50%;
+				content: "!";
+				
+			}
+		}
+	}
 }
