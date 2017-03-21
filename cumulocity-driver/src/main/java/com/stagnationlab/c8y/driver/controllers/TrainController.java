@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 import com.stagnationlab.c8y.driver.Gateway;
+import com.stagnationlab.c8y.driver.events.TrainControllerActivatedEvent;
+import com.stagnationlab.c8y.driver.events.TrainControllerDeactivatedEvent;
 import com.stagnationlab.c8y.driver.measurements.BatteryMeasurement;
 import com.stagnationlab.c8y.driver.services.BatteryMonitor;
 import com.stagnationlab.c8y.driver.services.Config;
@@ -33,7 +35,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 	private static final String ACTION_ENTER = "enter";
 	private static final String ACTION_EXIT = "exit";
 	private static final String ACTION_UID = "uid";
-	private static final long MINIMUM_TICKET_BUYING_TIMEOUT = 3000;
+	private static final long MINIMUM_TICKET_BUYING_TIMEOUT = 5000;
 
 	class TrainStop {
 		private final PortController portController;
@@ -482,6 +484,9 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 		@Override
 		public void start() {
+			log.debug("reporting controller deactivated event");
+
+			reportEvent(new TrainControllerDeactivatedEvent());
 		}
 
 		@Override
@@ -808,7 +813,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 	private void handleTrainTicketBought() {
 		if (Util.since(lastTicketActivationTime) < MINIMUM_TICKET_BUYING_TIMEOUT) {
-			log.debug("requested buying tickete too soon, ignoring it");
+			log.debug("requested buying ticket too soon, ignoring it");
 
 			return;
 		}
@@ -824,6 +829,10 @@ public class TrainController extends AbstractController implements TrainStopEven
 			TextToSpeech.INSTANCE.speak("Train ticket has been bought", true);
 
 			startNextOperation();
+
+			log.debug("reporting controller activated event");
+
+			reportEvent(new TrainControllerActivatedEvent());
 		} else if (currentOperation instanceof DriveToStopTrainOperation) {
 			String targetStopName =((DriveToStopTrainOperation) currentOperation).getTargetStopName();
 
