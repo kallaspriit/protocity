@@ -795,11 +795,9 @@ public class TrainController extends AbstractController implements TrainStopEven
 	}
 
 	private void setupStartOperations() {
-		// add the idle operation, operations for stops will be added after it
-		// TODO temporarily removed
-//		registerOperation(
-//				new IdleTrainOperation(train)
-//		);
+		registerOperation(
+				new IdleTrainOperation(train)
+		);
 	}
 
 	private void setupEndOperations() {
