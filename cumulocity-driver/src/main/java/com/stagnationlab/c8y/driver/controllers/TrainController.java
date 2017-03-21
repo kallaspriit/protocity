@@ -801,7 +801,6 @@ public class TrainController extends AbstractController implements TrainStopEven
 	}
 
 	private void setupEndOperations() {
-		// the trip has been completed
 		registerOperation(
 				new TripCompleteTrainOperation(train)
 		);

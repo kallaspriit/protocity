@@ -9,15 +9,19 @@ import com.stagnationlab.c8y.driver.devices.AbstractMultiDacActuator;
 import com.stagnationlab.c8y.driver.devices.AbstractTagSensor;
 import com.stagnationlab.c8y.driver.devices.etherio.EtherioMultiDacActuator;
 import com.stagnationlab.c8y.driver.devices.etherio.EtherioTagSensor;
+import com.stagnationlab.c8y.driver.events.ParkingControllerActivatedEvent;
 import com.stagnationlab.c8y.driver.fragments.controllers.Parking;
 import com.stagnationlab.c8y.driver.services.Config;
 import com.stagnationlab.c8y.driver.services.EventBroker;
 import com.stagnationlab.c8y.driver.services.TextToSpeech;
+import com.stagnationlab.c8y.driver.services.Util;
 import com.stagnationlab.etherio.Commander;
 import com.stagnationlab.etherio.MessageTransport;
 
 @Slf4j
 public class ParkingController extends AbstractController {
+
+	public static final int CONTROLLER_ACTIVATION_MIN_PAUSE = 30000;
 
 	private final Parking state = new Parking();
 	private AbstractMultiDacActuator ledDriver;
@@ -26,6 +30,7 @@ public class ParkingController extends AbstractController {
 	private final Map<Integer, String> slotNameMap = new HashMap<>();
 	private Commander slotIndicatorsCommander = null;
 	private int slotCount = 0;
+	private long lastActivationReportedTime = 0;
 
 	public ParkingController(String id, Map<String, Commander> commanders, Config config, EventBroker eventBroker) {
 		super(id, commanders, config, eventBroker);
@@ -131,11 +136,13 @@ public class ParkingController extends AbstractController {
 			@Override
 			public void onTagEnter(String tagName) {
 				occupy(index, tagName);
+				sendControlledActivatedEventIfNew();
 			}
 
 			@Override
 			public void onTagExit() {
 				free(index);
+				sendControlledActivatedEventIfNew();
 			}
 
 			@Override
@@ -143,6 +150,22 @@ public class ParkingController extends AbstractController {
 				// ignore
 			}
 		});
+	}
+
+	private void sendControlledActivatedEventIfNew() {
+		long timeSinceLastActivationReport = Util.since(lastActivationReportedTime);
+
+		if (timeSinceLastActivationReport < CONTROLLER_ACTIVATION_MIN_PAUSE) {
+			log.debug("new activation requested too soon ({}ms since last time), ignoring it", timeSinceLastActivationReport);
+
+			return;
+		}
+
+		log.debug("reporting controller activation ({}ms since last time)", timeSinceLastActivationReport);
+
+		reportEvent(new ParkingControllerActivatedEvent());
+
+		lastActivationReportedTime = Util.now();
 	}
 
 	private String getSlotName(int index) {

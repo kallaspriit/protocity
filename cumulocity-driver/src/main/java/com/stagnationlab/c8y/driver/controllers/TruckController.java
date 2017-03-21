@@ -267,7 +267,7 @@ public class TruckController extends AbstractController {
 	}
 
 	private void onSolarPanelOutputChange(float solarOutputPower) {
-		log.debug("solar panel output changed to {}kW", solarOutputPower);
+		log.trace("solar panel output changed to {}kW", solarOutputPower);
 
 		updateGridPower();
 	}
@@ -279,7 +279,7 @@ public class TruckController extends AbstractController {
 		float truckChargePower = calculateTruckChargePower(isCharging, batteryChargePercentage);
 		float gridPowerBalance = calculateGridPowerBalance(truckChargePower, solarOutputPower);
 
-		log.debug(
+		log.trace(
 				"truck {}, solar panel output: {}kW, {} the grid: {}kW"
 				, isCharging ? "charging at " + Util.round(truckChargePower, 1) + "kW" : "not charging",
 				Util.round(solarOutputPower, 1),
@@ -308,7 +308,7 @@ public class TruckController extends AbstractController {
 		float variance = chargePowerVariance.getUpdatedVariance();
 		float chargePower = value + variance;
 
-		log.debug("truck charge power: {}kW (actual: {}kW, variance: {}kW)", chargePower, value, variance);
+		log.trace("truck charge power: {}kW (actual: {}kW, variance: {}kW)", chargePower, value, variance);
 
 		return chargePower;
 	}
