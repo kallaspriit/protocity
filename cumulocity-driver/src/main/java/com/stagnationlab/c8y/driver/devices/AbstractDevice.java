@@ -1,14 +1,9 @@
 package com.stagnationlab.c8y.driver.devices;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -289,25 +284,6 @@ public abstract class AbstractDevice implements Driver {
 	    }
 
         return managedObjectRepresentation;
-    }
-
-    @SuppressWarnings({ "SameParameterValue", "UnusedReturnValue" })
-    protected ScheduledFuture<?> setInterval(Runnable runnable, long intervalMs) {
-        log.info("creating an interval for '{}' every {}ms", id, intervalMs);
-
-        ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor(
-                r -> new Thread(r, getType() + "Interval")
-        );
-
-        long now = new Date().getTime();
-        long initialDelay = intervalMs - (now % intervalMs);
-
-        return executorService.scheduleAtFixedRate(
-                runnable,
-                initialDelay,
-                intervalMs,
-                MILLISECONDS
-        );
     }
 
 	protected void debugManagedObject(ManagedObjectRepresentation o) {

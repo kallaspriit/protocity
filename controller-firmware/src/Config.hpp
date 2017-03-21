@@ -40,7 +40,7 @@ public:
 	PinName ledMosiPin = p11;
 	PinName ledSclkPin = p13;
 	PinName ledBlankPin = p14;
-	PinName ledVprgPin = p16;
+	PinName ledErrorPin = p16;
 	PinName ledGsclkPin = p30;
 	int ledChainLength = 1;
 

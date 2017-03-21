@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import com.stagnationlab.c8y.driver.devices.AbstractMonitoringSensor;
 import com.stagnationlab.c8y.driver.fragments.sensors.MonitoringSensor;
 import com.stagnationlab.c8y.driver.measurements.MonitoringMeasurement;
+import com.stagnationlab.c8y.driver.services.Scheduler;
 import com.stagnationlab.etherio.Commander;
 import com.stagnationlab.etherio.MessageTransport;
 
@@ -93,7 +94,7 @@ public class EtherioMonitoringSensor extends AbstractMonitoringSensor {
 	private void startPoller() {
 		log.debug("starting poller for '{}'", id);
 
-		pollerInterval = setInterval(this::poll, POLL_INTERVAL);
+		pollerInterval = Scheduler.setInterval(this::poll, POLL_INTERVAL);
 	}
 
 	private void poll() {

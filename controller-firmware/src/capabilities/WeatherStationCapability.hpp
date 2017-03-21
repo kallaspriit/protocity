@@ -110,11 +110,13 @@ private:
 	float forceUpdateInterval = 60000;
 
 	// clap detection config
-	const float SOUNDMETER_LOUD_THRESHOLD = 25.0f;
+	const float SOUNDMETER_LOUD_THRESHOLD = 20.0f;
 	const float SOUNDMETER_SILENT_THRESHOLD = 20.0f;
 	static const int SOUNDMETER_PATTERN_LENGTH = 32;
-	static const int SOUNDMETER_CLAP_LOUD_THRESHOLD = 150;
-	static const int SOUNDMETER_CLAP_SILENT_THRESHOLD = 500;
+	static const int SOUNDMETER_CLAP_LOUD_MIN_DURATION = 30;
+	static const int SOUNDMETER_CLAP_LOUD_MAX_DURATION = 200;
+	static const int SOUNDMETER_CLAP_SILENT_MIN_DURATION = 75;
+	static const int SOUNDMETER_CLAP_SILENT_MAX_DURATION = 350;
 	static const int SHOW_CLAP_COUNT_DURATION = 3000;
 
 	// clap detection runtime

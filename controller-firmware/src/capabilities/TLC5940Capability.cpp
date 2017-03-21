@@ -3,18 +3,16 @@
 #include "../PortController.hpp"
 #include "../Util.hpp"
 
-TLC5940Capability::TLC5940Capability(Serial *serial, PortController *portController, PinName mosiPin, PinName sclkPin, PinName blankPin, PinName vprgPin, PinName gsclkPin, int chainLength) :
+TLC5940Capability::TLC5940Capability(Serial *serial, PortController *portController, PinName mosiPin, PinName sclkPin, PinName blankPin, PinName errorPin, PinName gsclkPin, int chainLength) :
 	AbstractCapability(serial, portController),
 	mosiPin(mosiPin),
 	sclkPin(sclkPin),
 	blankPin(blankPin),
-	vprgPin(vprgPin),
+	errorPin(errorPin),
 	gsclkPin(gsclkPin),
 	chainLength(chainLength)
 {
 	values = new unsigned short[chainLength * CHANNEL_COUNT];
-
-	reset();
 }
 
 std::string TLC5940Capability::getName() {
@@ -26,6 +24,7 @@ void TLC5940Capability::update(int deltaUs) {
 		return;
 	}
 
+	/*
 	timeSinceLastRefreshUs += deltaUs;
 
 	// periodically refresh the output values
@@ -36,6 +35,7 @@ void TLC5940Capability::update(int deltaUs) {
 
 		timeSinceLastRefreshUs = 0;
 	}
+	*/
 }
 
 CommandManager::Command::Response TLC5940Capability::handleCommand(CommandManager::Command *command) {
@@ -90,13 +90,17 @@ CommandManager::Command::Response TLC5940Capability::handleValueCommand(CommandM
 	int channel = command->getInt(3);
 	float value = command->getFloat(4);
 
-	if (!setChannelValue(channel, value, true)) {
+	if (!setChannelValue(channel, value)) {
 		return command->createFailureResponse("setting requested value failed, check parameters");
 	}
 
-	log.trace("set channel %d to %f", channel, value);
+	sendData();
 
-	return command->createSuccessResponse();
+	if (tlc5940->isErrorDetected()) {
+		return command->createFailureResponse("output driver error condition detected");
+	} else {
+		return command->createSuccessResponse();
+	}
 }
 
 CommandManager::Command::Response TLC5940Capability::handleValuesCommand(CommandManager::Command *command) {
@@ -132,7 +136,7 @@ CommandManager::Command::Response TLC5940Capability::handleValuesCommand(Command
 
 		log.trace(" setting channel %d to %f", channel, value);
 
-		if (!setChannelValue(channel, value, false)) {
+		if (!setChannelValue(channel, value)) {
 			return command->createFailureResponse("setting requested values failed, check parameters");
 		}
 	}
@@ -140,7 +144,11 @@ CommandManager::Command::Response TLC5940Capability::handleValuesCommand(Command
 	// manually send the data in the end
 	sendData();
 
-	return command->createSuccessResponse();
+	if (tlc5940->isErrorDetected()) {
+		return command->createFailureResponse("output driver error condition detected");
+	} else {
+		return command->createSuccessResponse();
+	}
 }
 
 CommandManager::Command::Response TLC5940Capability::handleTestCommand(CommandManager::Command *command) {
@@ -156,7 +164,11 @@ CommandManager::Command::Response TLC5940Capability::handleTestCommand(CommandMa
 
 	int channelCount = chainLength * CHANNEL_COUNT;
 	int step = 2;
-	int times = 3;
+	int times = 1;
+
+	if (command->argumentCount >= 4) {
+		times = command->getInt(3);
+	}
 
 	// fade all channels in and out, blocks the thread!
 	for (int i = 0; i < times; i++) {
@@ -164,12 +176,12 @@ CommandManager::Command::Response TLC5940Capability::handleTestCommand(CommandMa
 			float value = (float)(j < 100 ? j : 200 - j) / 100.0f;
 
 			for (int channel = 0; channel < channelCount; channel++) {
-				setChannelValue(channel, value, false);
+				setChannelValue(channel, value);
 			}
 
 			sendData();
 
-			Thread::wait(10);
+			Thread::wait(20); // < 50 FPS;
 		}
 	}
 
@@ -177,7 +189,11 @@ CommandManager::Command::Response TLC5940Capability::handleTestCommand(CommandMa
 		disable();
 	}
 
-	return command->createSuccessResponse();
+	if (tlc5940->isErrorDetected()) {
+		return command->createFailureResponse("output driver error condition detected");
+	} else {
+		return command->createSuccessResponse();
+	}
 }
 
 bool TLC5940Capability::enable() {
@@ -187,19 +203,28 @@ bool TLC5940Capability::enable() {
 
 	log.info("enabling TLC5940 led driver");
 
-	tlc5940 = new TLC5940(sclkPin, mosiPin, gsclkPin, blankPin, portController->getPinName(), vprgPin, chainLength);
+	tlc5940 = new TLC5940(sclkPin, mosiPin, gsclkPin, blankPin, portController->getPinName(), errorPin, chainLength);
+
+	if (tlc5940->isErrorDetected()) {
+		log.warn("led driver is indicating error already before sending data to it, this should not happen");
+
+		return false;
+	}
 
 	isEnabled = true;
 
-	int channelCount = chainLength * CHANNEL_COUNT;
+	reset();
 
-	// initialize all channels to off state
-	for (int channel = 0; channel < channelCount; channel++) {
-		setChannelValue(channel, 0.0f, false);
+	// wait a bit for a possible error condition detection
+	Thread::wait(50);
+
+	if (tlc5940->isErrorDetected()) {
+		isEnabled = false;
+
+		return false;
 	}
 
-	// manually send the data in the end
-	sendData();
+	isEnabled = true;
 
 	return true;
 }
@@ -219,7 +244,7 @@ void TLC5940Capability::disable() {
 	isEnabled = false;
 }
 
-bool TLC5940Capability::setChannelValue(int channel, float value, bool autosend) {
+bool TLC5940Capability::setChannelValue(int channel, float value) {
 	if (!isEnabled || tlc5940 == NULL) {
 		return false;
 	}
@@ -227,10 +252,14 @@ bool TLC5940Capability::setChannelValue(int channel, float value, bool autosend)
 	int maxChannel = chainLength * CHANNEL_COUNT - 1;
 
 	if (channel < 0 || channel > maxChannel) {
+		log.warn("invalid channel index %d requested (expected between 0 and %d)", channel, maxChannel);
+
 		return false;
 	}
 
 	if (value < 0.0f || value > 1.0f) {
+		log.warn("invalid channel value %f requested (expected between 0.0 and 1.0)", value);
+
 		return false;
 	}
 
@@ -238,29 +267,31 @@ bool TLC5940Capability::setChannelValue(int channel, float value, bool autosend)
 
 	values[channel] = rawValue;
 
-	if (autosend) {
-		sendData();
-	}
+	// log.trace("set channel %d: %f (raw: %d)", channel, value, rawValue);
 
 	return true;
 }
 
 void TLC5940Capability::reset() {
+	log.debug("resetting");
+
 	for (int i = 0; i < chainLength * CHANNEL_COUNT; i++) {
 		values[i] = 0;
 	}
 
-	if (!isEnabled) {
-		return;
+	if (isEnabled) {
+		sendData();
 	}
-
-	sendData();
 }
 
 void TLC5940Capability::sendData() {
 	if (!isEnabled) {
+		log.warn("sending data requested but not enabled");
+
 		return;
 	}
+
+	log.debug("sending data");
 
 	tlc5940->setNewGSData(values);
 }

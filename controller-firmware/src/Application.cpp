@@ -100,7 +100,7 @@ void Application::setupPort(PortController *portController) {
 	portController->addCapability(new MPL3115A2Capability(serial, portController, config->sdaPin, config->sclPin));
 	portController->addCapability(new Si7021Capability(serial, portController, config->sdaPin, config->sclPin));
 	portController->addCapability(new PN532Capability(serial, portController, config->nfcMosiPin, config->nfcMisoPin, config->nfcSclkPin));
-	portController->addCapability(new TLC5940Capability(serial, portController, config->ledMosiPin, config->ledSclkPin, config->ledBlankPin, config->ledVprgPin, config->ledGsclkPin, config->ledChainLength));
+	portController->addCapability(new TLC5940Capability(serial, portController, config->ledMosiPin, config->ledSclkPin, config->ledBlankPin, config->ledErrorPin, config->ledGsclkPin, config->ledChainLength));
 	portController->addCapability(new WeatherStationCapability(serial, portController, config->sdaPin, config->sclPin, config->lcdTxPin, config->lcdRxPin, config->lcdResetPin));
 }
 
@@ -121,6 +121,10 @@ void Application::setupEthernetManager() {
 		debug.setLedMode(LED_ETHERNET_STATUS_INDEX, Debug::LedMode::BLINK_SLOW);
 	} else {
 		debug.setLedMode(LED_ETHERNET_STATUS_INDEX, Debug::LedMode::OFF);
+
+		log.warn("connecting to ethernet failed, performing reset to try again");
+
+		restart();
 	}
 }
 
@@ -257,7 +261,6 @@ void Application::onSocketClientDisconnected(TCPSocketConnection* client) {
 
 	log.warn("socket client disconnected, performing reset");
 
-	Thread::wait(100);
 	restart();
 }
 
@@ -354,15 +357,16 @@ CommandManager::Command::Response Application::handleRestartCommand(CommandManag
 		return command->createFailureResponse("expected no parameters");
 	}
 
-	log.info("restarting system..");
-
-	Thread::wait(100);
 	restart();
 
 	return command->createSuccessResponse();
 }
 
 void Application::restart() {
+	log.info("restarting system..");
+
+	Thread::wait(100);
+
 	NVIC_SystemReset();
 }
 

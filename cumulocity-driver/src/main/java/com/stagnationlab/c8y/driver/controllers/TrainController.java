@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import com.stagnationlab.c8y.driver.Gateway;
 import com.stagnationlab.c8y.driver.measurements.BatteryMeasurement;
+import com.stagnationlab.c8y.driver.services.BatteryMonitor;
 import com.stagnationlab.c8y.driver.services.Config;
 import com.stagnationlab.c8y.driver.services.EventBroker;
 import com.stagnationlab.c8y.driver.services.TextToSpeech;
@@ -137,6 +138,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 	class Train {
 
 		private final Commander commander;
+		private final BatteryMonitor batteryMonitor;
 		private final int normalSpeed;
 		private final int requestBatteryVoltageInterval;
 
@@ -156,6 +158,11 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 			normalSpeed = config.getInt("train.normalSpeed");
 			requestBatteryVoltageInterval = config.getInt("train.requestBatteryVoltageInterval");
+
+			int lowBatteryPercentageThreshold = config.getInt("train.lowBatteryPercentageThreshold");
+			int lowBatteryReportingInterval = config.getInt("train.lowBatteryReportingInterval");
+
+			batteryMonitor = new BatteryMonitor("The train", lowBatteryPercentageThreshold, lowBatteryReportingInterval);
 
 			log.debug("train normal speed: {}%, battery voltage update interval: {}ms", normalSpeed, requestBatteryVoltageInterval);
 		}
@@ -290,6 +297,8 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 			updateState(state);
 			reportMeasurement(new BatteryMeasurement(batteryVoltage, batteryChargePercentage, isCharging));
+
+			batteryMonitor.checkForLowBattery(batteryChargePercentage);
 		}
 
 		private void handleObstacleDetectedEvent(float obstacleDistance) {
@@ -787,9 +796,10 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 	private void setupStartOperations() {
 		// add the idle operation, operations for stops will be added after it
-		registerOperation(
-				new IdleTrainOperation(train)
-		);
+		// TODO temporarily removed
+//		registerOperation(
+//				new IdleTrainOperation(train)
+//		);
 	}
 
 	private void setupEndOperations() {

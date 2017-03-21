@@ -220,6 +220,14 @@ void WeatherStationCapability::updateClapDetection() {
 
 	soundLevel = soundmeter->read() * 100.0f;
 
+	/*
+	if (soundLevel > SOUNDMETER_LOUD_THRESHOLD) {
+		float voltage = ((float)soundLevel / 100.0f) * 3.3f;
+
+		log.debug("sound: %f%%, %fV", soundLevel, voltage);
+	}
+	*/
+
 	if (soundLevel >= SOUNDMETER_LOUD_THRESHOLD && !wasLoud) {
 		int silentDuration = silentTimer.read_ms();
 
@@ -256,7 +264,7 @@ void WeatherStationCapability::updateClapDetection() {
 		} else if (isSoundPatternActive) {
 			int silentDuration = silentTimer.read_ms();
 
-			if (silentDuration >= SOUNDMETER_CLAP_SILENT_THRESHOLD) {
+			if (silentDuration >= SOUNDMETER_CLAP_SILENT_MAX_DURATION) {
 				log.debug("make pattern decision after %d ms with %d values (%f dB)", silentDuration, silentLoudPatternCount, soundLevel);
 
 				// expecting even number of datapoints
@@ -268,7 +276,12 @@ void WeatherStationCapability::updateClapDetection() {
 					for (int i = 0; i < silentLoudPatternCount; i += 2) {
 						int silenceDuration = silentLoudPattern[i];
 						int loudDuration = silentLoudPattern[i + 1];
-						bool isClap = loudDuration <= SOUNDMETER_CLAP_LOUD_THRESHOLD && (i == 0 || silenceDuration <= SOUNDMETER_CLAP_SILENT_THRESHOLD);
+						bool isClap = loudDuration >= SOUNDMETER_CLAP_LOUD_MIN_DURATION && loudDuration <= SOUNDMETER_CLAP_LOUD_MAX_DURATION;
+
+						// first silence can be of any length, following must fall in a range
+						if (i > 0 && (silenceDuration < SOUNDMETER_CLAP_SILENT_MIN_DURATION || silenceDuration > SOUNDMETER_CLAP_SILENT_MAX_DURATION)) {
+							isClap = false;
+						}
 
 						if (isClap) {
 							clapCount++;

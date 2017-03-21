@@ -19,6 +19,7 @@
   * The TLC5940 supports up to 30Mhz. This should be kept as high
   * as possible to ensure that data has time to be sent each reset cycle.
   */
+//#define SPI_SPEED 30000000
 #define SPI_SPEED 30000000
 
 /**
@@ -30,7 +31,10 @@
   * before the completion of a GSCLK cycle (4096 pulses). If you are daisy chaining multiple TLC5940s,
   * divide 32Mhz by the number of chips to get a good maximum rate.
   */
-#define GSCLK_SPEED 2500000
+// #define GSCLK_SPEED 2500000 // does not work with normal PwmOut
+// #define GSCLK_SPEED 500000
+// #define GSCLK_SPEED 625000 // 4 times slower
+// #define GSCLK_SPEED 204800 // 50hZ
 
 /**
   *  This class controls a TLC5940 PWM driver IC.
@@ -78,11 +82,11 @@ public:
       *  @param GSCLK - The GSCLK pin of the TLC5940(s)
       *  @param BLANK - The BLANK pin of the TLC5940(s)
       *  @param XLAT - The XLAT pin of the TLC5940(s)
-      *  @param VPRG - The VPRG pin of the TLC5940(s)
+      *  @param XERR - The XERR pin of the TLC5940(s)
       *  @param number - The number of TLC5940s (if you are daisy chaining)
       */
     TLC5940(PinName SCLK, PinName MOSI, PinName GSCLK, PinName BLANK,
-            PinName XLAT, PinName VPRG, const int number = 1);
+            PinName XLAT, PinName XERR, const int number = 1);
 
     virtual ~TLC5940() {}
 
@@ -100,6 +104,11 @@ public:
       *  use it, then the TLC5940 will use the EEPROM, which (by default) conatins the data 0x3F.
       */
     void setNewDCData(unsigned char* data);
+
+    /**
+     * Returns whether error from the XERR pin is detected.
+     */
+    bool isErrorDetected();
 
 protected:
     /**
@@ -124,121 +133,26 @@ private:
     // Digital out pins used for the TLC5940
     DigitalOut blank;
     DigitalOut xlat;
-    DigitalOut vprg;
+    DigitalIn xerr;
 
     // Call a reset function to manage sending data and GSCLK updating
     Ticker reset_ticker;
 
     // Has new GS/DC data been loaded?
     volatile bool newGSData;
-    volatile bool newDCData;
 
     // Do we need to send an XLAT pulse? (Was GS data clocked in last reset?)
     volatile bool need_xlat;
 
     // Buffers to store data until it is sent
     unsigned short* gsBuffer;
-    unsigned char* dcBuffer;
 
     // Function to reset the display and send the next chunks of data
     void reset();
-};
 
-
-/**
-  *  This class allows a TLC5940 to be multiplexed.
-  *  It inherits the TLC5940 class and uses it to control the TLC5940 driver(s). It does not support sending dot corection data.
-  *  This class sets the new grayscale data every iteration of the GSCLK reset loop. It then updates the current row using the
-  *  user defined function SetRows. The framerate you will recieve using this function can be calculate by: 1 / (((1/GSCLK_SPEED) * 4096) * rows).
-  *  I reccomend maintaining a framerate above 30fps. However, keep in mind that as your framerate increases, so does your CPU usage.
-  *
-  *  Using the TLC5940Mux class to control an 8x8 LED matrix:
-  *  @code
-  *  #include "mbed.h"
-  *  #include "TLC5940.h"
-  *
-  *  // Bus connecting to the rows of the LED matrix through PNP transistors
-  *  BusOut rows(p22, p23, p24, p25, p26, p27, p28, p29);
-  *
-  *  // Function to update the rows using the BusOut class
-  *  void SetRows(int nextRow)
-  *  {
-  *      // I am using PNP transistors, so inversion is necessary
-  *      rows = ~(1 << nextRow);
-  *  }
-  *
-  *  // Create the TLC5940Mux instance
-  *  TLC5940Mux tlc(p7, p5, p21, p9, p10, p11, p12, 1, 8, &SetRows);
-  *
-  *  int main()
-  *  {
-  *      tlc[0][0] = 0xFFF; // Turn on the top left LED
-  *      while(1)
-  *      {
-  *
-  *      }
-  *  }
-  *  @endcode
-  */
-class TLC5940Mux : private TLC5940
-{
-public:
-    /**
-      *  Set up the TLC5940
-      *  @param SCLK - The SCK pin of the SPI bus
-      *  @param MOSI - The MOSI pin of the SPI bus
-      *  @param GSCLK - The GSCLK pin of the TLC5940(s)
-      *  @param BLANK - The BLANK pin of the TLC5940(s)
-      *  @param XLAT - The XLAT pin of the TLC5940(s)
-      *  @param VPRG - The VPRG pin of the TLC5940(s)
-      *  @param number - The number of TLC5940s (if you are daisy chaining)
-      *  @param rows - The number of rows you are multiplexing
-      *  @param SetRows - The function pointer to your function that sets the current row.
-      *  @note The SetRows function allows you to set exactly how you want your rows
-      *  to be updated. The TLC5940Mux class calls this function with an argument of int that contains the number of the row to
-      *  be turned on. If the TLC5940Mux class needs the first row to be turned on, the int will be 0.
-      */
-    TLC5940Mux(PinName SCLK, PinName MOSI, PinName GSCLK, PinName BLANK,
-               PinName XLAT, PinName VPRG, const int number,
-               const int rows, void (*SetRows)(int));
-
-    // Destructor used to delete memory
-    virtual ~TLC5940Mux();
-
-    /**
-      *  Set the contents of the buffer that contains the multiplexed data
-      *  @param data - The data to set to the buffer containing 16 12 bit grayscale data chunks per TLC5940
-      *  @returns The data provided
-      */
-    unsigned short* operator=(unsigned short* data);
-
-    /**
-      *  Get a pointer to one of the rows of the multiplexed data
-      *  @param index - The row that you would like the contents of
-      *  @returns A pointer to the data containing the requested row containing 16 12 bit grayscale data chunks per TLC5940
-      *  @note This operator can also be used to change or get the value of an individual LED.
-      *  For example:
-      *  @code
-      *  TLC5940Mux[0][0] = 0xFFF;
-      *  @endcode
-      */
-    unsigned short* operator[](int index);
-
-private:
-    // Virtual function overriden from TLC5940 class
-    virtual void setNextData();
-
-    // Number of rows
-    const int rows;
-
-    // Function to set the current row
-    void (*SetRows)(int);
-
-    // The current row
-    volatile int currentIndex;
-
-    // Buffer containing data to be sent during each frame
-    unsigned short* dataBuffer;
+    // Called if an error occurs / is cleared
+    void handleErrorDetected();
+    void handleErrorCleared();
 };
 
 #endif

@@ -14,8 +14,10 @@ import com.stagnationlab.c8y.driver.fragments.controllers.Truck;
 import com.stagnationlab.c8y.driver.measurements.BatteryMeasurement;
 import com.stagnationlab.c8y.driver.measurements.ChargePowerMeasurement;
 import com.stagnationlab.c8y.driver.measurements.GridPowerBalanceMeasurement;
+import com.stagnationlab.c8y.driver.services.BatteryMonitor;
 import com.stagnationlab.c8y.driver.services.Config;
 import com.stagnationlab.c8y.driver.services.EventBroker;
+import com.stagnationlab.c8y.driver.services.Scheduler;
 import com.stagnationlab.c8y.driver.services.SimulatedVariance;
 import com.stagnationlab.c8y.driver.services.TextToSpeech;
 import com.stagnationlab.c8y.driver.services.Util;
@@ -29,12 +31,13 @@ public class TruckController extends AbstractController {
 	private final Truck state = new Truck();
 	private Commander truckCommander;
 	private Commander indicatorCommander;
+	private final BatteryMonitor batteryMonitor;
 	private AbstractMultiDacActuator indicatorDriver;
 	private AbstractAnalogInputSensor solarPanelSensor;
-	private int indicatorChannel = 0;
-	private float truckBaseChargePower = 0.0f;
 	private SimulatedVariance chargePowerVariance;
 	private ScheduledFuture<?> chargePowerInterval;
+	private float truckBaseChargePower = 0.0f;
+	private int indicatorChannel = 0;
 
 	public static final int CHARGE_POWER_INTERVAL_MS = 10000;
 	private static final String COMMAND_GET_BATTERY_VOLTAGE = "battery";
@@ -42,6 +45,12 @@ public class TruckController extends AbstractController {
 
 	public TruckController(String id, Map<String, Commander> commanders, Config config, EventBroker eventBroker) {
 		super(id, commanders, config, eventBroker);
+
+		int lowBatteryPercentageThreshold = config.getInt("truck.lowBatteryPercentageThreshold");
+		int lowBatteryReportingInterval = config.getInt("truck.lowBatteryReportingInterval");
+
+		batteryMonitor = new BatteryMonitor("The electric delivery truck", lowBatteryPercentageThreshold, lowBatteryReportingInterval);
+
 	}
 
 	@Override
@@ -227,11 +236,13 @@ public class TruckController extends AbstractController {
 
 		updateState(state);
 
-		reportMeasurement(new BatteryMeasurement(batteryVoltage, batteryChargePercentage, isCharging));
+		reportMeasurement(new BatteryMeasurement(Util.round(batteryVoltage, 2), batteryChargePercentage, isCharging));
 
 		indicatorDriver.setChannelValue(indicatorChannel, isCharging ? 0.0f : 1.0f);
 
 		updateGridPower();
+
+		batteryMonitor.checkForLowBattery(batteryChargePercentage);
 	}
 
 	private void handleTruckStartedCharging() {
@@ -240,7 +251,7 @@ public class TruckController extends AbstractController {
 		// simulate periodic change of charging power
 		clearChargeInterval();
 
-		chargePowerInterval = setInterval(this::updateGridPower, CHARGE_POWER_INTERVAL_MS);
+		chargePowerInterval = Scheduler.setInterval(this::updateGridPower, CHARGE_POWER_INTERVAL_MS);
 	}
 
 	private void handleTruckStoppedCharging() {
@@ -277,8 +288,8 @@ public class TruckController extends AbstractController {
 		);
 
 		// report charge power and grid power balance measurements
-		reportMeasurement(new ChargePowerMeasurement(calculateTruckChargePower(isCharging, batteryChargePercentage), "kW"));
-		reportMeasurement(new GridPowerBalanceMeasurement(Util.round(gridPowerBalance, 1), "kW"));
+		reportMeasurement(new ChargePowerMeasurement(Util.round(truckChargePower, 2), "kW"));
+		reportMeasurement(new GridPowerBalanceMeasurement(Util.round(gridPowerBalance, 2), "kW"));
 	}
 
 	private void setIsRunning(boolean isRunning) {
@@ -295,8 +306,11 @@ public class TruckController extends AbstractController {
 		// make the chart a bit more interesting by introducing slight variations
 		float value = truckBaseChargePower * Util.map(batteryChargePercentage, 50.0f, 100.0f, 1.0f, 0.2f);
 		float variance = chargePowerVariance.getUpdatedVariance();
+		float chargePower = value + variance;
 
-		return value + variance;
+		log.debug("truck charge power: {}kW (actual: {}kW, variance: {}kW)", chargePower, value, variance);
+
+		return chargePower;
 	}
 
 	private float calculateGridPowerBalance(float truckChargePower, float solarPanelOutputPower) {
