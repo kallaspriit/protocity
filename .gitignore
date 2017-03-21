@@ -19,3 +19,4 @@
 /experiments/text-to-speech/build
 /socket-terminal/debug.log.txt
 /experiments/NodeStressTest/node_modules
+/cumulocity-agent/debug.log.txt
