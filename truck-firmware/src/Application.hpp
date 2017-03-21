@@ -12,7 +12,7 @@ public:
 
 private:
     // provide version number
-    virtual String getVersion() { return "2.17.0"; };
+    virtual String getVersion() { return "2.22.0"; };
 
     // setup additional dependecies
     virtual void setupBefore();
@@ -26,7 +26,8 @@ private:
     // pins config
     const int BATTERY_VOLTAGE_PIN = A0;
     const int BATTERY_CHARGE_STATE_PIN = 0;
-    const int CHARGE_DETECTION_PIN = 4;
+    const int CHARGE_DETECTION_PIN = 4; // actual charge IC status input
+    const int CHARGE_PRESENCE_PIN = 13; // charge voltage presence input
 
     // analog-to-digital converter config
     const float MAX_ADC_READING_VOLTAGE = 1.0f; // Vcc/Vref pin

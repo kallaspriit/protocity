@@ -10,6 +10,7 @@ void Application::setupBefore() {
     pinMode(BATTERY_VOLTAGE_PIN, INPUT);
     pinMode(BATTERY_CHARGE_STATE_PIN, OUTPUT);
     pinMode(CHARGE_DETECTION_PIN, INPUT);
+    pinMode(CHARGE_PRESENCE_PIN, INPUT);
 
     digitalWrite(BATTERY_CHARGE_STATE_PIN, HIGH); // not charging initially
 }
@@ -34,12 +35,15 @@ float Application::getBatteryVoltage() {
 }
 
 Application::BatteryChargeState Application::getBatteryChargeState() {
-    int chargingState = digitalRead(CHARGE_DETECTION_PIN);
+    bool isChargeVoltagePresent = digitalRead(CHARGE_PRESENCE_PIN) == HIGH;
+    bool isActuallyCharging = digitalRead(CHARGE_DETECTION_PIN) == LOW;
 
-    if (chargingState == HIGH) {
-        return BatteryChargeState::CHARGE_STATE_NOT_CHARGING;
-    } else {
+    //log("charge voltage is %s, the truck is actually %s", isChargeVoltagePresent ? "present" : "not present", isActuallyCharging ? "charging" : "not charging");
+
+    if (isChargeVoltagePresent || isActuallyCharging) {
         return BatteryChargeState::CHARGE_STATE_CHARGING;
+    } else {
+        return BatteryChargeState::CHARGE_STATE_NOT_CHARGING;
     }
 }
 
