@@ -48,5 +48,5 @@ void Application::onBatteryStateChanged(BatteryChargeState state, float voltage)
 
     log("battery is now %s", isCharging ? "charging" : "not charging");
 
-    digitalWrite(BATTERY_CHARGE_STATE_PIN, isCharging ? LOW : HIGH);
+    digitalWrite(BATTERY_CHARGE_STATE_PIN, isCharging ? HIGH : LOW);
 }
