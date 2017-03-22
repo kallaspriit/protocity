@@ -15,10 +15,10 @@ html {
 }
 
 body {
+	margin: 0 auto;
 	font: 1.8rem/1.4 "HelveticaNeueLTPro-Roman", Arial, Helvetica, sans-serif;
 	color: #000;
 	background: #efefef;
-	margin: 0 auto;
 }
 
 h1, 
@@ -32,6 +32,18 @@ h2,
 .h2 {
 	font-size: 1.9rem;
 	font-weight: normal;
+}
+
+.train-view,
+.truck-view,
+.weather-view,
+.parking-view {
+	display: flex;
+	flex-direction: column;
+	width: 50vw;
+	height: 100vh;
+	min-width: 400px;
+	background: #fff;
 }
 
 .header {
@@ -80,7 +92,7 @@ h2,
 	}
 }
 
-.content {
+.container {
 	display: flex;
 	justify-content: space-between;
 	height: 38%;
@@ -88,15 +100,13 @@ h2,
 }
 
 .data {
-	// position: relative;
-	width: 14.58%;
 	display: flex;
 	flex-direction: column;
+	width: 14.58%;
 
 	&__title {
 		margin-bottom: 25px;
 		margin-top: 0;
-		// font-size: 1em;
 		white-space: nowrap;
 	}
 
@@ -105,22 +115,24 @@ h2,
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-		
-		height: 180px;
+		position: relative;
+		height: 71.42%;
 		box-shadow: 0px 0px 5px 1px rgba(0,0,0,0.75);
 
-		&--large {
-			height: 71.42%;
-			position: relative;
-
-			
+		&--small {
+			height: 200px;
 		}
 
 		&--train {
 			width: 420px;
 			height: 300px;
-			margin: 40px auto;
+			margin: 80px auto;
 		}
+	}
+
+	&--small {
+		justify-content: center;
+		margin-bottom: 60px;
 	}
 
 	&__value {
@@ -135,7 +147,6 @@ h2,
 	}
 
 	&--large {
-		justify-content: flex-start;
 		min-width: 43.75%;
 
 		&:first-child{
@@ -147,16 +158,16 @@ h2,
 		position: relative;
 
 		&:before {
+			content: '';
 			position: absolute;
+			display: inline-block;
 			top: 4px;
 			right: 110%;
-			height: 1em;
 			width: 1em;
-			background-repeat: no-repeat;
-			content: '';
-			display: inline-block;
+			height: 1em;
 			vertical-align: middle;
 			line-height: 10px;
+			background-repeat: no-repeat;
 		}
 	}
 }

@@ -1,10 +1,4 @@
 .truck-view {
-	display: flex;
-	flex-direction: column;
-	width: 50vw;
-	height: 100vh;
-	background: #fff;
-	min-width: 400px;
 
 	.container {
 		display: flex;
@@ -76,7 +70,6 @@
 
 			&:before {
 				right: 100%;
-				// right: 80px;
 				height: .8em;
 				background-image: url('../../gfx/icons/energy-consumption.svg');
 			}

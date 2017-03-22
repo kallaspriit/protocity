@@ -11,9 +11,4 @@ const HomeView = () => (
 	</div>
 );
 
-// trainview
-// truckview
-// parkingview
-// weatherview
-
 export default HomeView;

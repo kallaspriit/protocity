@@ -11,7 +11,7 @@ const TruckView = () => (
 		<div className="container">
 			<div className="data data--large">
 				<h2 className="data__title">Battery level</h2>
-				<div className="data__chart data__chart--large">
+				<div className="data__chart">
 					<p className="data__label--alert">Battery level under 15%, please charge!</p>
 					<p className="data__label data__label--battery">Battery not charging</p>
 					<p className="data__label data__label--battery-charging">Battery charging</p>
@@ -21,7 +21,7 @@ const TruckView = () => (
 
 			<div className="data data--large">
 				<h2 className="data__title">Charging cost</h2>
-				<div className="data__chart data__chart--large">
+				<div className="data__chart">
 					<p className="data__value">0.15</p>
 					<p className="data__measure">EUR</p>
 				</div>
@@ -35,7 +35,7 @@ const TruckView = () => (
 		<div className="container">
 			<div className="data data--large">
 				<h2 className="data__title">Energy production</h2>
-				<div className="data__chart data__chart--large">
+				<div className="data__chart">
 					<p className="data__label data__label--overall">Overall energy produced: 220 kW</p>
 					<p className="data__label data__label--energy">Producing 8 kW</p>
 					<p className="data__label data__label--cost">Selling 3 kW</p>
@@ -46,7 +46,7 @@ const TruckView = () => (
 
 			<div className="data data--large">
 				<h2 className="data__title">Buying / selling from grid</h2>
-				<div className="data__chart data__chart--large">
+				<div className="data__chart">
 					<p className="data__value">15</p>
 					<p className="data__measure">kW</p>
 				</div>
