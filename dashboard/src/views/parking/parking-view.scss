@@ -1,0 +1,95 @@
+.parking-view {
+	$brand-color: #990ae3;
+
+	display: flex;
+	flex-direction: column;
+	width: 50vw;
+	height: 100vh;
+	background: #fff;
+	min-width: 400px;
+
+	.content__parking-data {
+		height: 24%;
+		background-color: #f2f2f2;
+		box-shadow: 0px 6px 9px -4px rgba(0,0,0,0.75);
+	}
+
+	.content__parking-data {
+		display: flex;
+		justify-content: space-around;
+		padding: 40px 80px 0 80px;
+	}
+
+	.parking {
+		display: flex;
+		justify-content: center;
+		margin: auto 0;
+
+
+		&-slot {
+			position: relative;
+			// display: flex;
+			width: 280px;
+			height: 430px;
+			border-bottom: 10px solid $brand-color;
+			border-left: 10px solid $brand-color;
+
+			&:last-child {
+				border-right: 10px solid $brand-color;
+			}
+
+			&:before {
+				position: relative;
+				bottom: 12%;
+				left: 48%;
+				font-family: Pebble;
+				font-size: 1.6em;
+				color: $brand-color;
+			}
+
+			&-1:before {
+				content: '1';
+			}
+
+			&-2:before {
+				content: '2';
+			}
+
+			&-3:before {
+				content: '3';
+			}
+
+			&-3:after {			
+				position: absolute;
+				top: 0;
+				left: 0;
+				content: '';
+				height: 100%;
+				width: 100%;
+				background: url('../../gfx/cars/ferrari.png');
+				background-repeat: no-repeat;
+				background-position:center;
+			}
+		}
+	}
+
+	.parking-slot__data {
+		display: flex;
+		flex-direction: column;
+		padding-left: 40px;;
+		width: 25%;
+	}
+
+	.car-type {
+		text-transform: uppercase;
+	}
+
+	.parking-cost:after {
+		content: 'EUR';
+		margin-left: 8px;
+	}
+
+	p {
+		margin: 8px 0;
+	}
+}
