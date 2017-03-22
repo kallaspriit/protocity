@@ -7,6 +7,7 @@ const HomeView = () => (
 		<Link to="train">train view</Link>
 		<Link to="truck">truck view</Link>
 		<Link to="weather">weather view</Link>
+		<Link to="parking">parking view</Link>
 	</div>
 );
 

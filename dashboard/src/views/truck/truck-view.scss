@@ -5,7 +5,81 @@
 	height: 100vh;
 	background: #fff;
 	min-width: 400px;
-} 
 
+	.container {
+		display: flex;
+		justify-content: space-between;
+		height: 38%;
+		padding: 0 40px;
+	}
 
+	.data__label {
+		position: relative;
 
+		&:before {
+			position: absolute;
+			top: 4px;
+			right: 110%;
+			height: 20px;
+			width: 30px;
+			content: '';
+			display: inline-block;
+			vertical-align: middle;
+			line-height: 10px;
+			background-repeat: no-repeat;
+		}
+
+		&--alert {
+			position: relative;
+			text-align: center;
+			width: 200px;
+			color: #e12364;
+
+			&:before {
+				position: absolute;
+				bottom: 104%;
+				left: 50%;
+				content: "!";
+			}
+		}
+
+		&--energy:before,
+		&--cost:before {
+			right: 100%;
+		}
+
+		&--battery:before {
+			background-image: url('../../gfx/icons/battery-half.svg');
+		}
+
+		&--battery-charging:before {
+			background-image: url('../../gfx/icons/battery-charging.svg');
+		}
+
+		&--energy:before {
+			background-image: url('../../gfx/icons/energy.svg');
+		}
+
+		&--energy-use:before {
+			background-image: url('../../gfx/icons/energy-consumption.svg');
+		}
+
+		&--cost:before {
+			background-image: url('../../gfx/icons/cost.svg');
+		}
+
+		&--overall {
+			position: absolute;
+			bottom: 85%;
+			left: 10%;
+			font-size: .8em;
+
+			&:before {
+				right: 100%;
+				// right: 80px;
+				height: .8em;
+				background-image: url('../../gfx/icons/energy-consumption.svg');
+			}
+		}
+	}
+}

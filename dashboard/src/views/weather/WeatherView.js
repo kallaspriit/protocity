@@ -51,7 +51,7 @@ const WeatherView = () => (
 		</div>
 
 		<div className="header header--street">
-			<img className="header__icon" src="../../gfx/icons/weather.svg" alt="icon" />
+			<img className="header__icon" src="../../gfx/icons/street-light.svg" alt="icon" />
 			<h1 className="header__title">Street lighting</h1>
 		</div>
 		<div className="content">

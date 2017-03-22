@@ -12,28 +12,32 @@ const steps = [
 
 const TrainView = () => (
 	<div className="train-view">
-		<div className="header header--truck">
-			<img className="header__icon" src="../../gfx/icons/weather.svg" alt="icon" />
+		<div className="header header--train">
+			<img className="header__icon" src="../../gfx/icons/train.svg" alt="icon" />
 			<h1 className="header__title">Train</h1>
 		</div>
-		<div className="content--train">
+		<div className="container__train-route">
 			<div className={`pie ${steps[3]}`}>
 				<div className="pie__label"><span>Beach</span></div>
 				<div className="pie__label"><span>Police station</span></div>
 				<div className="pie__label"><span>Central station</span></div>
 				<div className="pie__chart" />
-				<div className="pie__title">speed</div>
+				<div className="pie__data">
+					<p className="pie__title">Speed:</p>
+					<p className="pie__value">2 km/h</p>
+					{/*<p className="pie__alert pie__alert--connection">Connection lost</p>
+					<p className="pie__alert pie__alert--obstacle">Obstacle ahead</p>*/}
+				</div>
 			</div>
 		</div>
 		
-		<div className="data data--large data__train">
-			{/*<h2 className="data__title">Energy production</h2>*/}
-			<div className="data__chart data__chart--large">
-				<p className="data__message data__message--energy">Using 8 kW from solar panel</p>
-				{/*<p className="data__message data__message--cost">Buying 3 kW for 0.11 EUR</p>
-				<p className="data__message data__message--battery-charging">Battery charging</p>
-				<p className="data__message data__message--energy-use">Buying 3 kW</p>
-				<p className="data__message data__message--battery">Battery level: 78%</p>*/}
+		<div className="container__train-chart">
+			<div className="data__chart data__chart--large data__chart--train">
+				<p className="data__label data__label--energy">Using 8 kW from solar panel</p>
+				<p className="data__label data__label--cost">Buying 3 kW for 0.11 EUR</p>
+				<p className="data__label data__label--battery-charging">Battery charging</p>
+				<p className="data__label data__label--energy-use">Buying 3 kW</p>
+				<p className="data__label data__label--battery">Battery level: 78%</p>
 			</div>
 		</div>
 	</div>
