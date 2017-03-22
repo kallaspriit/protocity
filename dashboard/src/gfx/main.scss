@@ -102,7 +102,13 @@ h2,
 .data {
 	display: flex;
 	flex-direction: column;
-	width: 14.58%;
+	width: 48%;
+
+	&--small {
+		justify-content: center;
+		margin-bottom: 60px;
+		width: 14.58%;
+	}
 
 	&__title {
 		margin-bottom: 25px;
@@ -119,20 +125,11 @@ h2,
 		height: 71.42%;
 		box-shadow: 0px 0px 5px 1px rgba(0,0,0,0.75);
 
-		&--small {
-			height: 200px;
-		}
-
 		&--train {
 			width: 420px;
 			height: 300px;
 			margin: 80px auto;
 		}
-	}
-
-	&--small {
-		justify-content: center;
-		margin-bottom: 60px;
 	}
 
 	&__value {
@@ -144,30 +141,5 @@ h2,
 	&__measure {
 		font-size: 16px;
 		margin-top: 0;
-	}
-
-	&--large {
-		min-width: 43.75%;
-
-		&:first-child{
-			margin-right: 40px;
-		}
-	}
-
-	&__message {
-		position: relative;
-
-		&:before {
-			content: '';
-			position: absolute;
-			display: inline-block;
-			top: 4px;
-			right: 110%;
-			width: 1em;
-			height: 1em;
-			vertical-align: middle;
-			line-height: 10px;
-			background-repeat: no-repeat;
-		}
 	}
 }

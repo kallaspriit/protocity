@@ -55,7 +55,7 @@ const WeatherView = () => (
 			<h1 className="header__title">Street lighting</h1>
 		</div>
 		<div className="container">
-			<div className="data data--large">
+			<div className="data">
 				<h2 className="data__title">Detect light level from weather station</h2>
 				<div className="data__chart data__chart--large">
 					<p className="data__value">430</p>
@@ -63,7 +63,7 @@ const WeatherView = () => (
 				</div>
 			</div>
 
-			<div className="data data--large">
+			<div className="data">
 				<h2 className="data__title">Light level / energy cost in kWh</h2>
 				<div className="data__chart data__chart--large">
 					<p className="data__value">10</p>

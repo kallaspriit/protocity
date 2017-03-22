@@ -33,7 +33,7 @@ const TrainView = () => (
 			</div>
 		</div>
 		
-		<div className="data__chart data__chart--large data__chart--train">
+		<div className="data__chart data__chart--train">
 			<p className="data__label data__label--energy">Using 8 kW from solar panel</p>
 			<p className="data__label data__label--cost">Buying 3 kW for 0.11 EUR</p>
 			<p className="data__label data__label--battery-charging">Battery charging</p>
