@@ -19,18 +19,30 @@ public class EtherioAnalogInputSensor extends AbstractAnalogInputSensor {
 	private final int portNumber;
 	private PortController portController;
 	private ScheduledFuture<?> pollerInterval;
+	private final int minInterval;
+	private final int pollInterval;
+	private final float changeThreshold;
 
-	private static final int MIN_INTERVAL_MS = 500;
+	private static final int DEFAULT_MIN_INTERVAL_MS = 500;
+	private static final int DEFAULT_POLL_INTERVAL = 60000;
+	private static final float DEFAULT_CHANGE_THRESHOLD = 0.01f;
 	private static final float VALUE_MULTIPLIER = 100.0f;
-	private static final float CHANGE_THRESHOLD = 0.01f;
-	private static final int POLL_INTERVAL = 60000;
 	private static final String RESPONSE_OK = "OK";
 
-	public EtherioAnalogInputSensor(String id, Commander commander, int portNumber, String unit) {
+	@SuppressWarnings("unused")
+	public EtherioAnalogInputSensor(String id, Commander commander, int portNumber, String unit, int minInterval, int pollInterval, float changeThreshold) {
 		super(id, unit);
 
 		this.commander = commander;
 		this.portNumber = portNumber;
+		this.minInterval = minInterval;
+		this.pollInterval = pollInterval;
+		this.changeThreshold = changeThreshold;
+	}
+
+	@SuppressWarnings("unused")
+	public EtherioAnalogInputSensor(String id, Commander commander, int portNumber, String unit) {
+		this(id, commander, portNumber, unit, DEFAULT_MIN_INTERVAL_MS, DEFAULT_POLL_INTERVAL, DEFAULT_CHANGE_THRESHOLD);
 	}
 
 	@Override
@@ -97,13 +109,15 @@ public class EtherioAnalogInputSensor extends AbstractAnalogInputSensor {
 	}
 
 	private void startValueListener() {
-		portController.listenAnalogValueChange(CHANGE_THRESHOLD, MIN_INTERVAL_MS);
+		log.debug("starting value listener for '{}' with change threshold of {} and minimum reporting interval of {}ms", id, changeThreshold, minInterval);
+
+		portController.listenAnalogValueChange(changeThreshold, minInterval);
 	}
 
 	private void startPoller() {
-		log.debug("starting poller for '{}'", id);
+		log.debug("starting poller for '{}' every {}ms", id, pollInterval);
 
-		pollerInterval = Scheduler.setInterval(this::poll, POLL_INTERVAL);
+		pollerInterval = Scheduler.setInterval(this::poll, pollInterval);
 	}
 
 	private void poll() {

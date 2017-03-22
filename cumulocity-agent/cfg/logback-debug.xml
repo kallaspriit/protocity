@@ -14,11 +14,12 @@
 		<append>false</append>
 		<encoder>
 			<charset>UTF-8</charset>
-			<pattern>%-5level | %-30thread | %-8relative | %date{"yyyy-MM-dd'T'HH:mm:ss,SSSXXX"} | %-40logger{20} | %30file:%-4line | %msg%n</pattern>
+			<!--pattern>%-5level | %-30thread | %-8relative | %date{"yyyy-MM-dd'T'HH:mm:ss,SSSXXX"} | %-40logger{20} | %30file:%-4line | %msg%n</pattern-->
+			<pattern>%-5level | %-30thread | %-8relative | %date{"dd.MM HH:mm:ss"} | %-40logger{20} | %30file:%-4line | %msg%n</pattern>
 		</encoder>
 	</appender>
 
-  <logger name="com.stagnationlab" level="DEBUG"/>
+  <logger name="com.stagnationlab" level="TRACE"/>
   <!--logger name="com.stagnationlab.c8y.driver.devices.etherio.EtherioMonitoringSensor" level="TRACE"/-->
   <!--logger name="c8y" level="TRACE"/-->
   <!--logger name="com.stagnationlab.c8y.driver.Gateway" level="INFO"/-->

@@ -10,6 +10,7 @@ import com.stagnationlab.c8y.driver.devices.AbstractAnalogInputSensor;
 import com.stagnationlab.c8y.driver.devices.AbstractMultiDacActuator;
 import com.stagnationlab.c8y.driver.devices.etherio.EtherioAnalogInputSensor;
 import com.stagnationlab.c8y.driver.devices.etherio.EtherioMultiDacActuator;
+import com.stagnationlab.c8y.driver.events.TruckControllerActivatedEvent;
 import com.stagnationlab.c8y.driver.fragments.controllers.Truck;
 import com.stagnationlab.c8y.driver.measurements.BatteryMeasurement;
 import com.stagnationlab.c8y.driver.measurements.ChargePowerMeasurement;
@@ -28,6 +29,9 @@ import com.stagnationlab.etherio.MessageTransport;
 @Slf4j
 public class TruckController extends AbstractController {
 
+	private static final int CHARGE_POWER_INTERVAL_MS = 10000;
+	private static final int CONTROLLER_ACTIVATION_MIN_PAUSE = 30000;
+
 	private final Truck state = new Truck();
 	private Commander truckCommander;
 	private Commander indicatorCommander;
@@ -38,8 +42,8 @@ public class TruckController extends AbstractController {
 	private ScheduledFuture<?> chargePowerInterval;
 	private float truckBaseChargePower = 0.0f;
 	private int indicatorChannel = 0;
+	private long lastActivationReportedTime = 0;
 
-	public static final int CHARGE_POWER_INTERVAL_MS = 10000;
 	private static final String COMMAND_GET_BATTERY_VOLTAGE = "battery";
 	private static final String EVENT_BATTERY_STATE_CHANGED = "battery-state-changed";
 
@@ -107,13 +111,25 @@ public class TruckController extends AbstractController {
 	private void setupSolarPanel() {
 		String commanderName = config.getString("truck.solar.commander");
 		int port = config.getInt("truck.solar.port");
-		truckBaseChargePower = config.getFloat("truck.solar.baseChargePower");
+		int minInterval = config.getInt("truck.solar.minInterval");
+		int pollInterval = config.getInt("truck.solar.pollInterval");
+		float changeThreshold = config.getFloat("truck.solar.changeThreshold");
+
+		truckBaseChargePower = config.getFloat("truck.charge.baseChargePower");
 
 		log.debug("setting up solar panel on commander {} port {}", commanderName, port);
 
 		Commander solarCommander = getCommanderByName(commanderName);
 
-		solarPanelSensor = new EtherioAnalogInputSensor("Truck solar panel", solarCommander, port, "kW");
+		solarPanelSensor = new EtherioAnalogInputSensor(
+				"Truck solar panel",
+				solarCommander,
+				port,
+				"kW",
+				minInterval,
+				pollInterval,
+				changeThreshold
+		);
 
 		solarPanelSensor.addListener(this::onSolarPanelOutputChange);
 
@@ -222,12 +238,15 @@ public class TruckController extends AbstractController {
 	private void handleBatteryChargeStateChanged(boolean isCharging, float batteryVoltage, int batteryChargePercentage) {
 		log.debug("truck is now {}, battery voltage: {}V ({})", isCharging ? "charging" : "not charging", batteryVoltage, batteryChargePercentage);
 
+		// check for charge state change
 		if (state.getIsCharging() != isCharging) {
 			if (isCharging) {
 				handleTruckStartedCharging();
 			} else {
 				handleTruckStoppedCharging();
 			}
+
+			sendControlledActivatedEventIfNew();
 		}
 
 		state.setIsCharging(isCharging);
@@ -298,22 +317,39 @@ public class TruckController extends AbstractController {
 		updateState(state);
 	}
 
+	@SuppressWarnings("unused")
 	private float calculateTruckChargePower(boolean isCharging, int batteryChargePercentage) {
 		if (!isCharging) {
 			return 0.0f;
 		}
 
-		// make the chart a bit more interesting by introducing slight variations
-		float value = truckBaseChargePower * Util.map(batteryChargePercentage, 50.0f, 100.0f, 1.0f, 0.2f);
+		// float actualChargePower = truckBaseChargePower * Util.map(batteryChargePercentage, 50.0f, 100.0f, 1.0f, 0.2f);
+		float actualChargePower = truckBaseChargePower;
 		float variance = chargePowerVariance.getUpdatedVariance();
-		float chargePower = value + variance;
+		float chargePower = truckBaseChargePower + variance;
 
-		log.trace("truck charge power: {}kW (actual: {}kW, variance: {}kW)", chargePower, value, variance);
+		log.trace("truck charge power: {}kW (actual: {}kW, variance: {}kW)", chargePower, actualChargePower, variance);
 
 		return chargePower;
 	}
 
 	private float calculateGridPowerBalance(float truckChargePower, float solarPanelOutputPower) {
 		return solarPanelOutputPower - truckChargePower;
+	}
+
+	private void sendControlledActivatedEventIfNew() {
+		long timeSinceLastActivationReport = Util.since(lastActivationReportedTime);
+
+		if (timeSinceLastActivationReport < CONTROLLER_ACTIVATION_MIN_PAUSE) {
+			log.debug("new activation requested too soon ({}ms since last time), ignoring it", timeSinceLastActivationReport);
+
+			return;
+		}
+
+		log.debug("reporting controller activation ({}ms since last time)", timeSinceLastActivationReport);
+
+		reportEvent(new TruckControllerActivatedEvent());
+
+		lastActivationReportedTime = Util.now();
 	}
 }

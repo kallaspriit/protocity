@@ -291,7 +291,7 @@ void TLC5940Capability::sendData() {
 		return;
 	}
 
-	log.debug("sending data");
+	log.trace("sending data");
 
 	tlc5940->setNewGSData(values);
 }

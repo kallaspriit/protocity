@@ -31,15 +31,10 @@ public class EtherioMultiDacActuator extends AbstractMultiDacActuator {
 	}
 
 	@Override
-	public void initialize() throws Exception {
-		super.initialize();
-
-		portController = new PortController(portNumber, commander);
-	}
-
-	@Override
 	public void start() {
 		super.start();
+
+		portController = new PortController(portNumber, commander);
 
 		commander.getMessageTransport().addEventListener(new MessageTransport.EventListener() {
 			@Override

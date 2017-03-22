@@ -1,5 +1,8 @@
 package com.stagnationlab.c8y.driver.services;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class SimulatedVariance {
 
 	private final float maxVelocity;
@@ -18,10 +21,19 @@ public class SimulatedVariance {
 
 	public float getUpdatedVariance() {
 		float maxChangeValue = maxVelocity * (maxChangePercentage / 100.0f);
-		float deltaVelocity =Util.getRandomFloatInRange(0.0f, maxChangeValue);
+		float deltaVelocity = Util.getRandomFloatInRange(-maxChangeValue, maxChangeValue);
 
 		currentVelocity = Math.min(Math.max(currentVelocity + deltaVelocity, -maxVelocity), maxVelocity);
 		variance = Math.min(Math.max(variance + currentVelocity, minVariance), maxVariance);
+
+		boolean isVariancePeaked = variance == minVariance || variance == maxVariance;
+
+		// reset velocity if variance peaks
+		if (isVariancePeaked) {
+			currentVelocity = 0;
+		}
+
+		log.trace("updated variance: {} (max change value: {}, delta velocity: {}, current velocity: {}, is peaked: {})", variance, maxChangeValue, deltaVelocity, currentVelocity, isVariancePeaked ? "yes" : "no");
 
 		return variance;
 	}

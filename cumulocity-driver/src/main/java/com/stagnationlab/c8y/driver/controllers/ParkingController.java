@@ -21,7 +21,7 @@ import com.stagnationlab.etherio.MessageTransport;
 @Slf4j
 public class ParkingController extends AbstractController {
 
-	public static final int CONTROLLER_ACTIVATION_MIN_PAUSE = 30000;
+	private static final int CONTROLLER_ACTIVATION_MIN_PAUSE = 30000;
 
 	private final Parking state = new Parking();
 	private AbstractMultiDacActuator ledDriver;

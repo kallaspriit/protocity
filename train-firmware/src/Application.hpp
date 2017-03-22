@@ -13,7 +13,7 @@ public:
 private:
 
     // provide version number
-    virtual String getVersion() { return "2.34.0"; };
+    virtual String getVersion() { return "2.40.0"; };
 
     // override main setup hooks
     virtual void setupBefore();
@@ -29,7 +29,7 @@ private:
     // provide custom loop functionality
     virtual void loopAfter();
     void loopObstacleDetection(unsigned long deltaTime);
-    void loopMotorController(unsigned long deltaTime);
+    void loopMotorController();
 
     // handle events
     virtual void handleClientDisconnected();
@@ -61,6 +61,7 @@ private:
     // motor handling
     void setMotorSpeed(int speed);
     void stopMotor();
+    void brake();
 
     // pins config
     const int MOTOR_CONTROL_PIN_A = 0;
@@ -76,8 +77,9 @@ private:
     // obstacle detection config, apply some hysteresis
     const float DEFAULT_OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM = 10.0f;
     const float DEFAULT_OBSTACLE_CLEARED_DISTANCE_THRESHOLD_CM = DEFAULT_OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM + 0.1f;
+    const int DEFAULT_BRAKE_DURATION = 250;
+    const int MIN_BRAKE_PAUSE = 5000;
     const float OBSTACLE_DISTSNCE_CHANGED_THRESHOLD_CM = 0.5f;
-    // const unsigned long OBSTACLE_DETECTED_THRESHOLD_DURATION = 50;
     const unsigned long OBSTACLE_DETECTED_THRESHOLD_DURATION = 0;
 
     // how often to run the main loop
@@ -91,15 +93,19 @@ private:
     // dependencies
     MCP320X adc;
 
+    // runtime config
+    float obstacleDetectedDistanceThreshold = DEFAULT_OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM;
+    float obstacleClearedDistanceThreshold = DEFAULT_OBSTACLE_CLEARED_DISTANCE_THRESHOLD_CM;
+    float lastReportedObstacleDistance = -OBSTACLE_DISTSNCE_CHANGED_THRESHOLD_CM;
+    int brakeDuration = DEFAULT_BRAKE_DURATION;
+
     // runtime info
     int motorSpeed = 0;
     int targetSpeed = 0;
     unsigned long lastLoopTime = 0;
     int obstacleDetectedDuration = 0;
     bool isObstacleDetected = false;
-    float obstacleDetectedDistanceThreshold = DEFAULT_OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM;
-    float obstacleClearedDistanceThreshold = DEFAULT_OBSTACLE_CLEARED_DISTANCE_THRESHOLD_CM;
-    float lastReportedObstacleDistance = -OBSTACLE_DISTSNCE_CHANGED_THRESHOLD_CM;
+    unsigned long lastBrakeTime = 0;
 };
 
 #endif

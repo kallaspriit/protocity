@@ -57,7 +57,7 @@ void Application::loopAfter() {
     lastLoopTime = currentTime;
 
     loopObstacleDetection(deltaTime);
-    loopMotorController(deltaTime);
+    loopMotorController();
 }
 
 void Application::loopObstacleDetection(unsigned long deltaTime) {
@@ -80,10 +80,10 @@ void Application::loopObstacleDetection(unsigned long deltaTime) {
         if (obstacleDetectedDuration >= OBSTACLE_DETECTED_THRESHOLD_DURATION && !isObstacleDetected) {
             isObstacleDetected = true;
 
-            if (motorSpeed != 0) {
+            if (motorSpeed > 0) {
                 log("obstacle detected at %s cm after %d ms, stopping the train from current speed of %d%%", String(obstacleDistance).c_str(), (int)obstacleDetectedDuration, motorSpeed);
 
-                stopMotor();
+                brake();
             } else {
                 log("obstacle detected at %s cm after %d ms but the train is already stationary", String(obstacleDistance).c_str(), (int)obstacleDetectedDuration);
             }
@@ -106,7 +106,7 @@ void Application::loopObstacleDetection(unsigned long deltaTime) {
     }
 }
 
-void Application::loopMotorController(unsigned long deltaTime) {
+void Application::loopMotorController() {
     if (isObstacleDetected) {
         return;
     }
@@ -117,6 +117,7 @@ void Application::loopMotorController(unsigned long deltaTime) {
         setMotorSpeed(targetSpeed);
     }
 }
+
 void Application::handleClientDisconnected() {
     SocketApplication::handleClientDisconnected();
 
@@ -164,14 +165,17 @@ void Application::handleGetObstacleDistanceCommand(int requestId, String paramet
 }
 
 void Application::handleSetObstacleParametersCommand(int requestId, String parameters[], int parameterCount) {
-    if (parameterCount != 2) {
-        return sendErrorMessage(requestId, "expected 2 parameters, for example '1:set-obstacle-parameters:10.0:11.0'");
+    if (parameterCount != 3) {
+        return sendErrorMessage(requestId, "expected 2 parameters, for example '1:set-obstacle-parameters:10.0:11.0:200'");
     }
 
     obstacleDetectedDistanceThreshold = parameters[0].toFloat();
     obstacleClearedDistanceThreshold = parameters[1].toFloat();
+    brakeDuration = parameters[2].toInt();
 
-    log("obstacle is now detected at %s cm and cleared at %s cm", String(obstacleDetectedDistanceThreshold).c_str(), String(obstacleClearedDistanceThreshold).c_str());
+    log("obstacle is now detected at %s cm and cleared at %s cm, train brakes for %dms", String(obstacleDetectedDistanceThreshold).c_str(), String(obstacleClearedDistanceThreshold).c_str(), brakeDuration);
+
+    sendSuccessMessage(requestId);
 }
 
 void Application::sendMotorSpeed(int requestId) {
@@ -258,6 +262,31 @@ void Application::setMotorSpeed(int speed) {
 
 void Application::stopMotor() {
     setMotorSpeed(0);
+}
+
+void Application::brake() {
+    unsigned long currentTime = millis();
+    unsigned long timeSinceLastBrake = currentTime - lastBrakeTime;
+
+    if (timeSinceLastBrake < MIN_BRAKE_PAUSE) {
+        // don't perform brake too often, just stop the motor
+        log("brake requested too soon (%dms vs %dms threshold), ignoring it and just stopping the motor", timeSinceLastBrake, MIN_BRAKE_PAUSE);
+
+        setMotorSpeed(0);
+    } else {
+        // apply full reverse for some time
+        int direction = motorSpeed >= 0 ? -1 : 1;
+        int brakeSpeed = direction * 100;
+
+        log("braking at %d%% for %dms", brakeSpeed, brakeDuration);
+
+        // brake for a duration, blocks the main thread but for a short time
+        setMotorSpeed(brakeSpeed);
+        delay(brakeDuration);
+        setMotorSpeed(0);
+    }
+
+    lastBrakeTime = currentTime;
 }
 
 void Application::setupDebugLed() {

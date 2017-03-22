@@ -139,6 +139,8 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 	class Train {
 
+		private static final int MIN_OBSTACLE_DETECTED_REPORT_PAUSE_MS = 3000;
+
 		private final Commander commander;
 		private final BatteryMonitor batteryMonitor;
 		private final int normalSpeed;
@@ -154,6 +156,8 @@ public class TrainController extends AbstractController implements TrainStopEven
 		private static final String EVENT_BATTERY_STATE_CHANGED = "battery-state-changed";
 
 		private boolean areEventListenersAdded = false;
+		private boolean isExpectingObstacleClearedEvent = false;
+		private long lastObstacleNotificationTime = 0;
 
 		Train(Commander commander) {
 			this.commander = commander;
@@ -284,10 +288,16 @@ public class TrainController extends AbstractController implements TrainStopEven
 		private void setObstacleParameters() {
 			float obstacleDetectedThreshold = config.getFloat("train.obstacleDetectedThreshold");
 			float obstacleClearedThreshold = config.getFloat("train.obstacleClearedThreshold");
+			int brakeDuration = config.getInt("train.brakeDuration");
 
 			log.debug("setting detected obstacle distance at {}cm and cleared at {}cm", obstacleDetectedThreshold, obstacleClearedThreshold);
 
-			commander.sendCommand(SET_OBSTACLE_PARAMETERS, obstacleDetectedThreshold, obstacleClearedThreshold);
+			commander.sendCommand(
+					SET_OBSTACLE_PARAMETERS,
+					obstacleDetectedThreshold,
+					obstacleClearedThreshold,
+					brakeDuration
+			);
 		}
 
 		private void handleBatteryChargeStateChanged(boolean isCharging, float batteryVoltage, int batteryChargePercentage) {
@@ -311,8 +321,11 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 			updateState(state);
 
-			if (state.getTargetSpeed() > 0) {
-				TextToSpeech.INSTANCE.speak("Obstacle was detected, stopping the train", true);
+			if (state.getTargetSpeed() > 0 && Util.since(lastObstacleNotificationTime) >= MIN_OBSTACLE_DETECTED_REPORT_PAUSE_MS) {
+				TextToSpeech.INSTANCE.speak("Obstacle detected", true);
+
+				lastObstacleNotificationTime = Util.now();
+				isExpectingObstacleClearedEvent = true;
 			}
 		}
 
@@ -323,8 +336,10 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 			updateState(state);
 
-			if (state.getTargetSpeed() > 0) {
-				TextToSpeech.INSTANCE.speak("Resuming operation", true);
+			if (isExpectingObstacleClearedEvent && state.getTargetSpeed() > 0) {
+				TextToSpeech.INSTANCE.speak("Resuming", true);
+
+				isExpectingObstacleClearedEvent = false;
 			}
 		}
 
