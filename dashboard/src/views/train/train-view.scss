@@ -1,8 +1,14 @@
 .train-view {
 
-	.container__train-route {
-		height: 46%;
-		box-shadow: 0px 6px 9px -4px rgba(0,0,0,0.75);
+	.container__train {
+		&-route{
+			height: 48%;
+			box-shadow: 0px 6px 9px -4px rgba(0,0,0,0.75);
+		}
+
+		&-chart {
+			background: url('../../gfx/backgrounds/bg-truck.png');
+		}
 	}
 
 	.data__label{
@@ -121,7 +127,7 @@
 
 			&:nth-child(1) {
 				left: 50%;
-				bottom: 100%;
+				bottom: calc(100% + 2px);
 				transform: translate(-50%, 75%);
 
 				span {
@@ -132,8 +138,8 @@
 			}
 
 			&:nth-child(2) {
-				top: 75%;
-				right: 100%;
+				top: calc(75% - 4px);
+				right: calc(100% - 6px);
 				transform: translate(100%, -50%);
 
 				span {
@@ -145,8 +151,8 @@
 			}
 
 			&:nth-child(3) {
-				top: 75%;
-				left: 100%;
+				top: calc(75% - 4px);
+				left: calc(100% - 5px);
 				transform: translate(-100%, -50%);
 
 				span {
@@ -156,16 +162,19 @@
 				}
 			}
 		}
-	
+		// TRAIN STATIONS
 		&--step-3.pie--filling,
 		&--step-1 {
 			.pie__chart {
 				transform: rotate(0);
 			}
+			// Central station
 			.pie__label:nth-child(3) {
 				background-color: #ffcd64;
 			}
+			// Beach 
 			.pie__label:nth-child(1) {
+				// Beach
 				background-color: #00cc66;
 			}
 		}
@@ -176,9 +185,11 @@
 				transform: rotate(240deg);
 			}
 			.pie__label:nth-child(1) {
+				// Beach
 				background-color: #ffcd64;
 			}
 			.pie__label:nth-child(2) {
+				// Police station
 				background-color: #00cc66;
 			}
 		}
@@ -189,9 +200,11 @@
 				transform: rotate(120deg);
 			}
 			.pie__label:nth-child(2) {
+				// Police station
 				background-color: #ffcd64;
 			}
 			.pie__label:nth-child(3) {
+				// Central Station
 				background-color: #00cc66;
 			}
 		}
@@ -205,7 +218,7 @@
 
 		&__alert {
 			position: relative;
-			top: 30px;
+			top: 40px;
 			color: #ff6464;
 
 			&:before {	
@@ -219,18 +232,21 @@
 
 			&--connection:before {
 				content: '!';
+				bottom: 25px;
 			}
 
 			&--obstacle:before {
 				content: '';
 				width: 100px;
 				height: 100px;
-				bottom: 0;
+				bottom: 5px;
 				background: url('../../gfx/icons/obstacle.svg') no-repeat;
 			}
 		}
 
 		&__title {
+			position: relative;
+			top: 10px;
 			text-align: center;
 		}
 
@@ -238,7 +254,7 @@
 			font-size: 1.4em;
 		}
 	}
-
+	// Determines what property will be animated. The outcome.
 	@keyframes blink {
 		from {
 			background-image: none;

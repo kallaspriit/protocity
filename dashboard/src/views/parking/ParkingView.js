@@ -7,32 +7,47 @@ const ParkingView = () => (
 			<img className="header__icon" src="../../gfx/icons/parking.svg" alt="icon" />
 			<h1 className="header__title">Parking</h1>
 		</div>
-		
-		<div className="content__parking-data">
-			<div className="parking-slot__data">
-				<p className="car-type">Taxi car</p>
-				<p>has left the parking slot</p>
-				<p>Parking cost:</p>
-				<p className="parking-cost">1.35</p>
-			</div>
-			
-			<div className="parking-slot__data">
-				<p>Parking slot no. 2:</p>
-				<p>FREE</p>
-			</div>
-			
-			<div className="parking-slot__data">
-				<p>Parking slot no. 3 occupied by:</p>
-				<p className="car-type">Red roadster</p>
-				<p>Parking cost:</p>
-				<p className="parking-cost">0.15</p>
-			</div>
-		</div>
 
 		<div className="parking">
-			<div className="parking-slot parking-slot-1" />
-			<div className="parking-slot parking-slot-2" />
-			<div className="parking-slot parking-slot-3" />
+			<div className="parking__title">
+				<h1 className="parking__title-text">slot 1</h1>
+				<h1 className="parking__title-text">slot 2</h1>
+				<h1 className="parking__title-text">slot 3</h1>
+			</div>
+			<div className="parking__data">
+				<div className="parking__data__availability">
+					{/* IF PARKING SLOT IS FREE: */}
+					<div className="parking__data__availability--free" />
+					{/* IF PARKING SLOT IS OCCUPIED: */}
+					{/*<div className="parking__data__availability--occupied">
+						<p className="car-type" />
+						<p className="cost">Parking cost: </p>
+					</div>*/}
+				</div>
+				<div className="parking__data__availability">
+					{/* IF PARKING SLOT IS FREE: */}
+					<div className="parking__data__availability--free" />
+					{/* IF PARKING SLOT IS OCCUPIED: */}
+					{/*<div className="parking__data__availability--occupied">
+						<p className="car-type" />
+						<p className="cost">Parking cost: </p>
+					</div>*/}
+				</div>
+				<div className="parking__data__availability">
+					{/* IF PARKING SLOT IS FREE: */}
+					{/*<div className="parking__data__availability--free" />*/}
+					{/* IF PARKING SLOT IS OCCUPIED: */}
+					<div className="parking__data__availability--occupied">
+						<p className="car-type" />
+						<p className="cost">Parking cost: </p>
+					</div>
+				</div>
+			</div>
+			<div className="parking__area">
+				<div className="parking__area-slot parking__area-slot-1" />
+				<div className="parking__area-slot parking__area-slot-2" />
+				<div className="parking__area-slot parking__area-slot-3" />
+			</div>
 		</div>		
 	</div>
 );

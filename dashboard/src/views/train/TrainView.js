@@ -18,7 +18,7 @@ const TrainView = () => (
 		</div>
 
 		<div className="container__train-route">
-			<div className={`pie ${steps[5]}`}>
+			<div className={`pie ${steps[1]}`}>
 				<div className="pie__label"><span>Beach</span></div>
 				<div className="pie__label"><span>Police station</span></div>
 				<div className="pie__label"><span>Central station</span></div>
@@ -32,13 +32,11 @@ const TrainView = () => (
 				</div>
 			</div>
 		</div>
-		
-		<div className="data__chart data__chart--train">
-			<p className="data__label data__label--energy">Using 8 kW from solar panel</p>
-			<p className="data__label data__label--cost">Buying 3 kW for 0.11 EUR</p>
-			<p className="data__label data__label--battery-charging">Battery charging</p>
-			<p className="data__label data__label--energy-use">Buying 3 kW</p>
-			<p className="data__label data__label--battery">Battery level: 78%</p>
+		<div className="container__train-chart">
+			<div className="data__chart data__chart--train">
+				<p className="data__label data__label--battery-charging">Battery charging</p>
+				<p className="data__label data__label--battery">Battery level: 78%</p>
+			</div>
 		</div>
 	</div>
 );

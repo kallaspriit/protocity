@@ -4,10 +4,10 @@ import './home-view.scss';
 
 const HomeView = () => (
 	<div className="home-view">
-		<Link to="train">train view</Link>
-		<Link to="truck">truck view</Link>
-		<Link to="weather">weather view</Link>
-		<Link to="parking">parking view</Link>
+		<Link to="weather">Weather view</Link>
+		<Link to="truck">Truck view</Link>
+		<Link to="train">Train view</Link>
+		<Link to="parking">Parking view</Link>
 	</div>
 );
 

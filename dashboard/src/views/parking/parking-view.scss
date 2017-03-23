@@ -1,82 +1,149 @@
 .parking-view {
 	$brand-color: #990ae3;
 
-	.content__parking-data {
-		display: flex;
-		justify-content: center;
-		height: 24%;
-		padding: 20px 80px;
-		background-color: #f2f2f2;
-		box-shadow: 0px 6px 9px -4px rgba(0,0,0,0.75);
-	}
+	// .content__parking-data {
+	// 	display: flex;
+	// 	justify-content: center;
+	// 	height: 24%;
+	// 	padding: 20px 80px;
+	// 	background-color: #f2f2f2;
+	// 	box-shadow: 0px 6px 9px -4px rgba(0,0,0,0.75);
+	// }
 
 	.parking {
 		display: flex;
-		justify-content: center;
-		margin: auto 0;
+		flex-direction: column;
+		margin: auto;
 
-		&-slot {
-			position: relative;
-			width: 280px;
-			height: 430px;
+		&__title {
+			display:flex;
+			justify-content: space-between;
+			width: 840px;
+			border-top: 10px solid $brand-color;
 			border-bottom: 10px solid $brand-color;
-			border-left: 10px solid $brand-color;
-
-			&:last-child {
-				border-right: 10px solid $brand-color;
-			}
-
-			&__data {
-				display: flex;
-				flex-direction: column;
+		
+			&-text {
 				width: 280px;
-				padding: 10px 0px 40px 80px;
-				line-height: 1.8em;
+				color: #fff;
+				background: $brand-color;
+				padding-left: 20px;
+
+				&:first-child {
+					width: 284px;
+				}
+
+				&:last-child {
+					width: 276px;
+					padding-left: 15px;
+				}
+
+				&:nth-child(2) {
+					padding-left: 15px;
+				}
+
+				&:nth-child(n + 2){
+					border-left: 2px solid #fff;
+				}
 			}
 
-			&:before {
-				position: relative;
-				bottom: 12%;
-				left: 48%;
-				font-family: Pebble;
-				font-size: 1.6em;
-				color: $brand-color;
-			}
-
-			&-1:before {
-				content: '1';
-			}
-
-			&-2:before {
-				content: '2';
-			}
-
-			&-3:before {
-				content: '3';
-			}
-
-			&-3:after {			
-				content: '';
-				position: absolute;
-				top: 0;
-				left: 0;
-				height: 100%;
-				width: 100%;
-				background: url('../../gfx/cars/ferrari.png') no-repeat center;
+			h1 {
+				margin: 0;
 			}
 		}
-	}
 
-	.car-type {
-		text-transform: uppercase;
-	}
+		&__data {
+			display: flex;
+			color: $brand-color;
+			 
+			 p {
+				 margin: 0;
+			 }
+			
 
-	.parking-cost:after {
-		content: 'EUR';
-		margin-left: 8px;
-	}
+			&__availability {
+				width: 280px;
+				padding-left: 10px;
+				padding-top: 10px;
+				height: 115px;
+				border: 10px solid #fff;
+				border-right: none;
+				// background: rgba(242, 242, 242, .6);
 
-	p {
-		margin: 8px 0;
+				&:last-child {
+					border: 10px solid #fff;
+				}
+
+				&--free:before {
+					content: 'Free'
+				}
+
+				&--occupied {
+					.car-type:before {
+						content: 'Car type';
+						text-transform: uppercase;
+					}
+					.cost:after {
+						content: '0.01 EUR';
+					}
+				}
+			}
+		}
+
+
+		.parking__area {
+			display: flex;
+			justify-content: center;
+			margin: auto 0;
+
+			&-slot {
+				position: relative;
+				width: 280px;
+				height: 430px;
+				border-bottom: 10px solid $brand-color;
+				border-left: 10px solid $brand-color;
+
+				&:last-child {
+					border-right: 10px solid $brand-color;
+				}
+
+				&:after {
+					content: '';
+					position: absolute;
+					top: 0;
+					left: 0;
+					height: 100%;
+					width: 100%;
+					background-repeat: no-repeat;
+					background-position: center;
+					background-size: contain;
+
+				}
+
+				&-1:after {			
+					background-image: url('../../gfx/cars/TAXI_CAR.png');	
+				}
+
+				&-2:after {			
+					background-image: url('../../gfx/cars/RED_ROADSTER.png');	
+				}
+
+				&-3:after {			
+					background-image: url('../../gfx/cars/YELLOW_ROADSTER.png');	
+				}
+			}
+		}
+
+		.car-type {
+			text-transform: uppercase;
+		}
+
+		.parking-cost:after {
+			content: 'EUR';
+			margin-left: 8px;
+		}
+
+		// p {
+		// 	margin: 8px 0;
+		// }	
 	}
 }

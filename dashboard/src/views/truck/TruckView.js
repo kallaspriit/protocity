@@ -12,18 +12,17 @@ const TruckView = () => (
 			<div className="data">
 				<h2 className="data__title">Battery level</h2>
 				<div className="data__chart">
-					<p className="data__label--alert">Battery level under 15%, please charge!</p>
+					<p className="data__label--alert">Battery level under 15%, please charge</p>
 					<p className="data__label data__label--battery">Battery not charging</p>
-					<p className="data__label data__label--battery-charging">Battery charging</p>
-					<p className="data__label data__label--energy-use">Using 20 kW</p>
+					<p className="data__label data__label--battery-charging">Battery charging, using 20 kW</p>
 				</div>
 			</div>
 
 			<div className="data">
-				<h2 className="data__title">Charging cost</h2>
+				<h2 className="data__title">Charging power</h2>
 				<div className="data__chart">
-					<p className="data__value">0.15</p>
-					<p className="data__measure">EUR</p>
+					<p className="data__value">15</p>
+					<p className="data__measure">kW</p>
 				</div>
 			</div>
 		</div>
@@ -36,19 +35,16 @@ const TruckView = () => (
 			<div className="data">
 				<h2 className="data__title">Energy production</h2>
 				<div className="data__chart">
-					<p className="data__label data__label--overall">Overall energy produced: 220 kW</p>
-					<p className="data__label data__label--energy">Producing 8 kW</p>
-					<p className="data__label data__label--cost">Selling 3 kW</p>
-					<p className="data__label data__label--energy">Using 8 kW</p>
-					<p className="data__label data__label--cost">Buying 3 kW</p>
+					<p className="data__label data__label--energy">Producing 8 kW</p>	
+					<p className="data__label data__label--energy">Using 12 kW</p>					
 				</div>
 			</div>
 
 			<div className="data">
 				<h2 className="data__title">Buying / selling from grid</h2>
 				<div className="data__chart">
-					<p className="data__value">15</p>
-					<p className="data__measure">kW</p>
+					<p className="data__label data__label--cost">Buying 3 kW for 0.99 EUR</p>
+					<p className="data__label data__label--cost">Selling 13 kW for 1.2 EUR</p>
 				</div>
 			</div>
 		</div>

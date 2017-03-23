@@ -25,16 +25,38 @@
 
 		&--alert {
 			position: relative;
+			top: 0;
 			text-align: center;
-			width: 200px;
-			color: #e12364;
+			// width: 200px;
+			// color: #e12364;
+			color: #fff;
+			// background: #e12364;
+			background: #ff6464;
+			padding: 10px;
+			width: 100%;
+			position: absolute;
+			margin-top: 0;
 
 			&:before {
-				position: absolute;
-				bottom: 104%;
-				left: 50%;
 				content: "!";
+				position: absolute;
+				right: 94%;
 			}
+
+			// &:before {
+			// 	content: "!";
+			// 	position: absolute;
+			// 	// right: 94%;
+			// 	font-size: 25px;
+			// 	width: 30px;
+			// 	height: 30px;
+			// 	line-height: 30px;
+			// 	top: 10%;
+			// 	right: 90%;
+			// 	background: #ff6464;
+			// 	color: #fff;
+			// 	border-radius: 50%;
+			// }
 		}
 
 		&--energy:before,
@@ -54,12 +76,9 @@
 			background-image: url('../../gfx/icons/energy.svg');
 		}
 
-		&--energy-use:before {
-			background-image: url('../../gfx/icons/energy-consumption.svg');
-		}
-
 		&--cost:before {
 			background-image: url('../../gfx/icons/cost.svg');
+			height: 17px;
 		}
 
 		&--overall {
