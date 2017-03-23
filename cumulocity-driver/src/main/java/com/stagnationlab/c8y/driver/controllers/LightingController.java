@@ -32,7 +32,6 @@ public class LightingController extends AbstractController {
 	private final Lighting state = new Lighting();
 	private final Map<String, AbstractMultiDacActuator> driverMap = new HashMap<>();
 	private float lastAutomaticLightLevel = 0.0f;
-	private boolean isRunning = false;
 	private final float lowLightValue;
 	private final float highLightValue;
 	private final float lowLightOutput;
@@ -72,8 +71,6 @@ public class LightingController extends AbstractController {
 
 		log.info("starting lighting controller");
 
-		isRunning = true;
-
 		state.setIsRunning(true);
 		updateState(state);
 	}
@@ -90,7 +87,7 @@ public class LightingController extends AbstractController {
 
 	@Override
 	public void handleEvent(String name, Object info) {
-		if (!isRunning) {
+		if (!state.getIsRunning()) {
 			log.debug("got event '{}' but light controller is not running, ignoring it", name);
 
 			return;

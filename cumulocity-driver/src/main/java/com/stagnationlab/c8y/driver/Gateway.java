@@ -13,6 +13,7 @@ import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
 import com.cumulocity.rest.representation.operation.OperationRepresentation;
 import com.stagnationlab.c8y.driver.controllers.AbstractController;
 import com.stagnationlab.c8y.driver.controllers.LightingController;
+import com.stagnationlab.c8y.driver.controllers.MotionController;
 import com.stagnationlab.c8y.driver.controllers.ParkingController;
 import com.stagnationlab.c8y.driver.controllers.TrainController;
 import com.stagnationlab.c8y.driver.controllers.TruckController;
@@ -90,6 +91,11 @@ public class Gateway extends AbstractDevice {
 
 	@Override
 	public void shutdown() {
+		log.info("shutting down..");
+
+		// depth first..
+		super.shutdown();
+
 		log.info("shutting down gateway");
 
 		TextToSpeech.INSTANCE.speak("Shutting down", true);
@@ -108,8 +114,6 @@ public class Gateway extends AbstractDevice {
 
 		state.reset();
 		updateState(state);
-
-		super.shutdown();
 
 		log.info("graceful shutdown complete");
 	}
@@ -166,7 +170,7 @@ public class Gateway extends AbstractDevice {
 	private void setupCommanders() {
 		log.info("setting up commanders");
 
-		List<String> commanderNames = config.getStringArray("commanderNames");
+		List<String> commanderNames = config.getStringArray("commander.names");
 
 		for (String commanderName : commanderNames) {
 			log.info("creating commander {}", commanderName);
@@ -186,7 +190,6 @@ public class Gateway extends AbstractDevice {
 				new LightingController("Lighting controller", commanders, config, eventBroker)
 		);
 
-
 		registerController(
 				new WeatherController("Weather controller", commanders, config, eventBroker)
 		);
@@ -197,6 +200,10 @@ public class Gateway extends AbstractDevice {
 
 		registerController(
 				new TruckController("Truck controller", commanders, config, eventBroker)
+		);
+
+		registerController(
+				new MotionController("Motion controller", commanders, config, eventBroker)
 		);
 	}
 

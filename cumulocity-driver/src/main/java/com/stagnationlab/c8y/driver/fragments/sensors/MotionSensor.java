@@ -7,7 +7,16 @@ public class MotionSensor {
 		MOTION_DETECTED
 	}
 
+	private boolean isRunning = false;
 	private MotionSensor.MotionState motionState;
+
+	public boolean getIsRunning() {
+		return isRunning;
+	}
+
+	public void setIsRunning(boolean isRunning) {
+		this.isRunning = isRunning;
+	}
 
 	public MotionSensor.MotionState getMotionState() {
 		return motionState;

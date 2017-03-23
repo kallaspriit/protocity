@@ -19,7 +19,7 @@
 		</encoder>
 	</appender>
 
-  <logger name="com.stagnationlab" level="TRACE"/>
+  <logger name="com.stagnationlab" level="DEBUG"/>
   <!--logger name="com.stagnationlab.c8y.driver.devices.etherio.EtherioMonitoringSensor" level="TRACE"/-->
   <!--logger name="c8y" level="TRACE"/-->
   <!--logger name="com.stagnationlab.c8y.driver.Gateway" level="INFO"/-->

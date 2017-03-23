@@ -390,14 +390,16 @@ public class TrainController extends AbstractController implements TrainStopEven
 	class DriveToStopTrainOperation extends TrainOperation {
 
 		private final String targetStopName;
+		private final boolean isFinalStop;
 		private boolean hasEnteredStop = false;
 		private boolean isStarted = false;
 		private long stopTime = 0;
 
-		DriveToStopTrainOperation(Train train, String targetStopName) {
+		DriveToStopTrainOperation(Train train, String targetStopName, boolean isFinalStop) {
 			super(train);
 
 			this.targetStopName = targetStopName;
+			this.isFinalStop = isFinalStop;
 		}
 
 		@Override
@@ -411,7 +413,11 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 			train.forward();
 
-			TextToSpeech.INSTANCE.speak("Next stop: " + targetStopName, false);
+			if (isFinalStop) {
+				TextToSpeech.INSTANCE.speak("Final stop: " + targetStopName, false);
+			} else {
+				TextToSpeech.INSTANCE.speak("Next stop: " + targetStopName, false);
+			}
 
 			reportNextStationName(targetStopName);
 		}
@@ -616,6 +622,10 @@ public class TrainController extends AbstractController implements TrainStopEven
 				thread.start();
 
 				reportOperations();
+
+				if (!isFirstConnect) {
+					TextToSpeech.INSTANCE.speak("Wireless connection to the train has been reestablished", false);
+				}
 			}
 
 			@Override
@@ -754,13 +764,15 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 		registerStop(stopNumber, trainStop);
 
+		boolean isFinalStop = stopNumber == stopCount - 1;
+
 		// stop at given station
 		registerOperation(
-				new DriveToStopTrainOperation(train, trainStop.getName())
+				new DriveToStopTrainOperation(train, trainStop.getName(), isFinalStop)
 		);
 
 		// don't add the stop after the last station
-		if (stopNumber < stopCount - 1) {
+		if (!isFinalStop) {
 			registerOperation(
 					new WaitTrainOperation(train, waitTime)
 			);

@@ -23,7 +23,7 @@ class TCPSocketConnection;
 class Application : SocketServer::SocketServerListener, PortController::PortEventListener {
 
 public:
-	static std::string getVersion() { return "2.112.0"; };
+	static std::string getVersion() { return "2.115.0"; };
 
 	Application(Config *config, Serial *serial);
 
@@ -129,13 +129,14 @@ private:
 	int commandLength = 0;
 	CommandHandlerMap commandHandlerMap;
 
-	// port controllers
+	// port controllers (TODO make a dynamic list, initially done not to use RAM)
 	PortController port1;
 	PortController port2;
 	PortController port3;
 	PortController port4;
 	PortController port5;
 	PortController port6;
+	PortController port7;
 
 	// updates
 	Timer timer;

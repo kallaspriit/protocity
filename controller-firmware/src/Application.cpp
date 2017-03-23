@@ -19,6 +19,7 @@ Application::Application(Config *config, Serial *serial) :
 	port4(4, config->port4Pin),
 	port5(5, config->port5Pin),
 	port6(6, config->port6Pin),
+	port7(7, config->port7Pin),
 	mainLoopLed(config->mainLoopLedPin)
 {
 	commandBuffer = new char[COMMAND_BUFFER_SIZE];
@@ -84,6 +85,7 @@ void Application::setupPorts() {
 	portNumberToControllerMap[port4.getId()] = &port4;
 	portNumberToControllerMap[port5.getId()] = &port5;
 	portNumberToControllerMap[port6.getId()] = &port6;
+	portNumberToControllerMap[port7.getId()] = &port7;
 
 	// register port event listeners
 	for (DigitalPortNumberToControllerMap::iterator it = portNumberToControllerMap.begin(); it != portNumberToControllerMap.end(); it++) {
