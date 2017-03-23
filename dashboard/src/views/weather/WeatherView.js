@@ -4,6 +4,9 @@ import './weather-view.scss';
 
 export const WeatherView = ({ weather }) => (
 	<div className="weather-view">
+		<div className="demo-video">
+			<video src="/videos/weather-dashboard.eng.mp4" autoPlay loop />
+		</div>
 		<div className="header header--weather">
 			<img className="header__icon" src="../../gfx/icons/weather.svg" alt="icon" />
 			<h1 className="header__title">Weather station</h1>
