@@ -46,7 +46,7 @@ public class EtherioMotionSensor extends AbstractMotionSensor {
 					portController.addEventListener(new PortController.PortEventListener() {
 						@Override
 						public void onPortDigitalValueChange(int id, PortController.DigitalValue digitalValue) {
-							boolean isMotionDetected = digitalValue == PortController.DigitalValue.LOW;
+							boolean isMotionDetected = digitalValue == PortController.DigitalValue.HIGH;
 							boolean wasMotionDetected = state.getMotionState() == MotionSensor.MotionState.MOTION_DETECTED;
 
 							// don't report the event if the state has not changed
