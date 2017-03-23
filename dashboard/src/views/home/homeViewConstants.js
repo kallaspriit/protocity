@@ -1,1 +1,0 @@
-export const GET_POSTS_BY_USER_ID = 'GET_POSTS_BY_USER_ID';

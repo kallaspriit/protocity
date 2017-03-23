@@ -27,12 +27,12 @@ const TrainView = () => (
 					<p className="pie__title">Speed:</p>
 					<p className="pie__value">2 km/h</p>
 					{/* ALERT MESSAGES */}
-					{/*<p className="pie__alert pie__alert--connection">Connection lost</p>*/}
-					{/*<p className="pie__alert pie__alert--obstacle">Obstacle ahead</p>*/}
+					{/* <p className="pie__alert pie__alert--connection">Connection lost</p> */}
+					{/* <p className="pie__alert pie__alert--obstacle">Obstacle ahead</p> */}
 				</div>
 			</div>
 		</div>
-		
+
 		<div className="data__chart data__chart--train">
 			<p className="data__label data__label--energy">Using 8 kW from solar panel</p>
 			<p className="data__label data__label--cost">Buying 3 kW for 0.11 EUR</p>

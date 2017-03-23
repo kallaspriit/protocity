@@ -7,7 +7,6 @@ export default function getClientEnvironment(publicUrl) {
 	const config = {
 		NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development'),
 		PUBLIC_URL: JSON.stringify(publicUrl),
-		APP_API_URL: JSON.stringify(process.env.API_URL || 'https://jsonplaceholder.typicode.com/'),
 	};
 
 	const processEnv = Object

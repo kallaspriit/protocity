@@ -1,18 +1,18 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
+import { connect } from 'react-redux';
 import './weather-view.scss';
 
-const WeatherView = () => (
+export const WeatherView = ({ weather }) => (
 	<div className="weather-view">
 		<div className="header header--weather">
 			<img className="header__icon" src="../../gfx/icons/weather.svg" alt="icon" />
 			<h1 className="header__title">Weather station</h1>
 		</div>
 		<div className="container">
-
 			<div className="data data--small">
 				<h2 className="data__title">Sound level</h2>
 				<div className="data__chart data__chart--small">
-					<p className="data__value">40</p>
+					<p className="data__value">{Math.round(weather.soundLevel)}</p>
 					<p className="data__measure">db</p>
 				</div>
 			</div>
@@ -20,7 +20,7 @@ const WeatherView = () => (
 			<div className="data data--small">
 				<h2 className="data__title">Humidity</h2>
 				<div className="data__chart data__chart--small">
-					<p className="data__value">75</p>
+					<p className="data__value">{Math.round(weather.humidity)}</p>
 					<p className="data__measure">&#37;</p>
 				</div>
 			</div>
@@ -28,7 +28,7 @@ const WeatherView = () => (
 			<div className="data data--small">
 				<h2 className="data__title">Pressure</h2>
 				<div className="data__chart data__chart--small">
-					<p className="data__value">760</p>
+					<p className="data__value">{Math.round(weather.pressure)}</p>
 					<p className="data__measure">mmGH</p>
 				</div>
 			</div>
@@ -36,7 +36,7 @@ const WeatherView = () => (
 			<div className="data data--small">
 				<h2 className="data__title">Light level</h2>
 				<div className="data__chart data__chart--small">
-					<p className="data__value">430</p>
+					<p className="data__value">{Math.round(weather.lightLevel)}</p>
 					<p className="data__measure">lux</p>
 				</div>
 			</div>
@@ -44,7 +44,7 @@ const WeatherView = () => (
 			<div className="data data--small">
 				<h2 className="data__title">Temperature</h2>
 				<div className="data__chart data__chart--small">
-					<p className="data__value">21</p>
+					<p className="data__value">{Math.round(weather.temperature)}</p>
 					<p className="data__measure">&#8451;</p>
 				</div>
 			</div>
@@ -74,4 +74,18 @@ const WeatherView = () => (
 	</div>
 );
 
-export default WeatherView;
+WeatherView.propTypes = {
+	weather: PropTypes.shape({
+		humidity: PropTypes.number.isRequired,
+		lightLevel: PropTypes.number.isRequired,
+		pressure: PropTypes.number.isRequired,
+		soundLevel: PropTypes.number.isRequired,
+		temperature: PropTypes.number.isRequired,
+	}),
+};
+
+const mapStateToProps = ({ deviceReducer }) => ({
+	weather: deviceReducer.devices.WEATHER_CONTROLLER.data,
+});
+
+export default connect(mapStateToProps)(WeatherView);
