@@ -3,6 +3,13 @@ import './parking-view.scss';
 
 const ParkingView = () => (
 	<div className="parking-view">
+		<div className="demo-video">
+			<div
+				className="demo-video__placeholder"
+				style={{ backgroundImage: 'url(/videos/parking-dashboard.eng.png)' }}
+			/>
+		</div>
+
 		<div className="header header--parking">
 			<img className="header__icon" src="../../gfx/icons/parking.svg" alt="icon" />
 			<h1 className="header__title">Parking</h1>

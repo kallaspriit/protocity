@@ -152,9 +152,15 @@ h2,
 	left: 50%;
 	background: #fff;
 
-	video {
+	video,
+	&__placeholder {
 		display: block;
 		width: 100%;
 		height: 100%;
+	}
+
+	&__placeholder {
+		background: no-repeat 50%;
+		background-size: cover;
 	}
 }

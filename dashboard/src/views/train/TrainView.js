@@ -12,6 +12,13 @@ const steps = [
 
 const TrainView = () => (
 	<div className="train-view">
+		<div className="demo-video">
+			<div
+				className="demo-video__placeholder"
+				style={{ backgroundImage: 'url(/videos/train-dashboard.eng.png)' }}
+			/>
+		</div>
+
 		<div className="header header--train">
 			<img className="header__icon" src="../../gfx/icons/train.svg" alt="icon" />
 			<h1 className="header__title">Train</h1>
