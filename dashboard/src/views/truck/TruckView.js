@@ -42,8 +42,8 @@ const TruckView = () => (
 			<div className="data">
 				<h2 className="data__title">Energy production</h2>
 				<div className="data__chart">
-					<p className="data__label data__label--energy">Producing 8 kW</p>	
-					<p className="data__label data__label--energy">Using 12 kW</p>					
+					<p className="data__label data__label--energy">Producing 8 kW</p>
+					<p className="data__label data__label--energy">Using 12 kW</p>
 				</div>
 			</div>
 
