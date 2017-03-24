@@ -69,7 +69,7 @@ export const WeatherView = ({ weather, lighting }) => (
 			<div className="data">
 				<h2 className="data__title">Light level / energy cost in kWh</h2>
 				<div className="data__chart data__chart--large">
-					<p className="data__value">{(Math.round(62 * lighting.outputLightLevel * 10) / 10)}</p>
+					<p className="data__value">{(Math.round(62 * weather.lightLevel * 10) / 10)}</p>
 					<p className="data__measure">kW</p>
 				</div>
 			</div>
