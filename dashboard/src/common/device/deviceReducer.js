@@ -1,22 +1,30 @@
 import { handleActions } from 'redux-actions';
 import * as deviceConstants from './deviceConstants';
 
+const createDevice = data => ({
+	isLoading: false,
+	hasDataSubscription: false,
+	data: {
+		...data,
+	},
+});
+
 const initialState = {
 	clientId: null,
 	isPolling: false,
 	inventory: {},
 	devices: {
-		WEATHER_CONTROLLER: {
-			isLoading: false,
-			hasDataSubscription: false,
-			data: {
-				humidity: 0,
-				lightLevel: 0,
-				pressure: 0,
-				soundLevel: 0,
-				temperature: 0,
-			},
-		},
+		WEATHER_CONTROLLER: createDevice({
+			humidity: 0,
+			lightLevel: 0,
+			pressure: 0,
+			soundLevel: 0,
+			temperature: 0,
+		}),
+		LIGHTING_CONTROLLER: createDevice({
+			outputLightLevel: 0,
+			detectedLightLevel: 0,
+		}),
 	},
 	isInventoryLoaded: false,
 	error: null,

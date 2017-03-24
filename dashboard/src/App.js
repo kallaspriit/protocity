@@ -32,12 +32,13 @@ export class App extends Component {
 		this.props.getInventory('com_stagnationlab_c8y_driver_fragments_Gateway');
 	}
 
-	componentWillReceiveProps = (nextProps) => {
-		if (!nextProps.isPolling && nextProps.clientId) {
-			this.props.pollDeviceData(nextProps.clientId);
+	componentDidUpdate = () => {
+		if (!this.props.isPolling && this.props.clientId) {
+			this.props.pollDeviceData(this.props.clientId);
 		}
 
-		this.setupWeatherDevice(nextProps);
+		this.setupDevice('WEATHER_CONTROLLER');
+		this.setupDevice('LIGHTING_CONTROLLER');
 	}
 
 	componentWillUnmount = () => {
@@ -56,17 +57,17 @@ export class App extends Component {
 
 	isAppReady = () => this.props.clientId && this.props.isInventoryLoaded;
 
-	setupWeatherDevice(props) {
-		const deviceId = props.inventory.WEATHER_CONTROLLER;
-		const device = props.devices.WEATHER_CONTROLLER;
+	setupDevice(deviceName) {
+		const deviceId = this.props.inventory[deviceName];
+		const device = this.props.devices[deviceName];
 
 		if (!deviceId) {
 			return;
 		}
 
 		if (!device.hasDataSubscription && !device.isLoading) {
-			this.props.subscribeToDeviceData(props.clientId, deviceId, 'WEATHER_CONTROLLER');
-			this.props.getDeviceData(deviceId, 'WEATHER_CONTROLLER');
+			this.props.subscribeToDeviceData(this.props.clientId, deviceId, deviceName);
+			this.props.getDeviceData(deviceId, deviceName);
 		}
 	}
 }

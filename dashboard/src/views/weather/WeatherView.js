@@ -2,7 +2,7 @@ import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
 import './weather-view.scss';
 
-export const WeatherView = ({ weather }) => (
+export const WeatherView = ({ weather, lighting }) => (
 	<div className="weather-view">
 		<div className="demo-video">
 			<video src="/videos/weather-dashboard.eng.mp4" autoPlay loop />
@@ -61,7 +61,7 @@ export const WeatherView = ({ weather }) => (
 			<div className="data">
 				<h2 className="data__title">Detect light level from weather station</h2>
 				<div className="data__chart data__chart--large">
-					<p className="data__value">430</p>
+					<p className="data__value">{lighting.detectedLightLevel}</p>
 					<p className="data__measure">lux</p>
 				</div>
 			</div>
@@ -69,7 +69,7 @@ export const WeatherView = ({ weather }) => (
 			<div className="data">
 				<h2 className="data__title">Light level / energy cost in kWh</h2>
 				<div className="data__chart data__chart--large">
-					<p className="data__value">10</p>
+					<p className="data__value">{lighting.outputLightLevel}</p>
 					<p className="data__measure">kWh</p>
 				</div>
 			</div>
@@ -85,10 +85,15 @@ WeatherView.propTypes = {
 		soundLevel: PropTypes.number.isRequired,
 		temperature: PropTypes.number.isRequired,
 	}),
+	lighting: PropTypes.shape({
+		outputLightLevel: PropTypes.number.isRequired,
+		detectedLightLevel: PropTypes.number.isRequired,
+	}),
 };
 
 const mapStateToProps = ({ deviceReducer }) => ({
 	weather: deviceReducer.devices.WEATHER_CONTROLLER.data,
+	lighting: deviceReducer.devices.LIGHTING_CONTROLLER.data,
 });
 
 export default connect(mapStateToProps)(WeatherView);
