@@ -7,6 +7,7 @@ const createDevice = data => ({
 	data: {
 		...data,
 	},
+	measurements: {},
 });
 
 const initialState = {
