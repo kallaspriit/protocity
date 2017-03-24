@@ -26,23 +26,23 @@ const ParkingView = () => (
 					{/* IF PARKING SLOT IS FREE: */}
 					<div className="parking__data__availability--free" />
 					{/* IF PARKING SLOT IS OCCUPIED: */}
-					{/*<div className="parking__data__availability--occupied">
+					{/* <div className="parking__data__availability--occupied">
 						<p className="car-type" />
 						<p className="cost">Parking cost: </p>
-					</div>*/}
+					</div> */}
 				</div>
 				<div className="parking__data__availability">
 					{/* IF PARKING SLOT IS FREE: */}
 					<div className="parking__data__availability--free" />
 					{/* IF PARKING SLOT IS OCCUPIED: */}
-					{/*<div className="parking__data__availability--occupied">
+					{/* <div className="parking__data__availability--occupied">
 						<p className="car-type" />
 						<p className="cost">Parking cost: </p>
-					</div>*/}
+					</div> */}
 				</div>
 				<div className="parking__data__availability">
 					{/* IF PARKING SLOT IS FREE: */}
-					{/*<div className="parking__data__availability--free" />*/}
+					{/* <div className="parking__data__availability--free" /> */}
 					{/* IF PARKING SLOT IS OCCUPIED: */}
 					<div className="parking__data__availability--occupied">
 						<p className="car-type" />
@@ -55,7 +55,7 @@ const ParkingView = () => (
 				<div className="parking__area-slot parking__area-slot-2" />
 				<div className="parking__area-slot parking__area-slot-3" />
 			</div>
-		</div>		
+		</div>
 	</div>
 );
 

@@ -23,13 +23,25 @@ export const getDeviceData = createAction(
 	(deviceId, name) => ({ name }),
 );
 
+export const getDeviceMeasurements = createAction(
+	deviceConstants.GET_DEVICE_MEASUREMENTS,
+	deviceId => deviceApi.getDeviceData(deviceId),
+	(deviceId, name) => ({ name }),
+);
+
 export const pollDeviceData = createAction(
-	deviceConstants.POLL_DEVICE_DATA,
+	deviceConstants.POLL_CLIENT,
 	deviceApi.startPolling,
 );
 
-export const subscribeToDeviceData = createAction(
-	deviceConstants.SUBSCRIBE_TO_DEVICE_DATA,
-	(clientId, deviceId) => deviceApi.subscribe(clientId, deviceId),
-	(clientId, deviceId, name) => ({ name }),
+export const subscribeDevice = createAction(
+	deviceConstants.SUBSCRIBE_DEVICE,
+	(clientId, deviceId, name, subscriptionType) => deviceApi.subscribe(clientId, deviceId, subscriptionType),
+	(clientId, deviceId, name, subscriptionType) => ({ name, subscriptionType }),
+);
+
+export const unsubscribeDevice = createAction(
+	deviceConstants.UNSUBSCRIBE_DEVICE,
+	(clientId, deviceId, name, subscriptionType) => deviceApi.unsubscribe(clientId, deviceId, subscriptionType),
+	(clientId, deviceId, name, subscriptionType) => ({ name, subscriptionType }),
 );

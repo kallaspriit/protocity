@@ -17,14 +17,10 @@ export class App extends Component {
 		clientId: PropTypes.string,
 		isPolling: PropTypes.bool.isRequired, // eslint-disable-line
 		isInventoryLoaded: PropTypes.bool.isRequired,
-		devices: PropTypes.object.isRequired, // eslint-disable-line
-		inventory: PropTypes.object.isRequired, // eslint-disable-line
 		createSession: PropTypes.func.isRequired,
 		destroySession: PropTypes.func.isRequired,
 		getInventory: PropTypes.func.isRequired,
-		getDeviceData: PropTypes.func.isRequired,
 		pollDeviceData: PropTypes.func.isRequired,
-		subscribeToDeviceData: PropTypes.func.isRequired,
 	}
 
 	componentDidMount = () => {
@@ -36,9 +32,6 @@ export class App extends Component {
 		if (!this.props.isPolling && this.props.clientId) {
 			this.props.pollDeviceData(this.props.clientId);
 		}
-
-		this.setupDevice('WEATHER_CONTROLLER');
-		this.setupDevice('LIGHTING_CONTROLLER');
 	}
 
 	componentWillUnmount = () => {
@@ -56,28 +49,12 @@ export class App extends Component {
 	);
 
 	isAppReady = () => this.props.clientId && this.props.isInventoryLoaded;
-
-	setupDevice(deviceName) {
-		const deviceId = this.props.inventory[deviceName];
-		const device = this.props.devices[deviceName];
-
-		if (!deviceId) {
-			return;
-		}
-
-		if (!device.hasDataSubscription && !device.isLoading) {
-			this.props.subscribeToDeviceData(this.props.clientId, deviceId, deviceName);
-			this.props.getDeviceData(deviceId, deviceName);
-		}
-	}
 }
 
 const mapStateToProps = ({ deviceReducer }) => ({
 	clientId: deviceReducer.clientId,
 	isPolling: deviceReducer.isPolling,
 	isInventoryLoaded: deviceReducer.isInventoryLoaded,
-	devices: deviceReducer.devices,
-	inventory: deviceReducer.inventory,
 });
 
 const mapDispatchToProps = {

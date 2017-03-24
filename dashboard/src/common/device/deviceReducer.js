@@ -1,13 +1,16 @@
 import { handleActions } from 'redux-actions';
 import * as deviceConstants from './deviceConstants';
 
-const createDevice = data => ({
+const createDevice = (data, measurements) => ({
 	isLoading: false,
 	hasDataSubscription: false,
+	hasMeasurementsSubscription: false,
 	data: {
 		...data,
 	},
-	measurements: {},
+	measurements: {
+		...measurements,
+	},
 });
 
 const initialState = {
@@ -21,6 +24,8 @@ const initialState = {
 			pressure: 0,
 			soundLevel: 0,
 			temperature: 0,
+		}, {
+			soundLevel: [],
 		}),
 		LIGHTING_CONTROLLER: createDevice({
 			outputLightLevel: 0,
@@ -169,7 +174,7 @@ export default handleActions({
 		};
 	},
 
-	[deviceConstants.POLL_DEVICE_DATA]: (state, action) => {
+	[deviceConstants.POLL_CLIENT]: (state, action) => {
 		const {
 			isLoading,
 			error,
@@ -190,11 +195,29 @@ export default handleActions({
 		};
 
 		Object.entries(deviceConstants.DEVICE_CLASS).forEach(([deviceKey, deviceClass]) => {
-			const deviceData = payload[0].data.data[deviceClass];
+			payload.forEach((stream) => {
+				if (stream.channel.includes(deviceConstants.SUBSCRIPTION_TYPE.DATA)) {
+					devices[deviceKey].data = {
+						...devices[deviceKey].data,
+						...stream.data.data[deviceClass],
+					};
+				} else if (stream.channel.includes(deviceConstants.SUBSCRIPTION_TYPE.MEASUREMENTS)) {
+					// sound
+					if (
+						stream.data.data[deviceConstants.MEASUREMENT_CLASS.SOUND]
+						&& devices[deviceKey].measurements.soundLevel
+					) {
+						devices[deviceKey].measurements.soundLevel.push({
+							value: stream.data.data[deviceConstants.MEASUREMENT_CLASS.SOUND].soundLevel.value,
+							time: stream.data.data.time,
+						});
 
-			if (deviceData) {
-				devices[deviceKey].data = deviceData;
-			}
+						if (devices[deviceKey].measurements.soundLevel.length > 100) {
+							devices[deviceKey].measurements.soundLevel.shift();
+						}
+					}
+				}
+			});
 		});
 
 		return {
@@ -205,7 +228,7 @@ export default handleActions({
 		};
 	},
 
-	[deviceConstants.SUBSCRIBE_TO_DEVICE_DATA]: (state, action) => {
+	[deviceConstants.SUBSCRIBE_DEVICE]: (state, action) => {
 		const {
 			error,
 			payload,
@@ -224,16 +247,79 @@ export default handleActions({
 			};
 		}
 
+		const isSuccessful = !!(payload && payload[0].successful);
+
+		const device = {
+			...state.devices[meta.name],
+		};
+
+		switch (meta.subscriptionType) {
+			case deviceConstants.SUBSCRIPTION_TYPE.DATA:
+				device.hasDataSubscription = isSuccessful;
+				break;
+
+			case deviceConstants.SUBSCRIPTION_TYPE.MEASUREMENTS:
+				device.hasMeasurementsSubscription = isSuccessful;
+				break;
+
+			default:
+				throw new Error(`unhandled subscription type: "${meta.subscriptionType}"`);
+		}
 
 		return {
 			...state,
 			error,
 			devices: {
 				...state.devices,
-				[meta.name]: {
-					...state.devices[meta.name],
-					hasDataSubscription: !!(payload && payload[0].successful),
-				},
+				[meta.name]: device,
+			},
+		};
+	},
+
+	[deviceConstants.UNSUBSCRIBE_DEVICE]: (state, action) => {
+		const {
+			error,
+			payload,
+			isLoading,
+			meta,
+		} = action;
+
+		if (isLoading) {
+			return state;
+		}
+
+		if (error) {
+			return {
+				...state,
+				error,
+			};
+		}
+
+		const isSuccessful = !!(payload && payload[0].successful);
+
+		const device = {
+			...state.devices[meta.name],
+		};
+
+		switch (meta.subscriptionType) {
+			case deviceConstants.SUBSCRIPTION_TYPE.DATA:
+				device.hasDataSubscription = !isSuccessful;
+				break;
+
+			case deviceConstants.SUBSCRIPTION_TYPE.MEASUREMENTS:
+				device.hasMeasurementsSubscription = !isSuccessful;
+				break;
+
+			default:
+				throw new Error(`unhandled subscription type: "${meta.subscriptionType}"`);
+		}
+
+		return {
+			...state,
+			error,
+			devices: {
+				...state.devices,
+				[meta.name]: device,
 			},
 		};
 	},

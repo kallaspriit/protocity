@@ -18,16 +18,16 @@ export const destroySession = clientId => post('cep/realtime', [{
 
 export const getInventory = fragmentType => get(`inventory/managedObjects?fragmentType=${fragmentType}`);
 
-export const subscribe = (clientId, deviceId) => post('cep/realtime', [{
+export const subscribe = (clientId, deviceId, type) => post('cep/realtime', [{
 	channel: '/meta/subscribe',
-	subscription: `/managedobjects/${deviceId}`,
+	subscription: `/${type}/${deviceId}`,
 	clientId,
 }]);
 
 
-export const unsubscribe = (clientId, deviceId) => post('cep/realtime', [{
+export const unsubscribe = (clientId, deviceId, type) => post('cep/realtime', [{
 	channel: '/meta/unsubscribe',
-	subscription: `/managedobjects/${deviceId}`,
+	subscription: `/${type}/${deviceId}`,
 	clientId,
 }]);
 
@@ -40,3 +40,7 @@ export const startPolling = clientId => post('cep/realtime', [{
 
 
 export const getDeviceData = deviceId => get(`inventory/managedObjects/${deviceId}`);
+
+export const getDeviceMeasurements = (deviceId, dateFrom, dateTo) => get(
+	`measurement/measurements/series?source=${deviceId}&dateFrom=${dateFrom}&dateTo=${dateTo}`,
+);
