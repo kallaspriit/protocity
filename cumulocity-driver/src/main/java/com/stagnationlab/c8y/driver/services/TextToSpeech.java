@@ -175,9 +175,7 @@ public enum TextToSpeech {
 				log.debug("joined play message thread");
 			}
 		} catch (InterruptedException e) {
-			log.warn("joining playing thread failed");
-
-			e.printStackTrace();
+			log.warn("joining playing thread failed", e);
 		} finally {
 			playMessageThread = null;
 			//playMessageTask = null;

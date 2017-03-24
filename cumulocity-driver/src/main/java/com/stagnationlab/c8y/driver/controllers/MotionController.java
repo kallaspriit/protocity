@@ -57,9 +57,23 @@ public class MotionController extends AbstractController {
 		Commander commander = getCommanderByName(commanderName);
 		AbstractMotionSensor motionSensor = new EtherioMotionSensor("Motion sensor: " + name, commander, portNumber);
 
+		motionSensor.addListener(isMotionDetected -> {
+			handleMotionChangeEvent(name, isMotionDetected);
+		});
+
 		motionSensorMap.put(name, motionSensor);
 
 		registerChild(motionSensor);
+	}
+
+	private void handleMotionChangeEvent(String name, boolean isMotionDetected) {
+		log.debug("motion {} for {}", isMotionDetected ? "detected" : "ended", name);
+
+		/*
+		if (isMotionDetected) {
+			TextToSpeech.INSTANCE.speak("motion" + (isMotionDetected ? "detected" : "ended") + " for " + name, true);
+		}
+		*/
 	}
 
 	@Override

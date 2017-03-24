@@ -15,7 +15,9 @@ NFC::NFC(SPI *spi, PinName spiSlaveSelectPin) :
 bool NFC::initialize() {
 	log.info("initializing");
 
-	return adapter.begin();
+	bool result = adapter.begin();
+
+	return result;
 }
 
 NFC::Version NFC::getVersion() {

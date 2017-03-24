@@ -525,7 +525,7 @@ CommandManager::Command::Response Application::handlePortReadCommand(PortControl
 
 	PortController::PortMode portMode = portController->getPortMode();
 
-	if (portMode == PortController::PortMode::DIGITAL_IN) {
+	if (portMode == PortController::PortMode::DIGITAL_IN || portMode == PortController::PortMode::INTERRUPT) {
 		PortController::DigitalValue value = portController->getDigitalValue();
 
 		return command->createSuccessResponse(value == PortController::DigitalValue::HIGH ? "HIGH" : "LOW");
@@ -534,7 +534,7 @@ CommandManager::Command::Response Application::handlePortReadCommand(PortControl
 
 		return command->createSuccessResponse(value);
 	} else {
-		return command->createFailureResponse("reading value is only valid for digital or analog inputs");
+		return command->createFailureResponse("reading value is only valid for DIGITAL_IN, INTERRUPT and ANALOG_IN");
 	}
 }
 

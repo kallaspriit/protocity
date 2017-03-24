@@ -1,12 +1,20 @@
 package com.stagnationlab.c8y.driver.devices;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.stagnationlab.c8y.driver.events.MotionDetectedEvent;
 import com.stagnationlab.c8y.driver.events.MotionEndedEvent;
 import com.stagnationlab.c8y.driver.fragments.sensors.MotionSensor;
 
 public abstract class AbstractMotionSensor extends AbstractDevice {
 
+	public interface Listener {
+		void onMotionChange(boolean isMotionDetected);
+	}
+
 	protected final MotionSensor state = new MotionSensor();
+	private final List<Listener> listeners = new ArrayList<>();
 
     protected AbstractMotionSensor(String id) {
 	    super(id);
@@ -17,7 +25,15 @@ public abstract class AbstractMotionSensor extends AbstractDevice {
 		return state.getClass().getSimpleName();
 	}
 
+	public void addListener(Listener listener) {
+		listeners.add(listener);
+	}
+
 	protected void setIsMotionDetected(boolean isMotionDetected) {
+		for (Listener listener : listeners) {
+			listener.onMotionChange(isMotionDetected);
+		}
+
 		reportEvent(isMotionDetected ? new MotionDetectedEvent() : new MotionEndedEvent());
 
 		state.setMotionState(isMotionDetected ? MotionSensor.MotionState.MOTION_DETECTED : MotionSensor.MotionState.MOTION_NOT_DETECTED);
