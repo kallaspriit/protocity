@@ -3,11 +3,18 @@ import './truck-view.scss';
 
 const TruckView = () => (
 	<div className="truck-view">
+		<div className="demo-video">
+			<div
+				className="demo-video__placeholder"
+				style={{ backgroundImage: 'url(/videos/truck-dashboard.eng.png)' }}
+			/>
+		</div>
+
 		<div className="header header--truck">
 			<img className="header__icon" src="../../gfx/icons/truck.svg" alt="icon" />
 			<h1 className="header__title">Electric delivery truck</h1>
 		</div>
-		
+
 		<div className="container">
 			<div className="data">
 				<h2 className="data__title">Battery level</h2>

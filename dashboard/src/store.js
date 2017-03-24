@@ -4,12 +4,12 @@ import thunkMiddleware from 'redux-thunk';
 import promiseMiddleware from './services/promiseMiddleware';
 
 // reducers
-import homeViewReducer from './views/home/homeViewReducer';
+import deviceReducer from './common/device/deviceReducer';
 
 export default function configureStore(initialState) {
 	return createStore(
 		combineReducers({
-			homeViewReducer,
+			deviceReducer,
 		}),
 		initialState,
 		compose(

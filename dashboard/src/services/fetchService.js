@@ -1,3 +1,4 @@
+import base64 from 'base-64';
 import { getMockInfo, requestMock } from '../utils';
 
 const request = (method, url, body) => {
@@ -8,8 +9,14 @@ const request = (method, url, body) => {
 		return requestMock(method, url, mock, body);
 	}
 
-	// setup headers and make request to server
+	// setup headers
 	const headers = new Headers();
+	headers.append('Content-Type', 'application/json');
+
+	// authorize
+	const hash = base64.encode(`${process.env.APP_API_USERNAME}:${process.env.APP_API_PASSWORD}`);
+	headers.append('Authorization', `Basic ${hash}`);
+
 	const init = {
 		headers,
 		method,
@@ -24,7 +31,7 @@ const request = (method, url, body) => {
 			if (response.ok) {
 				const contentType = response.headers.get('content-type');
 
-				if (contentType && contentType.indexOf('application/json') !== -1) {
+				if (contentType && contentType.indexOf('json') !== -1) {
 					return response.json();
 				}
 

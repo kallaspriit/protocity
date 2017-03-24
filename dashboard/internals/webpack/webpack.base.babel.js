@@ -39,7 +39,7 @@ const fileLoaderOptions = {
 	hash: 'sha512',
 	digest: 'hex',
 	name: process.env.NODE_ENV === 'production' ? 'static/gfx/[name].[hash:8].[ext]' : '[path][name].[ext]',
-}
+};
 
 const publicUrl = '';
 const env = getClientEnvironment(publicUrl);
