@@ -11,14 +11,12 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
 import lombok.extern.slf4j.Slf4j;
 
-@SuppressWarnings("ForLoopReplaceableByForEach")
 @Slf4j
 public class SocketClient implements MessageTransport {
 
@@ -102,9 +100,7 @@ public class SocketClient implements MessageTransport {
 	    */
 
 	    synchronized (eventListeners) {
-		    for (Iterator<EventListener> it = eventListeners.iterator(); it.hasNext(); ) {
-			    EventListener eventListener = it.next();
-
+		    for (EventListener eventListener : eventListeners) {
 			    eventListener.onConnecting(wasEverConnected);
 		    }
 	    }
@@ -138,9 +134,7 @@ public class SocketClient implements MessageTransport {
 		    */
 
 		    synchronized (eventListeners) {
-			    for (Iterator<EventListener> it = eventListeners.iterator(); it.hasNext(); ) {
-				    EventListener eventListener = it.next();
-
+			    for (EventListener eventListener : eventListeners) {
 				    eventListener.onOpen(isFirstConnect);
 			    }
 		    }
@@ -154,9 +148,7 @@ public class SocketClient implements MessageTransport {
 		    */
 
 		    synchronized (eventListeners) {
-			    for (Iterator<EventListener> it = eventListeners.iterator(); it.hasNext(); ) {
-				    EventListener eventListener = it.next();
-
+			    for (EventListener eventListener : eventListeners) {
 				    eventListener.onConnectionFailed(e, wasEverConnected);
 			    }
 		    }
@@ -289,9 +281,7 @@ public class SocketClient implements MessageTransport {
 	    */
 
 	    synchronized (eventListeners) {
-		    for (Iterator<EventListener> it = eventListeners.iterator(); it.hasNext(); ) {
-			    EventListener eventListener = it.next();
-
+		    for (EventListener eventListener : eventListeners) {
 			    eventListener.onClose(isPlannedClose);
 		    }
 	    }
@@ -381,9 +371,7 @@ public class SocketClient implements MessageTransport {
 							*/
 
 							synchronized (eventListeners) {
-								for (Iterator<EventListener> it = eventListeners.iterator(); it.hasNext(); ) {
-									EventListener eventListener = it.next();
-
+								for (EventListener eventListener : eventListeners) {
 									eventListener.onMessageReceived(message);
 								}
 							}

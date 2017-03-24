@@ -1,6 +1,7 @@
 package com.stagnationlab.etherio;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +48,7 @@ public class Commander implements MessageTransport.EventListener {
 	public Commander(MessageTransport messageTransport) {
 		this.messageTransport = messageTransport;
 		this.commandPromises = new HashMap<>();
-		this.remoteCommandListeners = new ArrayList<>();
+		this.remoteCommandListeners = Collections.synchronizedList(new ArrayList<>());
 
 		messageTransport.addEventListener(this);
 	}
@@ -61,7 +62,9 @@ public class Commander implements MessageTransport.EventListener {
 	}
 
 	public void addRemoteCommandListener(RemoteCommandListener listener) {
-		remoteCommandListeners.add(listener);
+		synchronized (remoteCommandListeners) {
+			remoteCommandListeners.add(listener);
+		}
 	}
 
 	public CompletableFuture<Commander.CommandResponse> sendCommand(String name, Object... arguments) {
@@ -125,7 +128,7 @@ public class Commander implements MessageTransport.EventListener {
 		try {
 			handleResponse(responseCommand);
 		} catch (Exception e) {
-			log.warn("handling command '{}' from {} failed ({} - {})", responseCommand.toString(), messageTransport.getDescription(), e.getClass().getSimpleName(), e.getMessage());
+			log.warn("handling command '{}' from {} failed ({} - {})", responseCommand.toString(), messageTransport.getDescription(), e.getClass().getSimpleName(), e.getMessage(), e);
 		}
 	}
 
@@ -172,7 +175,7 @@ public class Commander implements MessageTransport.EventListener {
 	}
 
 	private void handleSpecialCommand(Command responseCommand) {
-		synchronized (this) {
+		synchronized (remoteCommandListeners) {
 			for (RemoteCommandListener listener : remoteCommandListeners) {
 				listener.handleRemoteCommand(responseCommand);
 			}
