@@ -9,6 +9,7 @@
 #include "PN532.h"
 #include "PN532_debug.h"
 #include <string.h>
+#include "mbed.h"
 
 #define HAL(func)   (_interface->func)
 
@@ -26,6 +27,8 @@ void PN532::begin()
 {
     HAL(begin)();
     HAL(wakeup)();
+
+    wait_ms(100);
 }
 
 /**************************************************************************/

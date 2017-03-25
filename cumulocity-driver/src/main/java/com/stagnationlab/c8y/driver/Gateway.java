@@ -63,6 +63,8 @@ public class Gateway extends AbstractDevice {
 
 	@Override
 	protected void setup() throws Exception {
+		TextToSpeech.INSTANCE.speak("Starting Lego City", true);
+
 		log.info("setting up the gateway");
 
 		setupShutdownHook();
@@ -87,6 +89,8 @@ public class Gateway extends AbstractDevice {
 
 		// update initial state
 		updateState(state);
+
+		log.info("gateway started");
 	}
 
 	@Override

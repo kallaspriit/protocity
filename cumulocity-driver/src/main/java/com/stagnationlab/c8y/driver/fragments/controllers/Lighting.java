@@ -6,6 +6,7 @@ public class Lighting {
 	private boolean isRunning;
 	private float detectedLightLevel;
 	private float outputLightLevel;
+	private float outputPower;
 
 	public Lighting() {
 		reset();
@@ -39,5 +40,13 @@ public class Lighting {
 
 	public void setOutputLightLevel(float outputLightLevel) {
 		this.outputLightLevel = outputLightLevel;
+	}
+
+	public float getOutputPower() {
+		return outputPower;
+	}
+
+	public void setOutputPower(float outputPower) {
+		this.outputPower = outputPower;
 	}
 }

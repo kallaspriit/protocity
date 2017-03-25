@@ -20,7 +20,8 @@
   * as possible to ensure that data has time to be sent each reset cycle.
   */
 //#define SPI_SPEED 30000000
-#define SPI_SPEED 30000000
+//#define SPI_SPEED 30000000
+#define SPI_SPEED 1000000
 
 /**
   * The rate at which the GSCLK pin is pulsed

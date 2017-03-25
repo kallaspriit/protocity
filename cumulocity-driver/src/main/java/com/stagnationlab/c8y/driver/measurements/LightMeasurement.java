@@ -22,11 +22,11 @@ public class LightMeasurement {
 		this(0.0f);
 	}
 
-	public MeasurementValue getLuminosity() {
+	public MeasurementValue getLightLevel() {
 		return Util.buildMeasurementValue(value, unit);
 	}
 
-	public void setLuminosity(MeasurementValue measurementValue) {
+	public void setLightLevel(MeasurementValue measurementValue) {
 		value = measurementValue.getValue().floatValue();
 	}
 

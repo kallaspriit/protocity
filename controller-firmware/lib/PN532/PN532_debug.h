@@ -1,12 +1,13 @@
 #ifndef __PN532_DEBUG_H__
 #define __PN532_DEBUG_H__
 
-//#define DEBUG
+// PN532 debugging
+//#define PN532_DEBUG
 //#define MIFARE_ULTRALIGHT_DEBUG
 //#define MIFARE_CLASSIC_DEBUG
 //#define NDEF_DEBUG
 
-#ifdef DEBUG
+#ifdef PN532_DEBUG
 
 #include <stdio.h>
 

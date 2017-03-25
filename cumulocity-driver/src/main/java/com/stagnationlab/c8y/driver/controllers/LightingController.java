@@ -12,6 +12,7 @@ import com.stagnationlab.c8y.driver.devices.AbstractMultiDacActuator;
 import com.stagnationlab.c8y.driver.devices.etherio.EtherioMultiDacActuator;
 import com.stagnationlab.c8y.driver.events.LightingControllerActivatedEvent;
 import com.stagnationlab.c8y.driver.fragments.controllers.Lighting;
+import com.stagnationlab.c8y.driver.measurements.PowerMeasurement;
 import com.stagnationlab.c8y.driver.operations.SetAllChannelsValue;
 import com.stagnationlab.c8y.driver.operations.SetChannelValue;
 import com.stagnationlab.c8y.driver.operations.SetChannelValues;
@@ -36,6 +37,7 @@ public class LightingController extends AbstractController {
 	private final float highLightValue;
 	private final float lowLightOutput;
 	private final float highLightOutput;
+	private final float outputLevelToPowerMultiplier;
 
 	public LightingController(String id, Map<String, Commander> commanders, Config config, EventBroker eventBroker) {
 		super(id, commanders, config, eventBroker);
@@ -45,6 +47,7 @@ public class LightingController extends AbstractController {
 		highLightValue = config.getFloat("lighting.highLightValue");
 		lowLightOutput = config.getFloat("lighting.lowLightOutput");
 		highLightOutput = config.getFloat("lighting.highLightOutput");
+		outputLevelToPowerMultiplier = config.getFloat("lighting.outputLevelToPowerMultiplier");
 	}
 
 	@Override
@@ -137,13 +140,21 @@ public class LightingController extends AbstractController {
 				handleLightsTurnedOff();
 			}
 
+			float outputPower = calculateOutputPower(outputLightLevel);
+
 			lastAutomaticLightLevel = outputLightLevel;
 
 			state.setDetectedLightLevel(detectedLightLevel);
 			state.setOutputLightLevel(outputLightLevel);
+			state.setOutputPower(outputPower);
 
 			updateState(state);
+			reportMeasurement(new PowerMeasurement(outputPower, "kW"));
 		}
+	}
+
+	private float calculateOutputPower(float outputLightLevel) {
+		return outputLightLevel * outputLevelToPowerMultiplier;
 	}
 
 	private void handleLightsTurnedOn() {

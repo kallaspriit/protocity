@@ -15,16 +15,29 @@ bool NfcAdapter::begin()
 {
     shield->begin();
 
-    uint32_t versiondata = shield->getFirmwareVersion();
+    int attemptCount = 3;
+    int attemptsLeft = attemptCount;
+    uint32_t versiondata = 0;
 
-    if (!versiondata)
+    // does not always succeed on the first attempt for some reason..
+    while (attemptsLeft > 0) {
+        attemptsLeft--;
+
+        versiondata = shield->getFirmwareVersion();
+
+        if (versiondata != 0) {
+            break;
+        }
+    }
+
+    if (versiondata == 0)
     {
-        DMSG("Didn't find PN53x board\n");
+        DMSG("Didn't find PN53x board after %d attempts\n", attemptCount);
 
         return false;
     }
 
-    DMSG("Found chip PN5%X, firmare: %d.%d\n", (versiondata>>24) & 0xFF, (versiondata>>16) & 0xFF, (versiondata>>8) & 0xFF);
+    DMSG("Found chip PN5%X after %d attempts, firmare: %d.%d\n", (versiondata>>24) & 0xFF, attemptCount - attemptsLeft, (versiondata>>16) & 0xFF, (versiondata>>8) & 0xFF);
 
     // configure board to read RFID tags (returns false for some reason?)
     shield->SAMConfig();

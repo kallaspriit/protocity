@@ -9,27 +9,39 @@
 
 PN532_SPI::PN532_SPI(SPI &spi, PinName ss) : _ss(ss)
 {
-    command = 0;
     _spi = &spi;
-    _spi->format(8, 0);
-    _spi->frequency(2000000);
 
+    /*
+    command = 0;
+    _spi->format(8, 0);
+    //_spi->frequency(2000000);
+    _spi->frequency(1000000);
     _ss  = 1;
+    */
 }
 
 PN532_SPI::PN532_SPI(SPI *spi, PinName ss) : _ss(ss)
 {
-    command = 0;
     _spi = spi;
-    _spi->format(8, 0);
-    _spi->frequency(2000000);
 
+    /*
+    command = 0;
+    _spi->format(8, 0);
+    //_spi->frequency(2000000);
+    _spi->frequency(1000000);
     _ss  = 1;
+    */
 }
 
 void PN532_SPI::begin()
 {
+    command = 0;
+    _spi->format(8, 0);
+    //_spi->frequency(2000000);
+    _spi->frequency(1000000);
+    _ss  = 1;
 
+    wait_ms(100);
 }
 
 void PN532_SPI::wakeup()
