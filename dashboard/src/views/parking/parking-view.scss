@@ -1,4 +1,7 @@
 .parking-view {
+	width: 1920px;
+	height: 1080px;
+	overflow: hidden;
 	$brand-color: #990ae3;
 
 	// .content__parking-data {
@@ -13,78 +16,51 @@
 	.parking {
 		display: flex;
 		flex-direction: column;
-		margin: auto;
 
 		&__title {
 			display:flex;
 			justify-content: space-between;
-			width: 840px;
-			border-top: 10px solid $brand-color;
-			border-bottom: 10px solid $brand-color;
-		
+			margin-left: 50px;
+			width: 900px;
+			padding: 15px 0;
+			background: $brand-color;
 			&-text {
-				width: 280px;
-				color: #fff;
-				background: $brand-color;
-				padding-left: 20px;
-
-				&:first-child {
-					width: 284px;
-				}
-
-				&:last-child {
-					width: 276px;
-					padding-left: 15px;
-				}
-
-				&:nth-child(2) {
-					padding-left: 15px;
-				}
-
-				&:nth-child(n + 2){
-					border-left: 2px solid #fff;
-				}
-			}
-
-			h1 {
+				width: 300px;
 				margin: 0;
+				color: #fff;
+				text-align: center;
 			}
 		}
 
 		&__data {
 			display: flex;
-			color: $brand-color;
-			 
+			width: 900px;
+			margin-left: 50px;
+			color: #000;
+			text-align: center;
+			font-size: 30px;
 			 p {
 				 margin: 0;
 			 }
-			
-
 			&__availability {
-				width: 280px;
+				width: 300px;
 				padding-left: 10px;
 				padding-top: 10px;
-				height: 115px;
-				border: 10px solid #fff;
-				border-right: none;
-				// background: rgba(242, 242, 242, .6);
-
-				&:last-child {
-					border: 10px solid #fff;
+				padding-bottom: 35px;
+				height: 120px;
+				display: flex;
+				align-items: flex-end;
+				justify-content: center;
+				line-height: normal;
+				&--free {
+					font-size: 60px;
+					color: #999;
 				}
-
-				&--free:before {
-					content: 'Free'
-				}
-
 				&--occupied {
-					.car-type:before {
-						content: 'Car type';
-						text-transform: uppercase;
-					}
-					.cost:after {
-						content: '0.01 EUR';
-					}
+					font-size: 30px;
+				}
+				&--occupied strong {
+					font-size: 60px;
 				}
 			}
 		}
@@ -93,57 +69,58 @@
 		.parking__area {
 			display: flex;
 			justify-content: center;
-			margin: auto 0;
-
-			&-slot {
+			width: 900px;
+			margin-left: 50px;
+			color: #eee;
+			text-align: center;
+			font-size: 300px;
+			&__slot {
 				position: relative;
-				width: 280px;
-				height: 430px;
-				border-bottom: 10px solid $brand-color;
-				border-left: 10px solid $brand-color;
-
+				width: 300px;
+				height: 560px;
+				padding: 50px 0;
+				border-left: 3px solid $brand-color;
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
 				&:last-child {
-					border-right: 10px solid $brand-color;
+					border-right: 3px solid $brand-color;
 				}
-
-				&:after {
-					content: '';
-					position: absolute;
-					top: 0;
-					left: 0;
-					height: 100%;
-					width: 100%;
-					background-repeat: no-repeat;
-					background-position: center;
-					background-size: contain;
-
-				}
-
-				&-1:after {			
-					background-image: url('../../gfx/cars/TAXI_CAR.png');	
-				}
-
-				&-2:after {			
-					background-image: url('../../gfx/cars/RED_ROADSTER.png');	
-				}
-
-				&-3:after {			
-					background-image: url('../../gfx/cars/YELLOW_ROADSTER.png');	
-				}
+			}
+			&__nr {
+				position: absolute;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				z-index: 1;
+			}
+		}
+		.parking__car {
+			background: no-repeat center;
+			background-size: contain;
+			height: 100%;
+			width: 290px;
+			transition: transform 1s;
+			will-change: transform;
+			background-color: #fff;
+			z-index: 10;
+			&--leaving,
+			&:hover {
+				transform: translateY(90%);
+			}
+			&--cart {
+				background-image: url('../../gfx/cars/YELLOW_ROADSTER.png');
+			}
+			&--f1 {
+				background-image: url('../../gfx/cars/F1.png');
 			}
 		}
 
-		.car-type {
-			text-transform: uppercase;
-		}
-
-		.parking-cost:after {
-			content: 'EUR';
-			margin-left: 8px;
-		}
-
-		// p {
-		// 	margin: 8px 0;
-		// }	
+	}
+	.car-type {
+		width: 300px;
+		margin-top: -30px;
+		padding: 0 20px;
 	}
 }
