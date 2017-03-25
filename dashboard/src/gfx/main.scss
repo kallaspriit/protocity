@@ -49,37 +49,9 @@ h2,
 
 .header {
 	display: flex;
-	align-items: center;
-	height: 12%;
-	padding-left: 40px;
-	margin-bottom: 40px;
-	background: #000 no-repeat 50%;
+	margin-left: 50px;
+	margin-bottom: 20px;
 	background-size: cover;
-
-	&--weather {
-		background-image: url('./backgrounds/bg-weather.png');
-	}
-
-	&--street {
-		background-image: url('./backgrounds/bg-street.png');
-	}
-
-	&--solar {
-		background-image: url('./backgrounds/bg-solar.png');
-	}
-
-	&--truck {
-		background-image: url('./backgrounds/bg-truck.png');
-	}
-
-	&--parking {
-		background-image: url('./backgrounds/bg-parking.png');
-		margin-bottom: 0;
-	}
-
-	&--train {
-		background-image: url('./backgrounds/bg-train.png');
-	}
 
 	&__icon {
 		flex-grow: 0;
@@ -89,7 +61,8 @@ h2,
 
 	&__title {
 		flex-grow: 2;
-		color:#fff;
+		color: #990ae3;
+		font-size: 60px;
 	}
 }
 
