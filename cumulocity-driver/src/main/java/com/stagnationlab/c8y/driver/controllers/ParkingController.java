@@ -2,6 +2,7 @@ package com.stagnationlab.c8y.driver.controllers;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ScheduledFuture;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -13,6 +14,7 @@ import com.stagnationlab.c8y.driver.events.ParkingControllerActivatedEvent;
 import com.stagnationlab.c8y.driver.fragments.controllers.Parking;
 import com.stagnationlab.c8y.driver.services.Config;
 import com.stagnationlab.c8y.driver.services.EventBroker;
+import com.stagnationlab.c8y.driver.services.Scheduler;
 import com.stagnationlab.c8y.driver.services.TextToSpeech;
 import com.stagnationlab.c8y.driver.services.Util;
 import com.stagnationlab.etherio.Commander;
@@ -28,12 +30,18 @@ public class ParkingController extends AbstractController {
 	private final Map<Integer, AbstractTagSensor> sensorsMap = new HashMap<>();
 	private final Map<Integer, Integer> ledChannelMap = new HashMap<>();
 	private final Map<Integer, String> slotNameMap = new HashMap<>();
+	private final Map<Integer, ScheduledFuture<?>> slotCostIntervalMap = new HashMap<>();
 	private Commander slotIndicatorsCommander = null;
 	private int slotCount = 0;
 	private long lastActivationReportedTime = 0;
+	private final int costInterval;
+	private final float costStep;
 
 	public ParkingController(String id, Map<String, Commander> commanders, Config config, EventBroker eventBroker) {
 		super(id, commanders, config, eventBroker);
+
+		costInterval = config.getInt("parking.cost.interval");
+		costStep = config.getFloat("parking.cost.step");
 	}
 
 	@Override
@@ -189,6 +197,8 @@ public class ParkingController extends AbstractController {
 
 		setSlotFree(index, false);
 		playSlotTakenSound(index, occupantName);
+
+		startCostInterval(index);
 	}
 
 	private void free(int index) {
@@ -208,6 +218,32 @@ public class ParkingController extends AbstractController {
 
 		setSlotFree(index, true);
 		playSlotFreedSound(index);
+
+		stopCostInterval(index);
+	}
+
+	private void startCostInterval(int index) {
+		slotCostIntervalMap.put(index, Scheduler.setInterval(() -> {
+			Parking.SlotState slotState = state.slotByIndex(index);
+
+			slotState.setCost(slotState.getCost() + costStep);
+
+			updateState(state);
+		}, costInterval));
+	}
+
+	private void stopCostInterval(int index) {
+		if (!slotCostIntervalMap.containsKey(index)) {
+			return;
+		}
+
+		ScheduledFuture<?> interval = slotCostIntervalMap.get(index);
+
+		if (interval.isDone() || interval.isCancelled()) {
+			return;
+		}
+
+		interval.cancel(true);
 	}
 
 	private void setSlotFree(int index, boolean isFree) {

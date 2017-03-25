@@ -14,6 +14,7 @@ public class Parking {
 		private String occupantName;
 		private long occupiedTimestamp;
 		private long freedTimestamp;
+		private float cost;
 
 		public SlotState(int index, boolean isOccupied, String occupantName, long occupiedTimestamp, long freedTimestamp) {
 			this.index = index;
@@ -71,10 +72,19 @@ public class Parking {
 			this.freedTimestamp = freedTimestamp;
 		}
 
+		public float getCost() {
+			return cost;
+		}
+
+		public void setCost(float cost) {
+			this.cost = cost;
+		}
+
 		public synchronized void occupy(String occupantName) {
 			setIsOccupied(true);
 			setOccupantName(occupantName);
 			setOccupiedTimestamp((new Date()).getTime());
+			setCost(0.0f);
 		}
 
 		public synchronized void free() {
