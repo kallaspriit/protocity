@@ -17,17 +17,8 @@ const initialState = {
 	isPolling: false,
 	deviceIds: {},
 	devices: {
-		WEATHER_CONTROLLER: createDevice({
-			humidity: 0,
-			lightLevel: 0,
-			pressure: 0,
-			soundLevel: 0,
-			temperature: 0,
-		}),
-		LIGHTING_CONTROLLER: createDevice({
-			outputLightLevel: 0,
-			detectedLightLevel: 0,
-		}),
+		WEATHER_CONTROLLER: createDevice(),
+		LIGHTING_CONTROLLER: createDevice(),
 	},
 	isInventoryLoaded: false,
 	error: null,

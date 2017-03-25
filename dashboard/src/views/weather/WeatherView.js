@@ -71,7 +71,7 @@ export const WeatherView = ({ WEATHER_CONTROLLER: weather, LIGHTING_CONTROLLER: 
 			<Chart
 				title="Output power"
 				data={lighting.measurements.power}
-				currentValue={lighting.data.power}
+				currentValue={Math.round(lighting.data.outputPower * 10) / 10}
 				color={[0, 255, 205]}
 				minutes={10}
 				unit="kW"

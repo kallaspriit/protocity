@@ -1,9 +1,11 @@
 import React, { PureComponent, PropTypes } from 'react';
 import ReactHighCharts from 'react-highcharts';
 
-const getXAxisMin = (minutes) => {
+const getXAxisMin = (minutes, minTime) => {
 	const now = new Date().getTime() - (60000 * minutes);
-	return new Date(now).getTime();
+	const past = new Date(now).getTime();
+
+	return typeof minTime === 'number' ? Math.max(past, minTime) : past;
 };
 
 const getConfig = (data = [], color) => ({
@@ -135,7 +137,9 @@ class Chart extends PureComponent {
 		// set new data
 		if (Array.isArray(props.data) && JSON.stringify(props.data) !== JSON.stringify(this.props.data)) {
 			series.setData(props.data, true, true);
-			chart.xAxis[0].setExtremes(getXAxisMin(props.minutes), props.data[props.data.length - 1][0]);
+			chart.xAxis[0].setExtremes(
+				getXAxisMin(props.minutes, props.data[0][0]), props.data[props.data.length - 1][0],
+			);
 		}
 
 		// add new and remove old point
