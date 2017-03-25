@@ -103,20 +103,13 @@ class Chart extends PureComponent {
 		<div className={`data data--${this.props.size}`}>
 			<h2 className="data__title">{this.props.title}</h2>
 
-            {this.props.children
-                ? (
-					<div className="data__chart__content">
-                        {this.props.children}
-					</div>
-                )
-                : (
-					<div className="data__chart__content">
-						<p className="data__value">
-                            {this.props.currentValue}<span className="data__measure">{this.props.unit}</span>
-						</p>
-					</div>
-                )
-            }
+
+				<div className="data__chart__content">
+					<p className="data__value">
+						{this.props.currentValue}<span className="data__measure">{this.props.unit}</span>
+					</p>
+				</div>
+
 			<div className={`data__chart data__chart--${this.props.size}`}>
 				<div className="data__chart__graph">
 					<ReactHighCharts
@@ -127,7 +120,11 @@ class Chart extends PureComponent {
 					/>
 				</div>
 			</div>
-
+            {this.props.children && false && (
+			<div className="data__chart__content">
+                {this.props.children}
+			</div>
+            )}
 		</div>
 	);
 

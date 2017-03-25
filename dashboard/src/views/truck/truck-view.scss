@@ -1,12 +1,11 @@
 .truck-view {
-
-	.container {
-		display: flex;
-		justify-content: space-between;
-		height: 38%;
-		padding: 0 40px;
+	.header {
+		margin-bottom: 10px;
+		text-align: center;
+		&__title {
+			font-size: 50px;
+		}
 	}
-
 	.data__label {
 		position: relative;
 
