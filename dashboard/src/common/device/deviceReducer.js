@@ -16,10 +16,10 @@ const initialState = {
 	clientId: null,
 	isPolling: false,
 	deviceIds: {},
-	devices: {
-		WEATHER_CONTROLLER: createDevice(),
-		LIGHTING_CONTROLLER: createDevice(),
-	},
+	devices: Object.keys(deviceConstants.DEVICE_TITLE).reduce((obj, key) => ({
+		...obj,
+		[key]: createDevice(),
+	}), {}),
 	isInventoryLoaded: false,
 	error: null,
 };
@@ -88,16 +88,16 @@ export default handleActions({
 				references.concat(
 					...device.childDevices.references.map(childDevice => getReferences(childDevice, references)),
 				);
-			} else {
+			} else if (device.managedObject) {
 				references.push(device.managedObject);
 			}
+
+			references.push(device);
 
 			return references;
 		};
 
-
-		// const availableDevices = [].concat(...payload.managedObjects.map(device => getReferences(device)));
-		const availableDevices = getReferences(payload.managedObjects[0]);
+		const availableDevices = getReferences({ childDevices: { references: payload } });
 
 		const filteredDeviceKeys = Object.keys(deviceConstants.DEVICE_TITLE);
 		const filteredDeviceNames = Object.values(deviceConstants.DEVICE_TITLE);
@@ -185,11 +185,13 @@ export default handleActions({
 		// define series
 		device.series = payload.series.reduce((obj, row) => ({
 			...obj,
-			[row.type]: row.name,
+			[row.name]: row.type,
 		}), {});
 
+		const seriesNames = Object.keys(device.series);
+
 		// define measurements
-		device.measurements = Object.values(device.series).reduce((obj, key) => ({
+		device.measurements = seriesNames.reduce((obj, key) => ({
 			...obj,
 			[key]: [],
 		}), {});
@@ -201,8 +203,13 @@ export default handleActions({
 					return;
 				}
 
-				const seriesName = Object.values(device.series)[index];
-				device.measurements[seriesName].push([new Date(time).getTime(), series.max]);
+				const seriesName = seriesNames[index];
+
+				if (seriesName) {
+					device.measurements[seriesName].push([new Date(time).getTime(), series.max]);
+				} else {
+					// console.log('seriesName', index, device.series, payload.values)
+				}
 			});
 		});
 

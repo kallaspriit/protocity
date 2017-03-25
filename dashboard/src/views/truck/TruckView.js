@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
+import withDevice from '../../services/connectDeviceService';
+import Chart from '../../components/chart/Chart';
 import './truck-view.scss';
 
-const TruckView = () => (
+const TruckView = ({ TRUCK_CONTROLLER: truck, TRUCK_SOLAR_PANEL: solar }) => (
 	<div className="truck-view">
 		<div className="demo-video">
 			<div
@@ -11,51 +13,70 @@ const TruckView = () => (
 		</div>
 
 		<div className="header header--truck">
-			<img className="header__icon" src="../../gfx/icons/truck.svg" alt="icon" />
 			<h1 className="header__title">Electric delivery truck</h1>
 		</div>
 
 		<div className="container">
-			<div className="data">
-				<h2 className="data__title">Battery level</h2>
-				<div className="data__chart">
-					<p className="data__label--alert">Battery level under 15%, please charge</p>
-					<p className="data__label data__label--battery">Battery not charging</p>
-					<p className="data__label data__label--battery-charging">Battery charging, using 20 kW</p>
-				</div>
-			</div>
 
-			<div className="data">
-				<h2 className="data__title">Charging power</h2>
-				<div className="data__chart">
-					<p className="data__value">15</p>
-					<p className="data__measure">kW</p>
-				</div>
-			</div>
+			<Chart
+				title="Battery level"
+				data={truck.measurements.chargePercentage}
+				currentValue={truck.data.batteryChargePercentage}
+				color={[0, 153, 153]}
+				minutes={1}
+				size="large"
+			>
+				<p className="data__label--alert">Battery level under 15%, please charge</p>
+				<p className="data__value">{truck.data.batteryChargePercentage}%</p>
+				<p className="data__label data__label--battery">Battery not charging</p>
+				<p className="data__label data__label--battery-charging">Battery charging, using 20 kW</p>
+			</Chart>
+
+			<Chart
+				title="Charging power"
+				data={truck.measurements.chargePower}
+				currentValue={truck.data.chargePower}
+				color={[0, 153, 153]}
+				minutes={1}
+				unit="kW"
+				size="large"
+			/>
 		</div>
 
 		<div className="header header--solar">
-			<img className="header__icon" src="../../gfx/icons/solar-panel.svg" alt="icon" />
 			<h1 className="header__title">Solar panel</h1>
 		</div>
 		<div className="container">
-			<div className="data">
-				<h2 className="data__title">Energy production</h2>
-				<div className="data__chart">
-					<p className="data__label data__label--energy">Producing 8 kW</p>
-					<p className="data__label data__label--energy">Using 12 kW</p>
-				</div>
-			</div>
+			<Chart
+				title="Energy production"
+				data={solar.measurements.value}
+				currentValue={solar.data.value}
+				color={[0, 153, 153]}
+				minutes={1}
+				size="large"
+			>
+				<p className="data__label data__label--energy">Producing 8 kW</p>
+				<p className="data__label data__label--energy">Using 12 kW</p>
+			</Chart>
 
-			<div className="data">
-				<h2 className="data__title">Buying / selling from grid</h2>
-				<div className="data__chart">
-					<p className="data__label data__label--cost">Buying 3 kW for 0.99 EUR</p>
-					<p className="data__label data__label--cost">Selling 13 kW for 1.2 EUR</p>
-				</div>
-			</div>
+			<Chart
+				title="Buying / selling from grid"
+				data={solar.measurements.value}
+				currentValue={solar.data.value}
+				color={[0, 153, 153]}
+				minutes={1}
+				size="large"
+			>
+				<p className="data__label data__label--cost">Buying 3 kW for 0.99 EUR</p>
+				<p className="data__label data__label--cost">Selling 13 kW for 1.2 EUR</p>
+			</Chart>
 		</div>
 	</div>
 );
 
-export default TruckView;
+TruckView.propTypes = {
+	TRUCK_CONTROLLER: PropTypes.object,
+	TRUCK_SOLAR_PANEL: PropTypes.object,
+};
+
+export default withDevice(['TRUCK_CONTROLLER', 'TRUCK_SOLAR_PANEL'])(TruckView);

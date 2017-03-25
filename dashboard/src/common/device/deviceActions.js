@@ -14,7 +14,13 @@ export const destroySession = createAction(
 
 export const getInventory = createAction(
 	deviceConstants.GET_INVENTORY,
-	fragmentType => deviceApi.getInventory(fragmentType),
+	async (fragmentType) => {
+		const fragments = await deviceApi.getInventory(fragmentType);
+
+		const assets = fragments.managedObjects[0].childDevices.references;
+
+		return Promise.all(assets.map(asset => deviceApi.getDeviceData(asset.managedObject.id)));
+	},
 );
 
 export const getDeviceData = createAction(
