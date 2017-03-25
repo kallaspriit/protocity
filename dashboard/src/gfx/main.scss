@@ -1,140 +1,50 @@
 @import "~normalize.css";
+@import "./variables.scss";
+
 
 @font-face {
 	font-family: Pebble;
 	src: url("./fonts/Pebble_W_Rg.ttf");
 	font-weight: regular;
 }
-
 * {
 	box-sizing: border-box;
 }
 
 html {
+	background: #fff;
 	font-size: 10px;
 }
-
 body {
-	margin: 0 auto;
+	margin: 0;
 	font: 1.8rem/1.4 "HelveticaNeueLTPro-Roman", Arial, Helvetica, sans-serif;
-	color: #000;
-	background: #efefef;
+	color: #111;
 }
-
 h1,
 .h1 {
 	font-family: Pebble, Arial, Helvetica, sans-serif;
 	font-size: 3.4rem;
 	text-transform: uppercase;
 }
-
 h2,
 .h2 {
 	font-size: 1.9rem;
 	font-weight: normal;
 }
 
-.train-view,
-.truck-view,
-.weather-view,
-.parking-view {
-	display: flex;
-	flex-direction: column;
-	width: 50vw;
-	height: 100vh;
-	min-height: 1080px;
-	min-width: 400px;
-	background: #fff;
-}
-
 .header {
-	display: flex;
 	margin-left: 50px;
 	margin-bottom: 20px;
-	background-size: cover;
-
-	&__icon {
-		flex-grow: 0;
-		height: 40px;
-		padding-right: 40px;
-	}
-
 	&__title {
-		flex-grow: 2;
-		color: #990ae3;
+		color: $brand-color;
 		font-size: 60px;
 	}
 }
 
 .container {
-	display: flex;
-	justify-content: space-between;
-	height: 38%;
-	padding: 0 40px;
+	width: 50%;
 }
 
-.data {
-	display: flex;
-	flex-direction: column;
-	width: 48%;
-
-	&--small {
-		justify-content: center;
-		margin-bottom: 60px;
-		width: 14.58%;
-		width: 20%;
-	}
-
-	&__title {
-		margin-bottom: 25px;
-		margin-top: 0;
-		white-space: nowrap;
-	}
-
-	&__chart {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		text-align: center;
-		position: relative;
-		height: 71.42%;
-		box-shadow: 0px 0px 5px 1px rgba(0,0,0,0.75);
-		text-shadow: 1px 0 0 #fff, -1px 0 0 #fff, 0 1px 0 #fff, 0 -1px 0 #fff, 1px 1px #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff;
-
-		&__graph {
-			position: absolute;
-			top: 0;
-			bottom: 0;
-			left: 0;
-			right: 0;
-			z-index: 10;
-		}
-
-		&__content {
-			position: relative;
-			z-index: 20;
-		}
-
-		&--train {
-			width: 420px;
-			height: 300px;
-			margin: 50px auto;
-			background: #fff;
-		}
-	}
-
-	&__value {
-		font-family: Pebble;
-		font-size: 28px;
-		margin-bottom: 0;
-	}
-
-	&__measure {
-		font-size: 16px;
-		margin-top: 0;
-	}
-}
 
 .demo-video {
 	position: absolute;
@@ -154,5 +64,69 @@ h2,
 	&__placeholder {
 		background: no-repeat 50%;
 		background-size: contain;
+	}
+}
+
+.chart-container {
+	margin-left: 40px;
+	margin-right: -10px;
+	display: flex;
+}
+
+
+.data {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	width: 100%;
+	margin-bottom: 60px;
+
+	&__title {
+		margin: 0;
+		text-align: center;
+		font-weight: bold;
+		font-size: 28px;
+	}
+
+	&__chart {
+		position: relative;
+		margin: 0 10px;
+		height: 240px;
+		border: 1px solid #ccc;
+		border-radius: 3px;
+
+		&__graph {
+			position: absolute;
+			width: 100%;
+			top: 0;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			z-index: 10;
+			overflow: hidden;
+		}
+		&__content {
+			position: relative;
+			width: 100%;
+			z-index: 20;
+			margin-bottom: 8px;
+			line-height: normal;
+		}
+	}
+
+	&__value {
+		margin: 0;
+		font-weight: bold;
+		font-size: 50px;
+		text-align: center;
+		color: $brand-color-alt;
+		line-height: normal;
+	}
+	&__measure {
+		display: inline-block;
+		margin-left: 5px;
+		font-size: 23px;
+		color: #111;
+		font-weight: normal;
 	}
 }

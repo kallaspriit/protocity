@@ -1,3 +1,9 @@
 .weather-view {
-
+  .header {
+    margin-bottom: 10px;
+    text-align: center;
+    &__title {
+      font-size: 50px;
+    }
+  }
 } 

@@ -32,7 +32,7 @@ const getConfig = (data = [], color) => ({
 					[1, `rgba(${color[0]}, ${color[1]}, ${color[2]}, 0.1)`],
 				],
 			},
-			lineWidth: 1,
+			lineWidth: 5,
 			marker: {
 				enabled: false,
 			},
@@ -102,6 +102,21 @@ class Chart extends PureComponent {
 	render = () => (
 		<div className={`data data--${this.props.size}`}>
 			<h2 className="data__title">{this.props.title}</h2>
+
+            {this.props.children
+                ? (
+					<div className="data__chart__content">
+                        {this.props.children}
+					</div>
+                )
+                : (
+					<div className="data__chart__content">
+						<p className="data__value">
+                            {this.props.currentValue}<span className="data__measure">{this.props.unit}</span>
+						</p>
+					</div>
+                )
+            }
 			<div className={`data__chart data__chart--${this.props.size}`}>
 				<div className="data__chart__graph">
 					<ReactHighCharts
@@ -111,22 +126,8 @@ class Chart extends PureComponent {
 						neverReflow
 					/>
 				</div>
-
-				{this.props.children
-					? (
-						<div className="data__chart__content">
-							{this.props.children}
-						</div>
-					)
-					: (
-						<div className="data__chart__content">
-							<p className="data__value">{this.props.currentValue}</p>
-							<p className="data__measure">{this.props.unit}</p>
-						</div>
-					)
-				}
-
 			</div>
+
 		</div>
 	);
 

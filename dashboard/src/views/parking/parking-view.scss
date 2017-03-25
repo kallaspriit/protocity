@@ -1,8 +1,10 @@
+
+@import "../../gfx/variables.scss";
+
 .parking-view {
 	width: 1920px;
 	height: 1080px;
 	overflow: hidden;
-	$brand-color: #990ae3;
 
 	// .content__parking-data {
 	// 	display: flex;
@@ -24,6 +26,7 @@
 			width: 900px;
 			padding: 15px 0;
 			background: $brand-color;
+			border-radius: 9px 9px 0 0;
 			&-text {
 				width: 300px;
 				margin: 0;
