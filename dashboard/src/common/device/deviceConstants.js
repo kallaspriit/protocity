@@ -3,13 +3,8 @@ export const DEVICE_CLASS = {
 	LIGHTING_CONTROLLER: 'com_stagnationlab_c8y_driver_fragments_controllers_Lighting',
 };
 
-export const MEASUREMENT_CLASS = {
-	SOUND: 'com_stagnationlab_c8y_driver_measurements_SoundMeasurement',
-};
-
 export const DEVICE_TITLE = {
 	WEATHER_CONTROLLER: 'Weather controller',
-	PARKING_CONTROLLER: 'Parking controller',
 	LIGHTING_CONTROLLER: 'Lighting controller',
 };
 

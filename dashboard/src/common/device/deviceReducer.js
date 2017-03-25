@@ -1,22 +1,21 @@
 import { handleActions } from 'redux-actions';
 import * as deviceConstants from './deviceConstants';
 
-const createDevice = (data, measurements) => ({
+const createDevice = data => ({
 	isLoading: false,
 	hasDataSubscription: false,
 	hasMeasurementsSubscription: false,
 	data: {
 		...data,
 	},
-	measurements: {
-		...measurements,
-	},
+	measurements: {},
+	series: {},
 });
 
 const initialState = {
 	clientId: null,
 	isPolling: false,
-	inventory: {},
+	deviceIds: {},
 	devices: {
 		WEATHER_CONTROLLER: createDevice({
 			humidity: 0,
@@ -24,8 +23,6 @@ const initialState = {
 			pressure: 0,
 			soundLevel: 0,
 			temperature: 0,
-		}, {
-			soundLevel: [],
 		}),
 		LIGHTING_CONTROLLER: createDevice({
 			outputLightLevel: 0,
@@ -114,7 +111,7 @@ export default handleActions({
 		const filteredDeviceKeys = Object.keys(deviceConstants.DEVICE_TITLE);
 		const filteredDeviceNames = Object.values(deviceConstants.DEVICE_TITLE);
 
-		const inventory = availableDevices.reduce((obj, device) => {
+		const deviceIds = availableDevices.reduce((obj, device) => {
 			const deviceKey = filteredDeviceNames.indexOf(device.name);
 
 			if (deviceKey !== -1) {
@@ -128,7 +125,7 @@ export default handleActions({
 		}, {});
 		return {
 			...state,
-			inventory,
+			deviceIds,
 			isInventoryLoaded: true,
 			error,
 		};
@@ -163,6 +160,60 @@ export default handleActions({
 				...payload[deviceClassName],
 			};
 		}
+
+		return {
+			...state,
+			error,
+			devices: {
+				...state.devices,
+				[meta.name]: device,
+			},
+		};
+	},
+
+	[deviceConstants.GET_DEVICE_MEASUREMENTS]: (state, action) => {
+		const {
+			isLoading,
+			error,
+			payload,
+			meta,
+		} = action;
+
+		if (isLoading || error || !payload) {
+			return {
+				...state,
+				error,
+			};
+		}
+
+		const device = {
+			...state.devices[meta.name],
+			isLoading,
+		};
+
+		// define series
+		device.series = payload.series.reduce((obj, row) => ({
+			...obj,
+			[row.type]: row.name,
+		}), {});
+
+		// define measurements
+		device.measurements = Object.values(device.series).reduce((obj, key) => ({
+			...obj,
+			[key]: [],
+		}), {});
+
+		// populate measurements data
+		Object.entries(payload.values).forEach(([time, row]) => {
+			row.forEach((series, index) => {
+				if (!series) {
+					return;
+				}
+
+				const seriesName = Object.values(device.series)[index];
+				device.measurements[seriesName].push([new Date(time).getTime(), series.max]);
+			});
+		});
 
 		return {
 			...state,

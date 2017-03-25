@@ -13,6 +13,7 @@ function connectToDevice(WrappedComponent) {
 			devices: PropTypes.object.isRequired,
 			deviceIds: PropTypes.object.isRequired,
 			getDeviceData: PropTypes.func.isRequired,
+			getDeviceMeasurements: PropTypes.func.isRequired,
 			subscribeDevice: PropTypes.func.isRequired,
 			unsubscribeDevice: PropTypes.func.isRequired,
 		};
@@ -38,14 +39,17 @@ function connectToDevice(WrappedComponent) {
 			}
 
 			this.props.getDeviceData(deviceId, deviceName);
+			this.props.getDeviceMeasurements(deviceId, deviceName);
 
 			if (!device.hasDataSubscription) {
 				this.props.subscribeDevice(this.props.clientId, deviceId, deviceName, SUBSCRIPTION_TYPE.DATA);
 			}
 
+			/*
 			if (!device.hasMeasurementsSubscription) {
 				this.props.subscribeDevice(this.props.clientId, deviceId, deviceName, SUBSCRIPTION_TYPE.MEASUREMENTS);
 			}
+			*/
 		}
 
 		removeDevice = (deviceName) => {
@@ -73,7 +77,7 @@ export default function withDevice(deviceNames) {
 		isPolling: deviceReducer.isPolling,
 		isInventoryLoaded: deviceReducer.isInventoryLoaded,
 		devices: deviceReducer.devices,
-		deviceIds: deviceReducer.inventory,
+		deviceIds: deviceReducer.deviceIds,
 		deviceNames,
 	});
 

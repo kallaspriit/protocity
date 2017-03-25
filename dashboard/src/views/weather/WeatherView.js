@@ -1,6 +1,7 @@
 import React, { PropTypes } from 'react';
-import './weather-view.scss';
 import withDevice from '../../services/connectDeviceService';
+import Chart from '../../components/chart/Chart';
+import './weather-view.scss';
 
 export const WeatherView = ({ WEATHER_CONTROLLER: weather, LIGHTING_CONTROLLER: lighting }) => (
 	<div className="weather-view">
@@ -11,46 +12,45 @@ export const WeatherView = ({ WEATHER_CONTROLLER: weather, LIGHTING_CONTROLLER: 
 			<img className="header__icon" src="../../gfx/icons/weather.svg" alt="icon" />
 			<h1 className="header__title">Weather station</h1>
 		</div>
+
 		<div className="container">
-			<div className="data data--small">
-				<h2 className="data__title">Sound level</h2>
-				<div className="data__chart data__chart--small">
-					<p className="data__value">{Math.round(weather.data.soundLevel)}</p>
-					<p className="data__measure">db</p>
-				</div>
-			</div>
 
-			<div className="data data--small">
-				<h2 className="data__title">Humidity</h2>
-				<div className="data__chart data__chart--small">
-					<p className="data__value">{Math.round(weather.data.humidity)}</p>
-					<p className="data__measure">&#37;</p>
-				</div>
-			</div>
+			<Chart
+				title="Sound level"
+				data={weather.measurements.soundLevel}
+				currentValue={Math.round(weather.data.soundLevel)}
+				color={[0, 124, 153]}
+				minutes={1}
+				unit="db"
+			/>
 
-			<div className="data data--small">
-				<h2 className="data__title">Pressure</h2>
-				<div className="data__chart data__chart--small">
-					<p className="data__value">{Math.round(weather.data.pressure)}</p>
-					<p className="data__measure">mmGH</p>
-				</div>
-			</div>
+			<Chart
+				title="Humidity"
+				data={weather.measurements.humidity}
+				currentValue={Math.round(weather.data.humidity)}
+				color={[0, 153, 153]}
+				minutes={10}
+				unit="&#37;"
+			/>
 
-			<div className="data data--small">
-				<h2 className="data__title">Light level</h2>
-				<div className="data__chart data__chart--small">
-					<p className="data__value">{Math.round(weather.data.lightLevel)}</p>
-					<p className="data__measure">lux</p>
-				</div>
-			</div>
+			<Chart
+				title="Pressure"
+				data={weather.measurements.pressure}
+				currentValue={Math.round(weather.data.pressure)}
+				color={[0, 255, 255]}
+				minutes={10}
+				unit="mmGH"
+			/>
 
-			<div className="data data--small">
-				<h2 className="data__title">Temperature</h2>
-				<div className="data__chart data__chart--small">
-					<p className="data__value">{Math.round(weather.data.temperature)}</p>
-					<p className="data__measure">&#8451;</p>
-				</div>
-			</div>
+			<Chart
+				title="Temperature"
+				data={weather.measurements.temperature}
+				currentValue={Math.round(weather.data.temperature * 10) / 10}
+				color={[0, 255, 205]}
+				minutes={10}
+				unit="&#8451;"
+			/>
+
 		</div>
 
 		<div className="header header--street">
@@ -58,21 +58,25 @@ export const WeatherView = ({ WEATHER_CONTROLLER: weather, LIGHTING_CONTROLLER: 
 			<h1 className="header__title">Street lighting</h1>
 		</div>
 		<div className="container">
-			<div className="data">
-				<h2 className="data__title">Detect light level from weather station</h2>
-				<div className="data__chart data__chart--large">
-					<p className="data__value">{weather.data.lightLevel}</p>
-					<p className="data__measure">lux</p>
-				</div>
-			</div>
+			<Chart
+				title="Detected light level"
+				data={weather.measurements.lightLevel}
+				currentValue={weather.data.lightLevel}
+				color={[0, 255, 205]}
+				minutes={10}
+				unit="lux"
+				size="large"
+			/>
 
-			<div className="data">
-				<h2 className="data__title">Light level / energy cost in kWh</h2>
-				<div className="data__chart data__chart--large">
-					<p className="data__value">{(Math.round(62 * lighting.data.outputLightLevel * 10) / 10)}</p>
-					<p className="data__measure">kW</p>
-				</div>
-			</div>
+			<Chart
+				title="Output power"
+				data={lighting.measurements.power}
+				currentValue={lighting.data.power}
+				color={[0, 255, 205]}
+				minutes={10}
+				unit="kW"
+				size="large"
+			/>
 		</div>
 	</div>
 );

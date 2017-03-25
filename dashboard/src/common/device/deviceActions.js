@@ -25,7 +25,14 @@ export const getDeviceData = createAction(
 
 export const getDeviceMeasurements = createAction(
 	deviceConstants.GET_DEVICE_MEASUREMENTS,
-	deviceId => deviceApi.getDeviceData(deviceId),
+	(deviceId) => {
+		const minutes = 15;
+
+		const to = new Date();
+		const from = new Date(to.getTime() - (60000 * minutes));
+
+		return deviceApi.getDeviceMeasurements(deviceId, from.toISOString(), to.toISOString());
+	},
 	(deviceId, name) => ({ name }),
 );
 
