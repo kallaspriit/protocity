@@ -17,7 +17,6 @@ const ParkingView = () => (
 			<div className="parking__data__availability">
                 {/* IF PARKING SLOT IS FREE: */}
 				<div className="parking__data__availability--free">
-					Free
 				</div>
 			</div>
 			<div className="parking__data__availability">
