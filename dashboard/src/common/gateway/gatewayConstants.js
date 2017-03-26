@@ -4,6 +4,7 @@ export const Device = {
 	TRUCK_CONTROLLER: 'TRUCK_CONTROLLER',
 	TRUCK_SOLAR_PANEL: 'TRUCK_SOLAR_PANEL',
 	PARKING_CONTROLLER: 'PARKING_CONTROLLER',
+	TRAIN_CONTROLLER: 'TRAIN_CONTROLLER',
 };
 
 export const DeviceTitle = {
@@ -12,6 +13,7 @@ export const DeviceTitle = {
 	[Device.TRUCK_CONTROLLER]: 'Truck controller',
 	[Device.TRUCK_SOLAR_PANEL]: 'Truck solar panel',
 	[Device.PARKING_CONTROLLER]: 'Parking controller',
+	[Device.TRAIN_CONTROLLER]: 'Train controller',
 };
 
 export const DeviceClass = {
@@ -20,6 +22,7 @@ export const DeviceClass = {
 	[Device.TRUCK_CONTROLLER]: 'com_stagnationlab_c8y_driver_fragments_controllers_Truck',
 	[Device.TRUCK_SOLAR_PANEL]: 'com_stagnationlab_c8y_driver_fragments_sensors_AnalogInputSensor',
 	[Device.PARKING_CONTROLLER]: 'com_stagnationlab_c8y_driver_fragments_controllers_Parking',
+	[Device.TRAIN_CONTROLLER]: 'com_stagnationlab_c8y_driver_fragments_controllers_Train',
 };
 
 export const SubscriptionType = {

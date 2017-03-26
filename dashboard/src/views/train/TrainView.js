@@ -1,4 +1,7 @@
-import React from 'react';
+import React, { PropTypes } from 'react';
+import { Device } from '../../common/gateway/gatewayConstants';
+import withDevice from '../../services/connectDeviceService';
+import Chart from '../../components/chart/Chart';
 import './train-view.scss';
 
 const steps = [
@@ -10,7 +13,7 @@ const steps = [
 	'pie--step-3 pie--filling',
 ];
 
-const TrainView = () => (
+const TrainView = ({ TRAIN_CONTROLLER: train }) => (
 	<div className="train-view">
 		<div className="demo-video">
 			<div
@@ -41,11 +44,32 @@ const TrainView = () => (
 			</div>
 			<div className="container__train-chart">
 				<div className="header">
-					<h1 className="header__title">Battery: <span className="charging">charging</span></h1>
+					<h1 className="header__title">
+						Battery:
+						{train.data.isCharging
+							? (<span className="charging">charging</span>)
+							: (<span className="charging">not charging</span>)
+						}
+					</h1>
+
+					<Chart
+						title="Battery level"
+						data={train.measurements.chargePercentage}
+						currentValue={train.data.batteryChargePercentage}
+						color={[0, 153, 153]}
+						minutes={1}
+						unit="%"
+						size="large"
+						icon={train.data.isCharging && 'charging'}
+					/>
 				</div>
 			</div>
 		</div>
 	</div>
 );
 
-export default TrainView;
+TrainView.propTypes = {
+	TRAIN_CONTROLLER: PropTypes.object,
+};
+
+export default withDevice([Device.TRAIN_CONTROLLER])(TrainView);

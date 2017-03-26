@@ -4,19 +4,17 @@ import { getMockInfo, requestMock } from '../utils';
 
 const hash = base64.encode(`${process.env.APP_API_USERNAME}:${process.env.APP_API_PASSWORD}`);
 
-const request = (method, url, body) => {
-	return axios({
-		method,
-		url,
-		headers: {
-			'Authorization': `Basic ${hash}`,
-			'Content-Type': 'application/json',
-		},
-		data: body,
-	}).then(data => data.data);
-};
+const request = (method, url, body) => axios({
+	method,
+	url,
+	headers: {
+		'Authorization': `Basic ${hash}`,
+		'Content-Type': 'application/json',
+	},
+	data: body,
+}).then(data => data.data);
 
-const requestFetch = (method, url, body) => { // eslint disable-line
+const requestFetch = (method, url, body) => { // eslint-disable-line
 	// return mock if exists
 	const mock = getMockInfo(url);
 
