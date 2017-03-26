@@ -38,3 +38,10 @@ export const requestMock = async (method, url, mock, body = '') => {
 
 	/* eslint-enable no-console */
 };
+
+export const formatCurrency = (number, unit = '€') => `${number.toFixed(2)} ${unit}`;
+
+export const minutesAgo = (minutes = 15) => {
+	const now = new Date();
+	return new Date(now.getTime() - (60000 * minutes));
+};

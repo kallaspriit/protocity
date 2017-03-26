@@ -1,7 +1,10 @@
 import React, { PropTypes, Component } from 'react';
 import withDevice from '../../services/connectDeviceService';
 import { Device } from '../../common/gateway/gatewayConstants';
+import { formatCurrency, minutesAgo } from '../../utils';
 import './parking-view.scss';
+
+const ParkingDoneFeedbackMinutes = 1;
 
 class ParkingView extends Component {
 	static propTypes = {
@@ -27,7 +30,6 @@ class ParkingView extends Component {
 					</div>
 					<div className="parking__data__availability">
 						{this.renderSlotPaymentInfo(1)}
-						<p className="cost">Total cost<br /> <strong>1.41€</strong></p>
 					</div>
 					<div className="parking__data__availability">
 						{this.renderSlotPaymentInfo(2)}
@@ -109,16 +111,17 @@ class ParkingView extends Component {
 			return (
 				<p className="cost">
 					Parking fee<br />
-					<strong>{Math.round(slot.cost * 100) / 100}€</strong>
+					<strong>{formatCurrency(slot.cost)}</strong>
+				</p>
+			);
+		} else if (!slot.isOccupied && slot.freedTimestamp > minutesAgo(ParkingDoneFeedbackMinutes)) {
+			return (
+				<p className="cost">
+					Total cost<br />
+					<strong>{formatCurrency(slot.cost)}</strong>
 				</p>
 			);
 		}
-
-		/*
-		return (
-			<p className="cost">Total cost<br /> <strong>1.41€</strong></p>
-		);
-		*/
 
 		return null;
 	}
@@ -129,6 +132,10 @@ class ParkingView extends Component {
 		}
 
 		const slot = this.props.PARKING_CONTROLLER.data.slots[slotNumber];
+
+		if (slot.freedTimestamp > minutesAgo(ParkingDoneFeedbackMinutes)) {
+			return '';
+		}
 
 		return slot.occupantName.toLowerCase();
 	}
