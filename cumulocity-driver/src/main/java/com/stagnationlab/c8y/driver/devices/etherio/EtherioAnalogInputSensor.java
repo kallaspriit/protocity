@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import com.stagnationlab.c8y.driver.Gateway;
 import com.stagnationlab.c8y.driver.devices.AbstractAnalogInputSensor;
 import com.stagnationlab.c8y.driver.services.Scheduler;
-import com.stagnationlab.c8y.driver.services.Util;
 import com.stagnationlab.etherio.Commander;
 import com.stagnationlab.etherio.MessageTransport;
 import com.stagnationlab.etherio.PortController;
@@ -141,7 +140,7 @@ public class EtherioAnalogInputSensor extends AbstractAnalogInputSensor {
 	}
 
 	private float getTransformedValue(float value) {
-		return Util.round(value * VALUE_MULTIPLIER, 2);
+		return value * VALUE_MULTIPLIER;
 	}
 
 }

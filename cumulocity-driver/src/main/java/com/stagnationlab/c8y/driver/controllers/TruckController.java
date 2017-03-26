@@ -250,13 +250,13 @@ public class TruckController extends AbstractController {
 		}
 
 		state.setIsCharging(isCharging);
-		state.setBatteryVoltage(Util.round(batteryVoltage, 2));
+		state.setBatteryVoltage(batteryVoltage);
 		state.setBatteryChargePercentage(batteryChargePercentage);
 
 		// will be updated in updateGridPower() anyway
 		//updateState(state);
 
-		reportMeasurement(new BatteryMeasurement(Util.round(batteryVoltage, 2), batteryChargePercentage, isCharging));
+		reportMeasurement(new BatteryMeasurement(batteryVoltage, batteryChargePercentage, isCharging));
 
 		indicatorDriver.setChannelValue(indicatorChannel, isCharging ? 0.0f : 1.0f);
 
@@ -301,22 +301,23 @@ public class TruckController extends AbstractController {
 
 		log.trace(
 				"truck {}, solar panel output: {}kW, {} the grid: {}kW"
-				, isCharging ? "charging at " + Util.round(truckChargePower, 1) + "kW" : "not charging",
-				Util.round(solarOutputPower, 1),
+				, isCharging ? "charging at " + truckChargePower + "kW" : "not charging",
+				solarOutputPower,
 				gridPowerBalance > 0 ? "selling to" : "buying from",
-				Util.round(Math.abs(gridPowerBalance), 1)
+				Math.abs(gridPowerBalance)
 		);
 
 		// update charge power state
-		state.setChargePower(Util.round(truckChargePower, 2));
+		state.setChargePower(truckChargePower);
+		state.setGridPowerBalance(gridPowerBalance);
 		updateState(state);
 
 		// report charge power and grid power balance measurements
-		reportMeasurement(new ChargePowerMeasurement(Util.round(truckChargePower, 2), "kW"));
-		reportMeasurement(new GridPowerBalanceMeasurement(Util.round(gridPowerBalance, 2), "kW"));
+		reportMeasurement(new ChargePowerMeasurement(truckChargePower, "kW"));
+		reportMeasurement(new GridPowerBalanceMeasurement(gridPowerBalance, "kW"));
 
 		// report battery state as well
-		reportMeasurement(new BatteryMeasurement(Util.round(state.getBatteryVoltage(), 2), batteryChargePercentage, isCharging));
+		reportMeasurement(new BatteryMeasurement(state.getBatteryVoltage(), batteryChargePercentage, isCharging));
 	}
 
 	private void setIsRunning(boolean isRunning) {

@@ -6,6 +6,7 @@ public class Truck {
 	private float batteryVoltage;
 	private int batteryChargePercentage;
 	private float chargePower;
+	private float gridPowerBalance;
 	private boolean isRunning;
 	private boolean isCharging;
 
@@ -43,6 +44,14 @@ public class Truck {
 
 	public void setChargePower(float chargePower) {
 		this.chargePower = chargePower;
+	}
+
+	public float getGridPowerBalance() {
+		return gridPowerBalance;
+	}
+
+	public void setGridPowerBalance(float gridPowerBalance) {
+		this.gridPowerBalance = gridPowerBalance;
 	}
 
 	public boolean getIsRunning() {

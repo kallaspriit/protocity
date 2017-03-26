@@ -59,11 +59,11 @@ public final class Util {
     	return now() - millis;
 	}
 
-	public static float round(float value, int decimalPlaces) {
-		float factor = (float)Math.pow(10.0, decimalPlaces);
-
-		return (float)Math.round(value * factor) / factor;
-	}
+//	public static float round(float value, int decimalPlaces) {
+//		float factor = (float)Math.pow(10.0, decimalPlaces);
+//
+//		return (float)Math.round(value * factor) / factor;
+//	}
 
 	// http://stackoverflow.com/a/9723994
 	public static float getRandomFloatInRange(float min, float max) {

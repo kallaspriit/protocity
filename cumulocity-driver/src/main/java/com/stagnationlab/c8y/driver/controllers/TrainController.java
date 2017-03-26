@@ -304,7 +304,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 			log.debug("train is {}, battery voltage: {}V ({}%)", isCharging ? "charging" : "not charging", batteryVoltage, batteryChargePercentage);
 
 			state.setIsCharging(isCharging);
-			state.setBatteryVoltage(Util.round(batteryVoltage, 2));
+			state.setBatteryVoltage(batteryVoltage);
 			state.setBatteryChargePercentage(batteryChargePercentage);
 
 			updateState(state);

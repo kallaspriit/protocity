@@ -59,7 +59,7 @@ const TruckView = ({ TRUCK_CONTROLLER: truck, TRUCK_SOLAR_PANEL: solar }) => (
 				<Chart
 					title="Buying / selling from grid"
 					data={truck.measurements.gridPowerBalance}
-					currentValue={truck.data.batteryVoltage}
+					currentValue={truck.data.gridPowerBalance}
 					color={[225, 35, 100]}
 					unit="kW"
 					minutes={1}
