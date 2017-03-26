@@ -3,6 +3,19 @@ import withDevice from '../../services/connectDeviceService';
 import Chart from '../../components/chart/Chart';
 import './truck-view.scss';
 
+function getPowerBalanceOptions() {
+	return {
+		yAxis: {
+			tickPositioner: function() { // eslint-disable-line
+				const maxDeviation = Math.ceil(Math.max(Math.abs(this.dataMax), Math.abs(this.dataMin)));
+				const halfMaxDeviation = Math.ceil(maxDeviation / 2);
+
+				return [-maxDeviation, -halfMaxDeviation, 0, halfMaxDeviation, maxDeviation];
+			},
+		},
+	};
+}
+
 const TruckView = ({ TRUCK_CONTROLLER: truck, TRUCK_SOLAR_PANEL: solar }) => (
 	<div className="truck-view">
 		<div className="demo-video">
@@ -53,19 +66,19 @@ const TruckView = ({ TRUCK_CONTROLLER: truck, TRUCK_SOLAR_PANEL: solar }) => (
 					unit="kW"
 					minutes={1}
 					size="large"
-				>
-				</Chart>
+				/>
 
 				<Chart
-					title="Buying / selling from grid"
+					title={truck.data.gridPowerBalance > 0 ? 'Selling to the grid' : 'Buying from the grid'}
 					data={truck.measurements.gridPowerBalance}
 					currentValue={truck.data.gridPowerBalance}
-					color={[225, 35, 100]}
+					color={[35, 255, 100]}
+					negativeColor={[255, 35, 100]}
 					unit="kW"
 					minutes={1}
 					size="large"
-				>
-				</Chart>
+					options={getPowerBalanceOptions()}
+				/>
 			</div>
 		</div>
 	</div>

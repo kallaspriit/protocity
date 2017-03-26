@@ -9,70 +9,6 @@ const getXAxisMin = (minutes, minTime) => {
 	return typeof minTime === 'number' ? Math.max(past, minTime) : past;
 };
 
-const getConfig = (data = [], color) => ({
-	series: [{
-		type: 'area',
-		data,
-	}],
-	chart: {
-		margin: 0,
-		// animation: false,
-	},
-	plotOptions: {
-		area: {
-			lineColor: `rgb(${color[0]}, ${color[1]}, ${color[2]}`,
-			fillColor: {
-				linearGradient: {
-					x1: 0,
-					y1: 0,
-					x2: 0,
-					y2: 1,
-				},
-				stops: [
-					[0, `rgba(${color[0]}, ${color[1]}, ${color[2]}, 0.6)`],
-					[1, `rgba(${color[0]}, ${color[1]}, ${color[2]}, 0.1)`],
-				],
-			},
-			lineWidth: 5,
-			marker: {
-				enabled: false,
-			},
-			states: {
-				hover: {
-					enabled: false,
-				},
-			},
-		},
-	},
-	xAxis: [{
-		type: 'datetime',
-		visible: false,
-		minPadding: 0,
-		maxPadding: 0,
-		endOnTick: false,
-	}],
-	yAxis: [{
-		labels: {
-			enabled: false,
-		},
-		title: {
-			text: null,
-		},
-	}],
-	tooltip: {
-		// enabled: false,
-	},
-	title: {
-		text: null,
-	},
-	legend: {
-		enabled: false,
-	},
-	credits: {
-		enabled: false,
-	},
-});
-
 class Chart extends PureComponent {
 
 	static propTypes = {
@@ -82,17 +18,21 @@ class Chart extends PureComponent {
 		unit: PropTypes.string,
 		minutes: PropTypes.number, // eslint-disable-line
 		color: PropTypes.arrayOf(PropTypes.number),
+		negativeColor: PropTypes.arrayOf(PropTypes.number),
 		title: PropTypes.string,
 		className: PropTypes.string,
 		icon: PropTypes.string,
 		size: PropTypes.oneOf(['small', 'large']),
+		options: PropTypes.object,
 	};
 
 	static defaultProps = {
 		color: [142, 0, 219],
+		negativeColor: [255, 35, 100],
 		minutes: 10,
 		size: 'small',
 		className: '',
+		options: {},
 	};
 
 	componentDidMount = () => {
@@ -121,7 +61,7 @@ class Chart extends PureComponent {
 			<div className={`data__chart data__chart--${this.props.size}`}>
 				<div className="data__chart__graph">
 					<ReactHighCharts
-						config={getConfig(this.props.data, this.props.color)}
+						config={{ ...this.getConfig(), ...this.props.options }}
 						domProps={{ style: { height: '100%' } }}
 						ref={(ref) => { this.chartRef = ref; }}
 						neverReflow
@@ -158,6 +98,91 @@ class Chart extends PureComponent {
 			series.addPoint([new Date().getTime(), props.currentValue], true, false);
 			chart.xAxis[0].setExtremes(getXAxisMin(props.minutes), new Date().getTime());
 		}
+	}
+
+	getConfig = () => {
+		const {
+			data,
+			color,
+			negativeColor,
+		} = this.props;
+
+		return {
+			series: [{
+				type: 'area',
+				data,
+			}],
+			chart: {
+				margin: 0,
+				// animation: false,
+			},
+			plotOptions: {
+				area: {
+					lineWidth: 5,
+					marker: {
+						enabled: false,
+					},
+					states: {
+						hover: {
+							enabled: false,
+						},
+					},
+					color: `rgb(${color[0]}, ${color[1]}, ${color[2]}`,
+					fillColor: {
+						linearGradient: {
+							x1: 0,
+							y1: 0,
+							x2: 0,
+							y2: 1,
+						},
+						stops: [
+							[0, `rgba(${color[0]}, ${color[1]}, ${color[2]}, 0.6)`],
+							[1, `rgba(${color[0]}, ${color[1]}, ${color[2]}, 0.1)`],
+						],
+					},
+					negativeColor: `rgb(${negativeColor[0]}, ${negativeColor[1]}, ${negativeColor[2]}`,
+					negativeFillColor: {
+						linearGradient: {
+							x1: 0,
+							y1: 1,
+							x2: 0,
+							y2: 0,
+						},
+						stops: [
+							[0, `rgba(${negativeColor[0]}, ${negativeColor[1]}, ${negativeColor[2]}, 0.6)`],
+							[1, `rgba(${negativeColor[0]}, ${negativeColor[1]}, ${negativeColor[2]}, 0.1)`],
+						],
+					},
+				},
+			},
+			xAxis: [{
+				type: 'datetime',
+				visible: false,
+				minPadding: 0,
+				maxPadding: 0,
+				endOnTick: false,
+			}],
+			yAxis: [{
+				labels: {
+					enabled: false,
+				},
+				title: {
+					text: null,
+				},
+			}],
+			tooltip: {
+				// enabled: false,
+			},
+			title: {
+				text: null,
+			},
+			legend: {
+				enabled: false,
+			},
+			credits: {
+				enabled: false,
+			},
+		};
 	}
 
 	chartRef = null;
