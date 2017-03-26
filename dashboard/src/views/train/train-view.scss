@@ -71,11 +71,13 @@
 			}
 
 			&--active {
-				background: red;
+				border-color: darken(#d22db9, 10%);
+				background: #d22db9;
 			}
 
 			&--next {
-				background: green;
+				background: #ddd;
+				transition-delay: 1s;
 			}
 
 			&--central {
