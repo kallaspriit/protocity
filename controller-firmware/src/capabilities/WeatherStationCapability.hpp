@@ -96,18 +96,19 @@ private:
 
 	float hygrometerLastRenderedValue = INVALID_VALUE;
 	float hygrometerRenderChangeThreshold = 0.1f;
-	int hygrometerIntervalMs = 10000;
+	int hygrometerIntervalMs = 1000;
 
 	float barometerLastRenderedValue = INVALID_VALUE;
 	float barometerRenderChangeThreshold = 0.1f;
-	int barometerIntervalMs = 10000;
+	int barometerIntervalMs = 1000;
 
 	float soundmeterLastRenderedValue = INVALID_VALUE;
 	float soundmeterRenderChangeThreshold = 5.0f;
 	int soundmeterIntervalMs = 100;
 	volatile float soundLevel = 0;
 
-	float forceUpdateInterval = 60000;
+	//float forceUpdateInterval = 60000;
+	float forceUpdateInterval = 1000;
 
 	// clap detection config
 	const float SOUNDMETER_LOUD_THRESHOLD = 20.0f;

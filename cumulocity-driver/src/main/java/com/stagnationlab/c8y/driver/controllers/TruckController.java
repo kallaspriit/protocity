@@ -314,6 +314,9 @@ public class TruckController extends AbstractController {
 		// report charge power and grid power balance measurements
 		reportMeasurement(new ChargePowerMeasurement(Util.round(truckChargePower, 2), "kW"));
 		reportMeasurement(new GridPowerBalanceMeasurement(Util.round(gridPowerBalance, 2), "kW"));
+
+		// report battery state as well
+		reportMeasurement(new BatteryMeasurement(Util.round(state.getBatteryVoltage(), 2), batteryChargePercentage, isCharging));
 	}
 
 	private void setIsRunning(boolean isRunning) {
