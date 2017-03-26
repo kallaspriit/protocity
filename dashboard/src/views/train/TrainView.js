@@ -27,42 +27,41 @@ const TrainView = ({ TRAIN_CONTROLLER: train }) => (
 				<h1 className="header__title">Train</h1>
 			</div>
 
-			<div className="container__train-route">
-				<div className={`pie ${steps[1]}`}>
-					<div className="pie__label"><span>Beach</span></div>
-					<div className="pie__label"><span>Police station</span></div>
-					<div className="pie__label"><span>Central station</span></div>
-					<div className="pie__chart" />
-					<div className="pie__data">
-						<p className="pie__title">Speed:</p>
-						<p className="pie__value">2 km/h</p>
-						{/* ALERT MESSAGES */}
-						{/* <p className="pie__alert pie__alert--connection">Connection lost</p> */}
-						{/* <p className="pie__alert pie__alert--obstacle">Obstacle ahead</p> */}
+			<div className="route-container">
+
+				<div className="route">
+					<div className="route__track" />
+					<div className="route__track route__track__2" />
+
+					<div className="route__station route__station--central">
+						<span className="route__station__title">Central station</span>
 					</div>
+					<div className="route__station route__station--beach">
+						<span className="route__station__title">Beach</span>
+					</div>
+					<div className="route__station route__station--police">
+						<span className="route__station__title">Police</span>
+					</div>
+
+					<div className="route__direction route__direction__1" />
+					<div className="route__direction route__direction__2" />
+					<div className="route__direction route__direction__3" />
+					<div className="route__direction route__direction__4" />
+					<div className="route__direction route__direction__5" />
 				</div>
 			</div>
-			<div className="container__train-chart">
-				<div className="header">
-					<h1 className="header__title">
-						Battery:
-						{train.data.isCharging
-							? (<span className="charging">charging</span>)
-							: (<span className="charging">not charging</span>)
-						}
-					</h1>
 
-					<Chart
-						title="Battery level"
-						data={train.measurements.chargePercentage}
-						currentValue={train.data.batteryChargePercentage}
-						color={[0, 153, 153]}
-						minutes={1}
-						unit="%"
-						size="large"
-						icon={train.data.isCharging && 'charging'}
-					/>
-				</div>
+			<div className="chart-container">
+				<Chart
+					title="Battery level"
+					data={train.measurements.chargePercentage}
+					currentValue={train.data.batteryChargePercentage}
+					color={[0, 153, 153]}
+					minutes={1}
+					unit="%"
+					size="large"
+					icon={train.data.isCharging ? 'charging' : 'not-charging'}
+				/>
 			</div>
 		</div>
 	</div>

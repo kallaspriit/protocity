@@ -130,4 +130,29 @@ h2,
 		color: #111;
 		font-weight: normal;
 	}
+
+	.data__warning {
+		color: #f00;
+	}
+
+	.data__chart__icon {
+		display: block;
+		width: 50px;
+		height: 100%;
+		position: absolute;
+		top: 77px;
+		left: 50%;
+		transform: translateX(-50%);
+		z-index: 10000;
+
+		&--charging {
+			background: url("./icons/charging.svg") no-repeat;
+			opacity: 0.9;
+		}
+
+		&--not-charging {
+			opacity: 0.3;
+			background: url("./icons/not-charging.svg") no-repeat;
+		}
+	}
 }
