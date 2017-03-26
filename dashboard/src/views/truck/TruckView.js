@@ -71,8 +71,8 @@ const TruckView = ({ TRUCK_CONTROLLER: truck, TRUCK_SOLAR_PANEL: solar }) => (
 					title={truck.data.gridPowerBalance > 0 ? 'Selling to the grid' : 'Buying from the grid'}
 					data={truck.measurements.gridPowerBalance}
 					currentValue={truck.data.gridPowerBalance}
-					color={[35, 255, 100]}
-					negativeColor={[255, 35, 100]}
+					color={[0, 204, 102]}
+					negativeColor={[225, 35, 100]}
 					unit="kW"
 					minutes={1}
 					size="large"
