@@ -30,6 +30,7 @@ export class App extends Component {
 
 	componentDidUpdate = () => {
 		if (!this.props.isPolling && this.props.clientId) {
+			console.info('start polling', this.props.clientId); // eslint-disable-line
 			this.props.pollDeviceData(this.props.clientId);
 		}
 	}

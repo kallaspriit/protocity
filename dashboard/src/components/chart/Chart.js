@@ -104,11 +104,12 @@ class Chart extends PureComponent {
 			<h2 className="data__title">{this.props.title}</h2>
 
 
-				<div className="data__chart__content">
-					<p className="data__value">
-						{this.props.currentValue}<span className="data__measure">{this.props.unit}</span>
-					</p>
-				</div>
+			<div className="data__chart__content">
+				<p className="data__value">
+					{Number.isNaN(this.props.currentValue) ? 0 : this.props.currentValue}
+					<span className="data__measure">{this.props.unit}</span>
+				</p>
+			</div>
 
 			<div className={`data__chart data__chart--${this.props.size}`}>
 				<div className="data__chart__graph">
@@ -120,11 +121,12 @@ class Chart extends PureComponent {
 					/>
 				</div>
 			</div>
-            {this.props.children && false && (
-			<div className="data__chart__content">
-                {this.props.children}
-			</div>
-            )}
+
+			{this.props.children && false && (
+				<div className="data__chart__content">
+					{this.props.children}
+				</div>
+			)}
 		</div>
 	);
 
@@ -141,7 +143,7 @@ class Chart extends PureComponent {
 		}
 
 		// add new and remove old point
-		if (props.currentValue !== this.props.currentValue) {
+		if (props.currentValue !== this.props.currentValue && !Number.isNaN(props.currentValue)) {
 			series.addPoint([new Date().getTime(), props.currentValue], true, false);
 			chart.xAxis[0].setExtremes(getXAxisMin(props.minutes), new Date().getTime());
 		}
