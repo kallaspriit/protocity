@@ -5,6 +5,7 @@ public class Truck {
 
 	private float batteryVoltage;
 	private int batteryChargePercentage;
+	private float chargePower;
 	private boolean isRunning;
 	private boolean isCharging;
 
@@ -15,6 +16,7 @@ public class Truck {
 	public void reset() {
 		batteryVoltage = 0.0f;
 		batteryChargePercentage = 0;
+		chargePower = 0.0f;
 		isRunning = false;
 		isCharging = false;
 	}
@@ -33,6 +35,14 @@ public class Truck {
 
 	public void setBatteryChargePercentage(int batteryChargePercentage) {
 		this.batteryChargePercentage = batteryChargePercentage;
+	}
+
+	public float getChargePower() {
+		return chargePower;
+	}
+
+	public void setChargePower(float chargePower) {
+		this.chargePower = chargePower;
 	}
 
 	public boolean getIsRunning() {

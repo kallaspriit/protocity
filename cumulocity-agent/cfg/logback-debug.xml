@@ -25,7 +25,7 @@
   <!--logger name="com.stagnationlab.c8y.driver.Gateway" level="INFO"/-->
   <!--logger name="com.stagnationlab.c8y.driver.controllers.TrainController" level="DEBUG"/-->
   <!--logger name="com.stagnationlab.c8y.driver.controllers.LightingController" level="DEBUG"/-->
-  <!--logger name="com.stagnationlab.c8y.driver.controllers.ParkingController" level="DEBUG"/-->
+  <!--logger name="com.stagnationlab.c8y.driver.controllers.TruckController" level="TRACE"/-->
   <!--logger name="com.stagnationlab.c8y.driver.services.TextToSpeech" level="TRACE"/-->
   <!--logger name="com.stagnationlab.etherio" level="TRACE"/-->
   <!--logger name="com.stagnationlab.c8y.driver.controllers.LightingController" level="DEBUG"/-->

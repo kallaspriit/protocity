@@ -253,7 +253,8 @@ public class TruckController extends AbstractController {
 		state.setBatteryVoltage(Util.round(batteryVoltage, 2));
 		state.setBatteryChargePercentage(batteryChargePercentage);
 
-		updateState(state);
+		// will be updated in updateGridPower() anyway
+		//updateState(state);
 
 		reportMeasurement(new BatteryMeasurement(Util.round(batteryVoltage, 2), batteryChargePercentage, isCharging));
 
@@ -305,6 +306,10 @@ public class TruckController extends AbstractController {
 				gridPowerBalance > 0 ? "selling to" : "buying from",
 				Util.round(Math.abs(gridPowerBalance), 1)
 		);
+
+		// update charge power state
+		state.setChargePower(Util.round(truckChargePower, 2));
+		updateState(state);
 
 		// report charge power and grid power balance measurements
 		reportMeasurement(new ChargePowerMeasurement(Util.round(truckChargePower, 2), "kW"));

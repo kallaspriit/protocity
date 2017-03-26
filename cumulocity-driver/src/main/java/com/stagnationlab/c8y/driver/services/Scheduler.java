@@ -15,7 +15,7 @@ public class Scheduler {
 	private static int intervalCount = 0;
 
 	public static ScheduledFuture<?> setInterval(Runnable runnable, long intervalMs) {
-		log.info("creating an interval every {}ms", intervalMs);
+		log.debug("creating an interval every {}ms", intervalMs);
 
 		ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor(
 				r -> new Thread(r,  "Interval" + (intervalCount++))

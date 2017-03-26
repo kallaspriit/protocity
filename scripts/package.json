@@ -1,0 +1,19 @@
+{
+  "name": "scripts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "run.js",
+  "scripts": {
+    "start": "babel-node run"
+  },
+  "author": "Priit Kallas <kallaspriit@gmail.com> (http://stagnationlab.com/)",
+  "license": "ISC",
+  "dependencies": {
+    "death": "^1.1.0",
+    "opn": "^4.0.2"
+  },
+  "devDependencies": {
+    "babel-preset-latest": "^6.24.0",
+    "babel-preset-stage-1": "^6.22.0"
+  }
+}
