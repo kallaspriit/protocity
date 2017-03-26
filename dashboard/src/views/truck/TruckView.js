@@ -54,8 +54,6 @@ const TruckView = ({ TRUCK_CONTROLLER: truck, TRUCK_SOLAR_PANEL: solar }) => (
 					minutes={1}
 					size="large"
 				>
-					<p className="data__label data__label--energy">Producing <strong>8 kW</strong></p>
-					<p className="data__label data__label--energy">Using <strong>12 kW</strong></p>
 				</Chart>
 
 				<Chart
@@ -67,8 +65,6 @@ const TruckView = ({ TRUCK_CONTROLLER: truck, TRUCK_SOLAR_PANEL: solar }) => (
 					minutes={1}
 					size="large"
 				>
-					<p className="data__label data__label--cost">Buying <strong>3 kW</strong> for <strong>0.99€</strong></p>
-					<p className="data__label data__label--cost">Selling <strong>13 kW</strong> for <strong>1.2€</strong></p>
 				</Chart>
 			</div>
 		</div>
