@@ -1,5 +1,9 @@
 .weather-view {
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
   .header {
+    margin-top: 30px;
     margin-bottom: 10px;
     text-align: center;
     &__title {

@@ -18,19 +18,18 @@ const TruckView = ({ TRUCK_CONTROLLER: truck, TRUCK_SOLAR_PANEL: solar }) => (
 			</div>
 
 			<div className="chart-container">
-					<Chart
-						title={truck.data.batteryChargePercentage <= 15 ? 'Battery level low' : 'Battery level'}
-						data={truck.measurements.chargePercentage || [[0, truck.data.batteryChargePercentage]]}
-						currentValue={truck.data.batteryChargePercentage}
-						color={[0, 153, 153]}
-						minutes={1}
-						unit="%"
-						size="large"
-						className={truck.data.batteryChargePercentage <= 15 && 'data__warning'}
-					>
-						<p className="data__label data__label--battery">Battery not charging</p>
-						<p className="data__label data__label--battery-charging">Battery charging, using 20 kW</p>
-					</Chart>
+				<Chart
+					title={truck.data.batteryChargePercentage <= 15 ? 'Battery level low' : 'Battery level'}
+					data={truck.measurements.chargePercentage || [[0, truck.data.batteryChargePercentage]]}
+					currentValue={truck.data.batteryChargePercentage}
+					color={[0, 153, 153]}
+					minutes={1}
+					unit="%"
+					size="large"
+					className={truck.data.batteryChargePercentage <= 15 ? 'data__warning' : ''}
+					icon="not-charging"
+				>
+				</Chart>
 				<Chart
 					title="Charging power"
 					data={truck.measurements.chargePower}
@@ -55,8 +54,8 @@ const TruckView = ({ TRUCK_CONTROLLER: truck, TRUCK_SOLAR_PANEL: solar }) => (
 					minutes={1}
 					size="large"
 				>
-					<p className="data__label data__label--energy">Producing 8 kW</p>
-					<p className="data__label data__label--energy">Using 12 kW</p>
+					<p className="data__label data__label--energy">Producing <strong>8 kW</strong></p>
+					<p className="data__label data__label--energy">Using <strong>12 kW</strong></p>
 				</Chart>
 
 				<Chart
@@ -68,8 +67,8 @@ const TruckView = ({ TRUCK_CONTROLLER: truck, TRUCK_SOLAR_PANEL: solar }) => (
 					minutes={1}
 					size="large"
 				>
-					<p className="data__label data__label--cost">Buying 3 kW for 0.99 EUR</p>
-					<p className="data__label data__label--cost">Selling 13 kW for 1.2 EUR</p>
+					<p className="data__label data__label--cost">Buying <strong>3 kW</strong> for <strong>0.99€</strong></p>
+					<p className="data__label data__label--cost">Selling <strong>13 kW</strong> for <strong>1.2€</strong></p>
 				</Chart>
 			</div>
 		</div>

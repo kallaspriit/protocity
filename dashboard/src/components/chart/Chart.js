@@ -83,6 +83,7 @@ class Chart extends PureComponent {
 		color: PropTypes.arrayOf(PropTypes.number),
 		title: PropTypes.string,
 		className: PropTypes.string,
+		icon: PropTypes.string,
 		size: PropTypes.oneOf(['small', 'large']),
 	};
 
@@ -122,6 +123,10 @@ class Chart extends PureComponent {
 						neverReflow
 					/>
 				</div>
+
+				{this.props.icon && (
+					<div className={`data__chart__icon data__chart__icon--${this.props.icon}`} />
+                )}
 			</div>
 
 			{this.props.children && (

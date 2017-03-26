@@ -44,10 +44,10 @@
 	}
 
 	.pie {
-		$pie-size: 500px;
+		$pie-size: 400px;
 		$label-size: 90px;
 		$border-size: 10px;
-		$pie-rotation: 240deg;
+		$pie-rotation: 50deg;
 
 		position: relative;
 		width: $pie-size;
@@ -63,7 +63,7 @@
 			border-radius: 50%;
 			text-align: center;
 			transform: rotate(240deg);
-			background: #ffcd64;
+			background: #ccc;
 
 			&:before {
 				content: '';
@@ -92,8 +92,8 @@
 		}
 
 		&--filling .pie__chart {
-			background-image: linear-gradient(to right, transparent 50%, #00cc66 0);
-			animation:blink normal 1.5s infinite ease-in-out;
+			background-image: linear-gradient(to right, transparent 50%, #d22db9 0);
+			animation: normal 1.5s infinite ease-in-out;
 		}
 
 		&__label {
@@ -101,13 +101,13 @@
 			z-index: 1;
 			width: $label-size;
 			height: $label-size;
-			background-color: #ffcd64;
+			background-color: #ccc;
 			border: 13px solid #eee;
 			transition: background 300ms;
-			font-family: Pebble;
 			color: #990ae3;
-			font-size: 34px;
+			font-size: 38px;
 			line-height: normal;
+			font-weight: bold;
 			white-space: nowrap;
 
 			span {
@@ -121,8 +121,8 @@
 				transform: translate(-50%, 75%);
 
 				span {
-					left: 100%;
-					bottom: 170%;
+					left: 130%;
+					bottom: 190%;
 					transform: translateX(-50%) rotate($pie-rotation * -1);
 				}
 			}
@@ -133,8 +133,8 @@
 				transform: translate(100%, -50%);
 
 				span {
-					top: 60%;
-					right: 60%;
+					top: 120%;
+					right: 80%;
 					transform: translateY(-50%) rotate($pie-rotation * -1);
 					text-align: right;
 				}
@@ -146,8 +146,8 @@
 				transform: translate(-100%, -50%);
 
 				span {
-					bottom: -110px;
-					left: 0;
+					bottom: 150%;
+					left: 100%;
 					transform: translateY(-50%) rotate($pie-rotation * -1);
 				}
 			}
@@ -160,12 +160,12 @@
 			}
 			// Central station
 			.pie__label:nth-child(3) {
-				background-color: #ffcd64;
+				background-color: #ccc;
 			}
 			// Beach 
 			.pie__label:nth-child(1) {
 				// Beach
-				background-color: #00cc66;
+				background-color: #d22db9;
 			}
 		}
 
@@ -176,11 +176,11 @@
 			}
 			.pie__label:nth-child(1) {
 				// Beach
-				background-color: #ffcd64;
+				background-color: #ccc;
 			}
 			.pie__label:nth-child(2) {
 				// Police station
-				background-color: #00cc66;
+				background-color: #d22db9;
 			}
 		}
 
@@ -191,11 +191,11 @@
 			}
 			.pie__label:nth-child(2) {
 				// Police station
-				background-color: #ffcd64;
+				background-color: #ccc;
 			}
 			.pie__label:nth-child(3) {
 				// Central Station
-				background-color: #00cc66;
+				background-color: #d22db9;
 			}
 		}
 
