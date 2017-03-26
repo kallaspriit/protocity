@@ -70,6 +70,14 @@
 				font-size: 32px;
 			}
 
+			&--active {
+				background: red;
+			}
+
+			&--next {
+				background: green;
+			}
+
 			&--central {
 				bottom: 4px;
 				left: 35%;
