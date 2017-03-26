@@ -16,7 +16,27 @@ const renderStation = (stationName, previousStationName, nextStationName, isInSt
 
 	return (
 		<div className={className}>
-			<span className="route__station__title">{stationName}</span>
+			<span className="route__station__title">{stationName.split(' ')[0]}</span>
+		</div>
+	);
+};
+
+const getInfo = (isObstacleDetected, realSpeed, stationName) => {
+	if (isObstacleDetected) {
+		return (
+			<div className="route__obstacle" />
+		);
+	}
+
+	if (realSpeed > 0) {
+		return (
+			<div className="route__msg"><strong>{realSpeed}</strong></div>
+		);
+	}
+
+	return (
+		<div className="route__msg route__msg--station">
+			Stopped at {stationName}
 		</div>
 	);
 };
@@ -69,7 +89,7 @@ const TrainView = ({ TRAIN_CONTROLLER: train }) => (
 					<div className="route__direction route__direction__4" />
 					<div className="route__direction route__direction__5" />
 
-					<div className="route__msg"><strong>{train.data.realSpeed}</strong> km/s</div>
+					{getInfo(train.data.isObstacleDetected, train.data.realSpeed, train.data.nextStationName)}
 				</div>
 			</div>
 
