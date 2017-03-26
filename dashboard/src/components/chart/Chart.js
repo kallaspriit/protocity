@@ -82,6 +82,7 @@ class Chart extends PureComponent {
 		minutes: PropTypes.number, // eslint-disable-line
 		color: PropTypes.arrayOf(PropTypes.number),
 		title: PropTypes.string,
+		className: PropTypes.string,
 		size: PropTypes.oneOf(['small', 'large']),
 	};
 
@@ -89,6 +90,7 @@ class Chart extends PureComponent {
 		color: [142, 0, 219],
 		minutes: 10,
 		size: 'small',
+		className: '',
 	};
 
 	componentDidMount = () => {
@@ -100,7 +102,7 @@ class Chart extends PureComponent {
 	}
 
 	render = () => (
-		<div className={`data data--${this.props.size}`}>
+		<div className={`data data--${this.props.size} ${this.props.className}`}>
 			<h2 className="data__title">{this.props.title}</h2>
 
 
@@ -122,7 +124,7 @@ class Chart extends PureComponent {
 				</div>
 			</div>
 
-			{this.props.children && false && (
+			{this.props.children && (
 				<div className="data__chart__content">
 					{this.props.children}
 				</div>

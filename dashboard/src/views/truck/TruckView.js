@@ -18,20 +18,19 @@ const TruckView = ({ TRUCK_CONTROLLER: truck, TRUCK_SOLAR_PANEL: solar }) => (
 			</div>
 
 			<div className="chart-container">
-				<Chart
-					title="Battery level"
-					data={truck.measurements.chargePercentage || [[0, truck.data.batteryChargePercentage]]}
-					currentValue={truck.data.batteryChargePercentage}
-					color={[0, 153, 153]}
-					minutes={1}
-					unit="%"
-					size="large"
-				>
-					<p className="data__label--alert">Battery level under 15%, please charge</p>
-					<p className="data__label data__label--battery">Battery not charging</p>
-					<p className="data__label data__label--battery-charging">Battery charging, using 20 kW</p>
-				</Chart>
-
+					<Chart
+						title={truck.data.batteryChargePercentage <= 15 ? 'Battery level low' : 'Battery level'}
+						data={truck.measurements.chargePercentage || [[0, truck.data.batteryChargePercentage]]}
+						currentValue={truck.data.batteryChargePercentage}
+						color={[0, 153, 153]}
+						minutes={1}
+						unit="%"
+						size="large"
+						className={truck.data.batteryChargePercentage <= 15 && 'data__warning'}
+					>
+						<p className="data__label data__label--battery">Battery not charging</p>
+						<p className="data__label data__label--battery-charging">Battery charging, using 20 kW</p>
+					</Chart>
 				<Chart
 					title="Charging power"
 					data={truck.measurements.chargePower}
