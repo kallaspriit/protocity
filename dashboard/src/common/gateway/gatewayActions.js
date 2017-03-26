@@ -18,6 +18,8 @@ export const getInventory = createAction(
 	async (fragmentType) => {
 		const fragments = await deviceApi.getInventory(fragmentType);
 
+		console.log(fragments);
+
 		const assets = fragments.managedObjects[0].childDevices.references;
 
 		return Promise.all(assets.map(asset => deviceApi.getDeviceData(asset.managedObject.id)));

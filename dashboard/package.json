@@ -80,6 +80,7 @@
     "bail": false
   },
   "dependencies": {
+    "axios": "^0.15.3",
     "base-64": "^0.1.0",
     "classnames": "^2.2.5",
     "cross-env": "^3.2.4",
