@@ -30,7 +30,7 @@ const getInfo = (isObstacleDetected, realSpeed, stationName) => {
 
 	if (realSpeed > 0) {
 		return (
-			<div className="route__msg"><strong>{realSpeed}</strong></div>
+			<div className="route__msg"><span><strong>{realSpeed}</strong> km/h</span></div>
 		);
 	}
 
