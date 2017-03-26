@@ -44,6 +44,18 @@
 			border: $track-width - 2px solid #eee;
 		}
 
+		&__track__3 {
+			$edge-padding: 10px;
+
+			top: $edge-padding;
+			left: $edge-padding;
+			bottom: $edge-padding;
+			right: $edge-padding;
+			border: $track-width - 20px double #ccc;
+			border-radius: 110px;
+			animation: 1s animateBorder infinite;
+		}
+
 		&__station {
 			position: absolute;
 			width: $station-size;
@@ -60,7 +72,7 @@
 
 			&--central {
 				bottom: 4px;
-				left: 50%;
+				left: 35%;
 
 				.route__station__title {
 					top: 100%;
@@ -128,6 +140,12 @@
 			&__4 {
 				left: $top-left + $step * 3;
 			}
+		}
+	}
+
+	@keyframes animateBorder {
+		to {
+			border-radius: 111px;
 		}
 	}
 

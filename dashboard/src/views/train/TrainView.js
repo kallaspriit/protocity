@@ -13,6 +13,30 @@ const steps = [
 	'pie--step-3 pie--filling',
 ];
 
+const getStationClassName = (stationName, activeStationName) => {
+	let activeStation;
+
+	switch (activeStationName) {
+		case 'Central station':
+			activeStation = 'central';
+			break;
+
+		case 'Police station':
+			activeStation = 'police';
+			break;
+
+		case 'Beach station':
+			activeStation = 'beach';
+			break;
+
+		// no default
+	}
+
+	const className = `route__station route__station--${stationName}`;
+
+	return className;
+};
+
 const TrainView = ({ TRAIN_CONTROLLER: train }) => (
 	<div className="train-view">
 		<div className="demo-video">
@@ -32,14 +56,15 @@ const TrainView = ({ TRAIN_CONTROLLER: train }) => (
 				<div className="route">
 					<div className="route__track" />
 					<div className="route__track route__track__2" />
+					<div className="route__track route__track__3" />
 
-					<div className="route__station route__station--central">
+					<div className={getStationClassName('central')}>
 						<span className="route__station__title">Central station</span>
 					</div>
-					<div className="route__station route__station--beach">
+					<div className={getStationClassName('beach')}>
 						<span className="route__station__title">Beach</span>
 					</div>
-					<div className="route__station route__station--police">
+					<div className={getStationClassName('police')}>
 						<span className="route__station__title">Police</span>
 					</div>
 
