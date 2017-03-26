@@ -8,7 +8,7 @@ const config = {
         baseUrl: 'http://localhost:3000'
     },
     env: {
-        resolution: 1080,
+        resolution: 1920,
     },
     paths: {
         dashboard: path.resolve(__dirname, '..', 'dashboard'),
