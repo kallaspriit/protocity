@@ -73,6 +73,7 @@ const TrainView = ({ TRAIN_CONTROLLER: train }) => (
 					<div className="route__direction route__direction__3" />
 					<div className="route__direction route__direction__4" />
 					<div className="route__direction route__direction__5" />
+
 				</div>
 			</div>
 

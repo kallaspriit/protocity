@@ -21,7 +21,7 @@
 
 	.route {
 		$track-width: 50px;
-		$station-size: 40px;
+		$station-size: 50px;
 
 		height: 350px;
 		position: relative;
@@ -60,9 +60,9 @@
 			position: absolute;
 			width: $station-size;
 			height: $station-size;
-			background-color: #00cc66;
+			background-color: #fff;
 			border-radius: 50%;
-			border: 1px solid darken(#00cc66, 20%);
+			border: 4px solid #444;
 
 			&__title {
 				position: absolute;
@@ -71,7 +71,7 @@
 			}
 
 			&--central {
-				bottom: 4px;
+				bottom: 0;
 				left: 35%;
 
 				.route__station__title {
@@ -84,7 +84,7 @@
 
 			&--beach {
 				bottom: 35%;
-				right: 5px;
+				right: 0;
 
 				.route__station__title {
 					left: 100%;
@@ -96,7 +96,7 @@
 
 			&--police {
 				top: 25%;
-				left: 5px;
+				left: 0;
 
 				.route__station__title {
 					right: 100%;
@@ -105,6 +105,7 @@
 					margin-right: 28px;
 				}
 			}
+
 		}
 
 		&__direction {
@@ -118,19 +119,22 @@
 			width: $size;
 			height: $size;
 
-			&__1, &__2, &__3, &__4  {
+			&__1, &__2, &__3  {
 				top: 8px;
+			}
+			&__4, &__5  {
+				bottom: 8px;
 			}
 
 			$top-left: 130px;
-			$step: 140px;
+			$step: 230px;
 
 			&__1 {
-				left: $top-left;
+				left: $top-left+100;
 			}
 
 			&__2 {
-				left: $top-left + $step;
+				display: none;
 			}
 
 			&__3 {
@@ -138,7 +142,30 @@
 			}
 
 			&__4 {
-				left: $top-left + $step * 3;
+				left: 12px;
+				top: 240px;
+				transform: rotate(120deg);
+
+			}
+			&__5 {
+				left: $top-left + $step + 120;
+				transform: rotate(45deg);
+
+			}
+		}
+		&__msg {
+			position: absolute;
+			width: 600px;
+			height: 120px;
+			margin: 110px 60px;
+			text-align: center;
+			font-weight: bold;
+			font-size: 40px;
+			color: #111;
+			strong {
+				font-size: 80px;
+				color: #d22db9;
+
 			}
 		}
 	}
