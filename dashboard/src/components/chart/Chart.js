@@ -1,5 +1,6 @@
 import React, { PureComponent, PropTypes } from 'react';
 import ReactHighCharts from 'react-highcharts';
+import roundTo from 'round-to';
 
 const getXAxisMin = (minutes, minTime) => {
 	const now = new Date().getTime() - (60000 * minutes);
@@ -109,7 +110,10 @@ class Chart extends PureComponent {
 
 			<div className="data__chart__content">
 				<p className="data__value">
-					{Number.isNaN(this.props.currentValue) ? 0 : this.props.currentValue}
+					{typeof this.props.currentValue !== 'number'
+						? this.props.currentValue
+						: roundTo(this.props.currentValue, 2)
+					}
 					<span className="data__measure">{this.props.unit}</span>
 				</p>
 			</div>

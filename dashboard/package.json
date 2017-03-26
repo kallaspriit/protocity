@@ -93,6 +93,7 @@
     "redux-actions": "^1.2.2",
     "redux-loading-promise-middleware": "^2.0.0",
     "redux-thunk": "^2.2.0",
+    "round-to": "^2.0.0",
     "whatwg-fetch": "^2.0.2"
   }
 }
