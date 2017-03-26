@@ -61,7 +61,7 @@ const TruckView = ({ TRUCK_CONTROLLER: truck, TRUCK_SOLAR_PANEL: solar }) => (
 				<Chart
 					title="Energy production"
 					data={solar.measurements.value}
-					currentValue={solar.data.value}
+					currentValue={truck.data.solarOutputPower}
 					color={[153, 10, 227]}
 					unit="kW"
 					minutes={1}

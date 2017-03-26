@@ -253,11 +253,6 @@ public class TruckController extends AbstractController {
 		state.setBatteryVoltage(batteryVoltage);
 		state.setBatteryChargePercentage(batteryChargePercentage);
 
-		// will be updated in updateGridPower() anyway
-		//updateState(state);
-
-		reportMeasurement(new BatteryMeasurement(batteryVoltage, batteryChargePercentage, isCharging));
-
 		indicatorDriver.setChannelValue(indicatorChannel, isCharging ? 0.0f : 1.0f);
 
 		updateGridPower();
@@ -295,6 +290,7 @@ public class TruckController extends AbstractController {
 	private void updateGridPower() {
 		boolean isCharging = state.getIsCharging();
 		int batteryChargePercentage = state.getBatteryChargePercentage();
+		float batteryVoltage = state.getBatteryVoltage();
 		float solarOutputPower = solarPanelSensor.getState().getValue();
 		float truckChargePower = calculateTruckChargePower(isCharging, batteryChargePercentage);
 		float gridPowerBalance = calculateGridPowerBalance(truckChargePower, solarOutputPower);
@@ -308,6 +304,7 @@ public class TruckController extends AbstractController {
 		);
 
 		// update charge power state
+		state.setSolarOutputPower(solarOutputPower);
 		state.setChargePower(truckChargePower);
 		state.setGridPowerBalance(gridPowerBalance);
 		updateState(state);
@@ -317,7 +314,7 @@ public class TruckController extends AbstractController {
 		reportMeasurement(new GridPowerBalanceMeasurement(gridPowerBalance, "kW"));
 
 		// report battery state as well
-		reportMeasurement(new BatteryMeasurement(state.getBatteryVoltage(), batteryChargePercentage, isCharging));
+		reportMeasurement(new BatteryMeasurement(batteryVoltage, batteryChargePercentage, isCharging));
 	}
 
 	private void setIsRunning(boolean isRunning) {

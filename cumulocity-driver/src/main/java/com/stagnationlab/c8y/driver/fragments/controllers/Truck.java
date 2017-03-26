@@ -5,6 +5,7 @@ public class Truck {
 
 	private float batteryVoltage;
 	private int batteryChargePercentage;
+	private float solarOutputPower;
 	private float chargePower;
 	private float gridPowerBalance;
 	private boolean isRunning;
@@ -36,6 +37,14 @@ public class Truck {
 
 	public void setBatteryChargePercentage(int batteryChargePercentage) {
 		this.batteryChargePercentage = batteryChargePercentage;
+	}
+
+	public float getSolarOutputPower() {
+		return solarOutputPower;
+	}
+
+	public void setSolarOutputPower(float solarOutputPower) {
+		this.solarOutputPower = solarOutputPower;
 	}
 
 	public float getChargePower() {
