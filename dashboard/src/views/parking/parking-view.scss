@@ -55,14 +55,9 @@
 				align-items: flex-end;
 				justify-content: center;
 				line-height: normal;
-				&--free {
-					font-size: 60px;
-					color: #999;
-				}
-				&--occupied {
-					font-size: 30px;
-				}
-				&--occupied strong {
+				font-size: 30px;
+
+				strong {
 					font-size: 60px;
 				}
 			}
@@ -108,19 +103,13 @@
 			will-change: transform;
 			background-color: #fff;
 			z-index: 10;
-			&--leaving,
-			&:hover {
+
+			&--leaving {
 				transform: translateY(90%);
 			}
-			&--cart {
-				background-image: url('../../gfx/cars/YELLOW_ROADSTER.png');
-			}
-			&--f1 {
-				background-image: url('../../gfx/cars/F1.png');
-			}
 		}
-
 	}
+
 	.car-type {
 		width: 300px;
 		margin-top: -30px;
