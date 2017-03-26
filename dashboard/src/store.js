@@ -4,12 +4,12 @@ import thunkMiddleware from 'redux-thunk';
 import promiseMiddleware from './services/promiseMiddleware';
 
 // reducers
-import deviceReducer from './common/device/deviceReducer';
+import gatewayReducer from './common/gateway/gatewayReducer';
 
 export default function configureStore(initialState) {
 	return createStore(
 		combineReducers({
-			deviceReducer,
+			gatewayReducer,
 		}),
 		initialState,
 		compose(

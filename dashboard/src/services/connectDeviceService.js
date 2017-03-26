@@ -1,7 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
-import * as deviceActions from '../common/device/deviceActions';
-import { SUBSCRIPTION_TYPE } from '../common/device/deviceConstants';
+import * as gatewayActions from '../common/gateway/gatewayActions';
+import { SubscriptionType } from '../common/gateway/gatewayConstants';
 
 
 function connectToDevice(WrappedComponent) {
@@ -35,19 +35,19 @@ function connectToDevice(WrappedComponent) {
 			const device = this.props.devices[deviceName];
 
 			if (!deviceId) {
-				return;
+				throw new Error(`Device "${deviceName}" does not exist in reducer`);
 			}
 
 			this.props.getDeviceData(deviceId, deviceName);
 			this.props.getDeviceMeasurements(deviceId, deviceName);
 
 			if (!device.hasDataSubscription) {
-				this.props.subscribeDevice(this.props.clientId, deviceId, deviceName, SUBSCRIPTION_TYPE.DATA);
+				this.props.subscribeDevice(this.props.clientId, deviceId, deviceName, SubscriptionType.DATA);
 			}
 
 			/*
 			if (!device.hasMeasurementsSubscription) {
-				this.props.subscribeDevice(this.props.clientId, deviceId, deviceName, SUBSCRIPTION_TYPE.MEASUREMENTS);
+				this.props.subscribeDevice(this.props.clientId, deviceId, deviceName, SubscriptionType.MEASUREMENTS);
 			}
 			*/
 		}
@@ -57,32 +57,32 @@ function connectToDevice(WrappedComponent) {
 			const device = this.props.devices[deviceName];
 
 			if (!deviceId) {
-				return;
+				throw new Error(`Device "${deviceName}" does not exist in reducer`);
 			}
 
 			if (device.hasDataSubscription) {
-				this.props.unsubscribeDevice(this.props.clientId, deviceId, deviceName, SUBSCRIPTION_TYPE.DATA);
+				this.props.unsubscribeDevice(this.props.clientId, deviceId, deviceName, SubscriptionType.DATA);
 			}
 
 			if (device.hasMeasurementsSubscription) {
-				this.props.unsubscribeDevice(this.props.clientId, deviceId, deviceName, SUBSCRIPTION_TYPE.MEASUREMENTS);
+				this.props.unsubscribeDevice(this.props.clientId, deviceId, deviceName, SubscriptionType.MEASUREMENTS);
 			}
 		}
 	};
 }
 
 export default function withDevice(deviceNames) {
-	const mapStateToProps = ({ deviceReducer }) => ({
-		clientId: deviceReducer.clientId,
-		isPolling: deviceReducer.isPolling,
-		isInventoryLoaded: deviceReducer.isInventoryLoaded,
-		devices: deviceReducer.devices,
-		deviceIds: deviceReducer.deviceIds,
+	const mapStateToProps = ({ gatewayReducer }) => ({
+		clientId: gatewayReducer.clientId,
+		isPolling: gatewayReducer.isPolling,
+		isInventoryLoaded: gatewayReducer.isInventoryLoaded,
+		devices: gatewayReducer.devices,
+		deviceIds: gatewayReducer.deviceIds,
 		deviceNames,
 	});
 
 	const mapDispatchToProps = {
-		...deviceActions,
+		...gatewayActions,
 	};
 
 	return WrappedComponent => connect(mapStateToProps, mapDispatchToProps)(connectToDevice(WrappedComponent));

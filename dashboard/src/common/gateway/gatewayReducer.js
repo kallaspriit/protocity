@@ -1,5 +1,5 @@
 import { handleActions } from 'redux-actions';
-import * as deviceConstants from './deviceConstants';
+import { Action, DeviceTitle, DeviceClass, SubscriptionType } from './gatewayConstants';
 
 const createDevice = data => ({
 	isLoading: false,
@@ -16,7 +16,7 @@ const initialState = {
 	clientId: null,
 	isPolling: false,
 	deviceIds: {},
-	devices: Object.keys(deviceConstants.DEVICE_TITLE).reduce((obj, key) => ({
+	devices: Object.keys(DeviceTitle).reduce((obj, key) => ({
 		...obj,
 		[key]: createDevice(),
 	}), {}),
@@ -25,7 +25,7 @@ const initialState = {
 };
 
 export default handleActions({
-	[deviceConstants.CREATE_SESSION]: (state, action) => {
+	[Action.CREATE_SESSION]: (state, action) => {
 		const {
 			error,
 			isLoading,
@@ -52,7 +52,7 @@ export default handleActions({
 		};
 	},
 
-	[deviceConstants.DESTROY_SESSION]: (state, action) => {
+	[Action.DESTROY_SESSION]: (state, action) => {
 		const {
 			error,
 		} = action;
@@ -65,7 +65,7 @@ export default handleActions({
 		};
 	},
 
-	[deviceConstants.GET_INVENTORY]: (state, action) => {
+	[Action.GET_INVENTORY]: (state, action) => {
 		const {
 			error,
 			isLoading,
@@ -99,8 +99,8 @@ export default handleActions({
 
 		const availableDevices = getReferences({ childDevices: { references: payload } });
 
-		const filteredDeviceKeys = Object.keys(deviceConstants.DEVICE_TITLE);
-		const filteredDeviceNames = Object.values(deviceConstants.DEVICE_TITLE);
+		const filteredDeviceKeys = Object.keys(DeviceTitle);
+		const filteredDeviceNames = Object.values(DeviceTitle);
 
 		const deviceIds = availableDevices.reduce((obj, device) => {
 			const deviceKey = filteredDeviceNames.indexOf(device.name);
@@ -122,7 +122,7 @@ export default handleActions({
 		};
 	},
 
-	[deviceConstants.GET_DEVICE_DATA]: (state, action) => {
+	[Action.GET_DEVICE_DATA]: (state, action) => {
 		const {
 			isLoading,
 			error,
@@ -144,7 +144,7 @@ export default handleActions({
 		};
 
 		if (payload) {
-			const deviceClassName = deviceConstants.DEVICE_CLASS[meta.name];
+			const deviceClassName = DeviceClass[meta.name];
 
 			device.data = {
 				...device.data,
@@ -162,7 +162,7 @@ export default handleActions({
 		};
 	},
 
-	[deviceConstants.GET_DEVICE_MEASUREMENTS]: (state, action) => {
+	[Action.GET_DEVICE_MEASUREMENTS]: (state, action) => {
 		const {
 			isLoading,
 			error,
@@ -181,6 +181,7 @@ export default handleActions({
 			...state.devices[meta.name],
 			isLoading,
 		};
+
 
 		// define series
 		device.series = payload.series.reduce((obj, row) => ({
@@ -223,7 +224,7 @@ export default handleActions({
 		};
 	},
 
-	[deviceConstants.POLL_CLIENT]: (state, action) => {
+	[Action.POLL_CLIENT]: (state, action) => {
 		const {
 			isLoading,
 			error,
@@ -243,28 +244,15 @@ export default handleActions({
 			...state.devices,
 		};
 
-		Object.entries(deviceConstants.DEVICE_CLASS).forEach(([deviceKey, deviceClass]) => {
+		Object.entries(DeviceClass).forEach(([deviceKey, deviceClass]) => {
 			payload.forEach((stream) => {
-				if (stream.channel.includes(deviceConstants.SUBSCRIPTION_TYPE.DATA)) {
+				if (stream.channel.includes(SubscriptionType.DATA)) {
 					devices[deviceKey].data = {
 						...devices[deviceKey].data,
 						...stream.data.data[deviceClass],
 					};
-				} else if (stream.channel.includes(deviceConstants.SUBSCRIPTION_TYPE.MEASUREMENTS)) {
-					// sound
-					if (
-						stream.data.data[deviceConstants.MEASUREMENT_CLASS.SOUND]
-						&& devices[deviceKey].measurements.soundLevel
-					) {
-						devices[deviceKey].measurements.soundLevel.push({
-							value: stream.data.data[deviceConstants.MEASUREMENT_CLASS.SOUND].soundLevel.value,
-							time: stream.data.data.time,
-						});
-
-						if (devices[deviceKey].measurements.soundLevel.length > 100) {
-							devices[deviceKey].measurements.soundLevel.shift();
-						}
-					}
+				} else if (stream.channel.includes(SubscriptionType.MEASUREMENTS)) {
+					/* todo: measurements implementation here */
 				}
 			});
 		});
@@ -277,7 +265,7 @@ export default handleActions({
 		};
 	},
 
-	[deviceConstants.SUBSCRIBE_DEVICE]: (state, action) => {
+	[Action.SUBSCRIBE_DEVICE]: (state, action) => {
 		const {
 			error,
 			payload,
@@ -303,11 +291,11 @@ export default handleActions({
 		};
 
 		switch (meta.subscriptionType) {
-			case deviceConstants.SUBSCRIPTION_TYPE.DATA:
+			case SubscriptionType.DATA:
 				device.hasDataSubscription = isSuccessful;
 				break;
 
-			case deviceConstants.SUBSCRIPTION_TYPE.MEASUREMENTS:
+			case SubscriptionType.MEASUREMENTS:
 				device.hasMeasurementsSubscription = isSuccessful;
 				break;
 
@@ -325,7 +313,7 @@ export default handleActions({
 		};
 	},
 
-	[deviceConstants.UNSUBSCRIBE_DEVICE]: (state, action) => {
+	[Action.UNSUBSCRIBE_DEVICE]: (state, action) => {
 		const {
 			error,
 			payload,
@@ -351,11 +339,7 @@ export default handleActions({
 		};
 
 		switch (meta.subscriptionType) {
-			case deviceConstants.SUBSCRIPTION_TYPE.DATA:
-				device.hasDataSubscription = !isSuccessful;
-				break;
-
-			case deviceConstants.SUBSCRIPTION_TYPE.MEASUREMENTS:
+			case SubscriptionType.MEASUREMENTS:
 				device.hasMeasurementsSubscription = !isSuccessful;
 				break;
 

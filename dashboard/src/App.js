@@ -2,7 +2,7 @@ import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { Route, withRouter } from 'react-router-dom';
 
-import * as deviceActions from './common/device/deviceActions';
+import * as gatewayActions from './common/gateway/gatewayActions';
 
 import HomeView from './views/home/HomeView';
 import LoadingView from './views/loading/LoadingView';
@@ -52,14 +52,14 @@ export class App extends Component {
 	isAppReady = () => this.props.clientId && this.props.isInventoryLoaded;
 }
 
-const mapStateToProps = ({ deviceReducer }) => ({
-	clientId: deviceReducer.clientId,
-	isPolling: deviceReducer.isPolling,
-	isInventoryLoaded: deviceReducer.isInventoryLoaded,
+const mapStateToProps = ({ gatewayReducer }) => ({
+	clientId: gatewayReducer.clientId,
+	isPolling: gatewayReducer.isPolling,
+	isInventoryLoaded: gatewayReducer.isInventoryLoaded,
 });
 
 const mapDispatchToProps = {
-	...deviceActions,
+	...gatewayActions,
 };
 
 export default withRouter(

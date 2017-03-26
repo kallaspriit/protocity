@@ -1,4 +1,6 @@
 import React from 'react';
+import withDevice from '../../services/connectDeviceService';
+import { Device } from '../../common/gateway/gatewayConstants';
 import './parking-view.scss';
 
 const ParkingView = () => (
@@ -12,26 +14,25 @@ const ParkingView = () => (
 
 		<div className="container">
 			<div className="header">
-			<h1 className="header__title">Parking</h1>
-		</div>
+				<h1 className="header__title">Parking</h1>
+			</div>
 			<div className="parking__data">
 				<div className="parking__data__availability">
-                    {/* IF PARKING SLOT IS FREE: */}
-					<div className="parking__data__availability--free">
+					{/* IF PARKING SLOT IS FREE: */}
+					<div className="parking__data__availability--free" />
+				</div>
+				<div className="parking__data__availability">
+					{/* IF PARKING SLOT IS FREE: */}
+					<div className="parking__data__availability--occupied">
+						<p className="cost">Total cost<br /> <strong>1.41€</strong></p>
 					</div>
 				</div>
 				<div className="parking__data__availability">
-                    {/* IF PARKING SLOT IS FREE: */}
+					{/* IF PARKING SLOT IS FREE: */}
+					{/* <div className="parking__data__availability--free" /> */}
+					{/* IF PARKING SLOT IS OCCUPIED: */}
 					<div className="parking__data__availability--occupied">
-						<p className="cost">Total cost<br/> <strong>1.41€</strong></p>
-					</div>
-				</div>
-				<div className="parking__data__availability">
-                    {/* IF PARKING SLOT IS FREE: */}
-                    {/* <div className="parking__data__availability--free" /> */}
-                    {/* IF PARKING SLOT IS OCCUPIED: */}
-					<div className="parking__data__availability--occupied">
-						<p className="cost">Parking fee<br/> <strong>0.01€</strong></p>
+						<p className="cost">Parking fee<br /> <strong>0.01€</strong></p>
 					</div>
 				</div>
 			</div>
@@ -58,8 +59,7 @@ const ParkingView = () => (
 			</div>
 
 			<div className="parking__data">
-				<div className="parking__data__availability">
-				</div>
+				<div className="parking__data__availability" />
 				<div className="parking__data__availability">
 					<p className="car-type">Black car</p>
 				</div>
@@ -71,4 +71,4 @@ const ParkingView = () => (
 	</div>
 );
 
-export default ParkingView;
+export default withDevice([Device.PARKING_CONTROLLER])(ParkingView);

@@ -1,5 +1,6 @@
 import React, { PropTypes } from 'react';
 import withDevice from '../../services/connectDeviceService';
+import { Device } from '../../common/gateway/gatewayConstants';
 import Chart from '../../components/chart/Chart';
 import './weather-view.scss';
 
@@ -83,4 +84,4 @@ WeatherView.propTypes = {
 	LIGHTING_CONTROLLER: PropTypes.object,
 };
 
-export default withDevice(['WEATHER_CONTROLLER', 'LIGHTING_CONTROLLER'])(WeatherView);
+export default withDevice([Device.WEATHER_CONTROLLER, Device.LIGHTING_CONTROLLER])(WeatherView);

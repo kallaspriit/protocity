@@ -1,6 +1,8 @@
 import base64 from 'base-64';
 import { getMockInfo, requestMock } from '../utils';
 
+const hash = base64.encode(`${process.env.APP_API_USERNAME}:${process.env.APP_API_PASSWORD}`);
+
 const request = (method, url, body) => {
 	// return mock if exists
 	const mock = getMockInfo(url);
@@ -12,9 +14,6 @@ const request = (method, url, body) => {
 	// setup headers
 	const headers = new Headers();
 	headers.append('Content-Type', 'application/json');
-
-	// authorize
-	const hash = base64.encode(`${process.env.APP_API_USERNAME}:${process.env.APP_API_PASSWORD}`);
 	headers.append('Authorization', `Basic ${hash}`);
 
 	const init = {
