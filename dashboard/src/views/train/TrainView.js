@@ -4,37 +4,21 @@ import withDevice from '../../services/connectDeviceService';
 import Chart from '../../components/chart/Chart';
 import './train-view.scss';
 
-const steps = [
-	'pie--step-1',
-	'pie--step-1 pie--filling',
-	'pie--step-2',
-	'pie--step-2 pie--filling',
-	'pie--step-3',
-	'pie--step-3 pie--filling',
-];
+const renderStation = (stationName, previousStationName, nextStationName, isInStation) => {
+	const stationClassName = stationName.split(' ')[0].toLowerCase();
+	let className = `route__station route__station--${stationClassName}`;
 
-const getStationClassName = (stationName, activeStationName) => {
-	let activeStation;
-
-	switch (activeStationName) {
-		case 'Central station':
-			activeStation = 'central';
-			break;
-
-		case 'Police station':
-			activeStation = 'police';
-			break;
-
-		case 'Beach station':
-			activeStation = 'beach';
-			break;
-
-		// no default
+	if (isInStation && stationName === nextStationName) {
+		className += ' route__station--active';
+	} else if (!isInStation && stationName === nextStationName) {
+		className += ' route__station--next';
 	}
 
-	const className = `route__station route__station--${stationName}`;
-
-	return className;
+	return (
+		<div className={className}>
+			<span className="route__station__title">{stationName}</span>
+		</div>
+	);
 };
 
 const TrainView = ({ TRAIN_CONTROLLER: train }) => (
@@ -58,15 +42,26 @@ const TrainView = ({ TRAIN_CONTROLLER: train }) => (
 					<div className="route__track route__track__2" />
 					<div className="route__track route__track__3" />
 
-					<div className={getStationClassName('central')}>
-						<span className="route__station__title">Central station</span>
-					</div>
-					<div className={getStationClassName('beach')}>
-						<span className="route__station__title">Beach</span>
-					</div>
-					<div className={getStationClassName('police')}>
-						<span className="route__station__title">Police</span>
-					</div>
+					{renderStation(
+						'Central station',
+						train.data.previousStationName,
+						train.data.nextStationName,
+						train.data.isInStation,
+					)}
+
+					{renderStation(
+						'Beach station',
+						train.data.previousStationName,
+						train.data.nextStationName,
+						train.data.isInStation,
+					)}
+
+					{renderStation(
+						'Police station',
+						train.data.previousStationName,
+						train.data.nextStationName,
+						train.data.isInStation,
+					)}
 
 					<div className="route__direction route__direction__1" />
 					<div className="route__direction route__direction__2" />
@@ -74,6 +69,7 @@ const TrainView = ({ TRAIN_CONTROLLER: train }) => (
 					<div className="route__direction route__direction__4" />
 					<div className="route__direction route__direction__5" />
 
+					<div className="route__msg"><strong>{train.data.realSpeed}</strong> km/s</div>
 				</div>
 			</div>
 
