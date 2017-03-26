@@ -56,7 +56,7 @@ const TrainView = ({ TRAIN_CONTROLLER: train }) => (
 					title="Battery level"
 					data={train.measurements.chargePercentage}
 					currentValue={train.data.batteryChargePercentage}
-					color={[0, 153, 153]}
+					color={[0, 204, 102]}
 					minutes={1}
 					unit="%"
 					size="large"

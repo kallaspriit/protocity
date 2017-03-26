@@ -48,9 +48,9 @@
 			position: absolute;
 			width: $station-size;
 			height: $station-size;
-			background-color: $brand-color-alt;
+			background-color: #00cc66;
 			border-radius: 50%;
-			border: 1px solid darken($brand-color-alt, 10%);
+			border: 1px solid darken(#00cc66, 20%);
 
 			&__title {
 				position: absolute;
