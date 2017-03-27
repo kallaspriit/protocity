@@ -20,6 +20,7 @@ const createDevice = data => ({
 	series: {},
 	lastMotionDetectedTime: 0,
 	lastActivatedTime: 0,
+	lastDeactivatedTime: 0,
 });
 
 const initialState = {
@@ -308,6 +309,10 @@ export default handleActions({
 
 					case EventType.CONTROLLER_ACTIVATED:
 						devices[deviceName].lastActivatedTime = new Date(time).getTime();
+						break;
+
+					case EventType.CONTROLLER_DEACTIVATED:
+						devices[deviceName].lastDeactivatedTime = new Date(time).getTime();
 						break;
 
 					// no default

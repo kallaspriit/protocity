@@ -34,6 +34,7 @@ export const SubscriptionType = {
 export const EventType = {
 	MOTION_DETECTED: 'MotionDetectedEvent',
 	CONTROLLER_ACTIVATED: 'ControllerActivatedEvent',
+	CONTROLLER_DEACTIVATED: 'ControllerDeactivatedEvent',
 };
 
 

@@ -14,6 +14,7 @@ export default class VideoCarousel extends Component {
 	static propTypes = {
 		lastMotionTime: PropTypes.number,
 		lastActivatedTime: PropTypes.number,
+		lastDeactivatedTime: PropTypes.number,  // eslint-disable-line
 		standbyUrl: PropTypes.string.isRequired, // eslint-disable-line
 		tutorialUrl: PropTypes.string.isRequired, // eslint-disable-line
 		asideUrl: PropTypes.string.isRequired, // eslint-disable-line
@@ -23,31 +24,21 @@ export default class VideoCarousel extends Component {
 		activeVideoType: VideoType.STANDBY,
 	};
 
-	componentDidMount() {
-		/* window.setInterval(() => {
-			let nextVideoType;
-
-			switch (this.state.activeVideoType) {
-				case VideoType.STANDBY:
-					nextVideoType = VideoType.TUTORIAL;
-					break;
-
-				case VideoType.TUTORIAL:
-					nextVideoType = VideoType.ASIDE;
-					break;
-
-				default:
-					nextVideoType = VideoType.STANDBY;
-					break;
+	componentWillReceiveProps = (nextProps) => {
+		if (nextProps.lastDeactivatedTime) {
+			if (this.state.activeVideoType !== VideoType.ASIDE) {
+				this.setState({
+					activeVideoType: VideoType.ASIDE,
+				});
 			}
 
-			this.setState({
-				activeVideoType: nextVideoType,
-			});
-		}, 5000); */
-	}
+			if (nextProps.lastDeactivatedTime > nextProps.lastActivatedTime) {
+				this.startStandbyTimer(TimeFromTutorialToStandbyMs, true);
+			}
 
-	componentWillReceiveProps = (nextProps) => {
+			return;
+		}
+
 		if (this.props.lastActivatedTime !== nextProps.lastActivatedTime) {
 			this.startStandbyTimer(TimeFromActiveToStandbyMs);
 
@@ -57,8 +48,8 @@ export default class VideoCarousel extends Component {
 				});
 			}
 		} else if (this.props.lastMotionTime !== nextProps.lastMotionTime) {
-			this.startStandbyTimer(
-				this.state.activeVideoType === VideoType.ASIDE ? TimeFromActiveToStandbyMs : TimeFromTutorialToStandbyMs,
+			this.startStandbyTimer(this.state.activeVideoType === VideoType.ASIDE
+				? TimeFromActiveToStandbyMs : TimeFromTutorialToStandbyMs,
 			);
 
 			if (this.state.activeVideoType === VideoType.STANDBY) {
@@ -105,8 +96,12 @@ export default class VideoCarousel extends Component {
 
 	isVideoActive = name => name === this.state.activeVideoType;
 
-	startStandbyTimer = (time) => {
+	startStandbyTimer = (time, force = false) => {
 		window.clearTimeout(this.standbyTimerId);
+
+		if (this.props.lastDeactivatedTime !== undefined && !force) {
+			return;
+		}
 
 		this.standbyTimerId = window.setTimeout(() => {
 			this.setState({
