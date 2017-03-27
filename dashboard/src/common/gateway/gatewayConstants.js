@@ -6,6 +6,9 @@ export const Device = {
 	PARKING_CONTROLLER: 'PARKING_CONTROLLER',
 	TRAIN_CONTROLLER: 'TRAIN_CONTROLLER',
 	TRAIN_MOTION_SENSOR: 'TRAIN_MOTION_SENSOR',
+	PARKING_MOTION_SENSOR: 'PARKING_MOTION_SENSOR',
+	WEATHER_MOTION_SENSOR: 'WEATHER_MOTION_SENSOR',
+	TRUCK_MOTION_SENSOR: 'TRUCK_MOTION_SENSOR',
 };
 
 export const DeviceTitle = {
@@ -16,6 +19,9 @@ export const DeviceTitle = {
 	[Device.PARKING_CONTROLLER]: 'Parking controller',
 	[Device.TRAIN_CONTROLLER]: 'Train controller',
 	[Device.TRAIN_MOTION_SENSOR]: 'Motion sensor: train',
+	[Device.PARKING_MOTION_SENSOR]: 'Motion sensor: parking',
+	[Device.WEATHER_MOTION_SENSOR]: 'Motion sensor: weather',
+	[Device.TRUCK_MOTION_SENSOR]: 'Motion sensor: truck',
 };
 
 export const SubscriptionType = {

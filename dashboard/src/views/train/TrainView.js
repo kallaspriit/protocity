@@ -56,7 +56,7 @@ const TrainView = ({ TRAIN_CONTROLLER: train, TRAIN_MOTION_SENSOR: motion }) => 
 			tutorialUrl="/videos/train-introduction.eng.mp4"
 			asideUrl="/videos/train-dashboard.eng.mp4"
 			lastMotionTime={motion.lastMotionDetectedTime}
-			lastActivatedTime={motion.lastActivatedTime}
+			lastActivatedTime={train.lastActivatedTime}
 		/>
 
 		<div className="container">

@@ -1,6 +1,8 @@
 import React, { PropTypes } from 'react';
 import withDevice from '../../services/connectDeviceService';
+import { Device } from '../../common/gateway/gatewayConstants';
 import Chart from '../../components/chart/Chart';
+import VideoCarousel from '../../components/video-carousel/VideoCarousel';
 import './truck-view.scss';
 
 function getBatteryLevelOptions() {
@@ -25,11 +27,15 @@ function getPowerBalanceOptions() {
 	};
 }
 
-const TruckView = ({ TRUCK_CONTROLLER: truck, TRUCK_SOLAR_PANEL: solar }) => (
+const TruckView = ({ TRUCK_CONTROLLER: truck, TRUCK_SOLAR_PANEL: solar, TRUCK_MOTION_SENSOR: motion }) => (
 	<div className="truck-view">
-		<div className="demo-video">
-			<video src="/videos/truck-dashboard.eng.mp4" autoPlay loop />
-		</div>
+		<VideoCarousel
+			standbyUrl="/videos/general.eng.mp4"
+			tutorialUrl="/videos/truck-introduction.eng.mp4"
+			asideUrl="/videos/truck-dashboard.eng.mp4"
+			lastMotionTime={motion.lastMotionDetectedTime}
+			lastActivatedTime={truck.lastActivatedTime}
+		/>
 
 		<div className="container">
 			<div className="header">
@@ -39,7 +45,7 @@ const TruckView = ({ TRUCK_CONTROLLER: truck, TRUCK_SOLAR_PANEL: solar }) => (
 			<div className="chart-container">
 				<Chart
 					title={truck.data.batteryChargePercentage <= 15 ? 'Battery level low' : 'Battery level'}
-					data={truck.measurements.chargePercentage || [[0, truck.data.batteryChargePercentage]]}
+					data={truck.measurements.chargePercentage}
 					currentValue={truck.data.batteryChargePercentage}
 					color={[0, 153, 153]}
 					minutes={1}
@@ -76,7 +82,7 @@ const TruckView = ({ TRUCK_CONTROLLER: truck, TRUCK_SOLAR_PANEL: solar }) => (
 
 				<Chart
 					title={truck.data.gridPowerBalance > 0 ? 'Selling to the grid' : 'Buying from the grid'}
-					data={truck.measurements.gridPowerBalance ? truck.measurements.gridPowerBalance : [0]}
+					data={truck.measurements.gridPowerBalance ? truck.measurements.gridPowerBalance : [[0, 0]]}
 					currentValue={truck.data.gridPowerBalance}
 					color={[0, 204, 102]}
 					negativeColor={[225, 35, 100]}
@@ -93,6 +99,7 @@ const TruckView = ({ TRUCK_CONTROLLER: truck, TRUCK_SOLAR_PANEL: solar }) => (
 TruckView.propTypes = {
 	TRUCK_CONTROLLER: PropTypes.object,
 	TRUCK_SOLAR_PANEL: PropTypes.object,
+	TRUCK_MOTION_SENSOR: PropTypes.object,
 };
 
-export default withDevice(['TRUCK_CONTROLLER', 'TRUCK_SOLAR_PANEL'])(TruckView);
+export default withDevice([Device.TRUCK_CONTROLLER, Device.TRUCK_SOLAR_PANEL, Device.TRUCK_MOTION_SENSOR])(TruckView);
