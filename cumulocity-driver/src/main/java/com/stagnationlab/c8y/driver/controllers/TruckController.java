@@ -10,7 +10,7 @@ import com.stagnationlab.c8y.driver.devices.AbstractAnalogInputSensor;
 import com.stagnationlab.c8y.driver.devices.AbstractMultiDacActuator;
 import com.stagnationlab.c8y.driver.devices.etherio.EtherioAnalogInputSensor;
 import com.stagnationlab.c8y.driver.devices.etherio.EtherioMultiDacActuator;
-import com.stagnationlab.c8y.driver.events.TruckControllerActivatedEvent;
+import com.stagnationlab.c8y.driver.events.ControllerActivatedEvent;
 import com.stagnationlab.c8y.driver.fragments.controllers.Truck;
 import com.stagnationlab.c8y.driver.measurements.BatteryMeasurement;
 import com.stagnationlab.c8y.driver.measurements.ChargePowerMeasurement;
@@ -354,7 +354,7 @@ public class TruckController extends AbstractController {
 
 		log.debug("reporting controller activation ({}ms since last time)", timeSinceLastActivationReport);
 
-		reportEvent(new TruckControllerActivatedEvent());
+		reportEvent(new ControllerActivatedEvent(this.getType()));
 
 		lastActivationReportedTime = Util.now();
 	}

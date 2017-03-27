@@ -10,7 +10,7 @@ import com.cumulocity.rest.representation.operation.OperationRepresentation;
 import com.stagnationlab.c8y.driver.constants.ControllerEvent;
 import com.stagnationlab.c8y.driver.devices.AbstractMultiDacActuator;
 import com.stagnationlab.c8y.driver.devices.etherio.EtherioMultiDacActuator;
-import com.stagnationlab.c8y.driver.events.LightingControllerActivatedEvent;
+import com.stagnationlab.c8y.driver.events.ControllerActivatedEvent;
 import com.stagnationlab.c8y.driver.fragments.controllers.Lighting;
 import com.stagnationlab.c8y.driver.measurements.PowerMeasurement;
 import com.stagnationlab.c8y.driver.operations.SetAllChannelsValue;
@@ -160,7 +160,7 @@ public class LightingController extends AbstractController {
 	private void handleLightsTurnedOn() {
 		log.debug("lights turned on, reporting event");
 
-		reportEvent(new LightingControllerActivatedEvent());
+		reportEvent(new ControllerActivatedEvent(this.getType()));
 	}
 
 	private void handleLightsTurnedOff() {

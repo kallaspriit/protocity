@@ -9,8 +9,8 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 import com.stagnationlab.c8y.driver.Gateway;
-import com.stagnationlab.c8y.driver.events.TrainControllerActivatedEvent;
-import com.stagnationlab.c8y.driver.events.TrainControllerDeactivatedEvent;
+import com.stagnationlab.c8y.driver.events.ControllerActivatedEvent;
+import com.stagnationlab.c8y.driver.events.ControllerDeactivatedEvent;
 import com.stagnationlab.c8y.driver.measurements.BatteryMeasurement;
 import com.stagnationlab.c8y.driver.services.BatteryMonitor;
 import com.stagnationlab.c8y.driver.services.Config;
@@ -507,7 +507,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 		public void start() {
 			log.debug("reporting controller deactivated event");
 
-			reportEvent(new TrainControllerDeactivatedEvent());
+			reportEvent(new ControllerDeactivatedEvent(TrainController.this.getType()));
 		}
 
 		@Override
@@ -859,7 +859,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 			log.debug("reporting controller activated event");
 
-			reportEvent(new TrainControllerActivatedEvent());
+			reportEvent(new ControllerActivatedEvent(this.getType()));
 		} else if (currentOperation instanceof DriveToStopTrainOperation) {
 			String targetStopName =((DriveToStopTrainOperation) currentOperation).getTargetStopName();
 

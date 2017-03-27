@@ -10,7 +10,7 @@ import com.stagnationlab.c8y.driver.devices.AbstractMultiDacActuator;
 import com.stagnationlab.c8y.driver.devices.AbstractTagSensor;
 import com.stagnationlab.c8y.driver.devices.etherio.EtherioMultiDacActuator;
 import com.stagnationlab.c8y.driver.devices.etherio.EtherioTagSensor;
-import com.stagnationlab.c8y.driver.events.ParkingControllerActivatedEvent;
+import com.stagnationlab.c8y.driver.events.ControllerActivatedEvent;
 import com.stagnationlab.c8y.driver.fragments.controllers.Parking;
 import com.stagnationlab.c8y.driver.services.Config;
 import com.stagnationlab.c8y.driver.services.EventBroker;
@@ -171,7 +171,7 @@ public class ParkingController extends AbstractController {
 
 		log.debug("reporting controller activation ({}ms since last time)", timeSinceLastActivationReport);
 
-		reportEvent(new ParkingControllerActivatedEvent());
+		reportEvent(new ControllerActivatedEvent(this.getType()));
 
 		lastActivationReportedTime = Util.now();
 	}
