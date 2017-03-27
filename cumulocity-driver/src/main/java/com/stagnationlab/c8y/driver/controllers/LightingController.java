@@ -107,8 +107,11 @@ public class LightingController extends AbstractController {
 
 	private void handleLightmeterChangeEvent(float detectedLightLevel) {
 		float outputLightLevel = mapDetectedLightToOutputLevel(detectedLightLevel);
+		float outputPower = calculateOutputPower(outputLightLevel);
 		boolean areLightsCurrentlyOn = lastAutomaticLightLevel > 0.0f;
 		boolean forceUpdate = false;
+
+		reportMeasurement(new PowerMeasurement(outputPower, "kW"));
 
 		// avoid flickering the light on and off, require a certain threshold for turning it on
 		if (
@@ -140,8 +143,6 @@ public class LightingController extends AbstractController {
 				handleLightsTurnedOff();
 			}
 
-			float outputPower = calculateOutputPower(outputLightLevel);
-
 			lastAutomaticLightLevel = outputLightLevel;
 
 			state.setDetectedLightLevel(detectedLightLevel);
@@ -149,7 +150,6 @@ public class LightingController extends AbstractController {
 			state.setOutputPower(outputPower);
 
 			updateState(state);
-			reportMeasurement(new PowerMeasurement(outputPower, "kW"));
 		}
 	}
 
