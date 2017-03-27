@@ -48,6 +48,10 @@ function connectToDevice(WrappedComponent) {
 			if (!device.hasMeasurementsSubscription) {
 				this.props.subscribeDevice(this.props.clientId, deviceId, deviceName, SubscriptionType.MEASUREMENTS);
 			}
+
+			if (!device.hasEventsSubscription) {
+				this.props.subscribeDevice(this.props.clientId, deviceId, deviceName, SubscriptionType.EVENTS);
+			}
 		}
 
 		removeDevice = (deviceName) => {
@@ -64,6 +68,10 @@ function connectToDevice(WrappedComponent) {
 
 			if (device.hasMeasurementsSubscription) {
 				this.props.unsubscribeDevice(this.props.clientId, deviceId, deviceName, SubscriptionType.MEASUREMENTS);
+			}
+
+			if (device.hasEventsSubscription) {
+				this.props.unsubscribeDevice(this.props.clientId, deviceId, deviceName, SubscriptionType.EVENTS);
 			}
 		}
 	};

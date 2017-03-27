@@ -2,6 +2,7 @@ import React, { PropTypes } from 'react';
 import { Device } from '../../common/gateway/gatewayConstants';
 import withDevice from '../../services/connectDeviceService';
 import Chart from '../../components/chart/Chart';
+import VideoCarousel from '../../components/video-carousel/VideoCarousel';
 import './train-view.scss';
 
 const renderStation = (stationName, previousStationName, nextStationName, isInStation) => {
@@ -48,11 +49,15 @@ const getBatteryLevelOptions = () => ({
 	},
 });
 
-const TrainView = ({ TRAIN_CONTROLLER: train }) => (
+const TrainView = ({ TRAIN_CONTROLLER: train, TRAIN_MOTION_SENSOR: motion }) => (
 	<div className="train-view">
-		<div className="demo-video">
-			<video src="/videos/train-dashboard.eng.mp4" autoPlay loop />
-		</div>
+		<VideoCarousel
+			standbyUrl="/videos/general.eng.mp4"
+			tutorialUrl="/videos/train-introduction.eng.mp4"
+			asideUrl="/videos/train-dashboard.eng.mp4"
+			lastMotionTime={motion.lastMotionDetectedTime}
+			lastActivatedTime={motion.lastActivatedTime}
+		/>
 
 		<div className="container">
 			<div className="header">
@@ -116,6 +121,7 @@ const TrainView = ({ TRAIN_CONTROLLER: train }) => (
 
 TrainView.propTypes = {
 	TRAIN_CONTROLLER: PropTypes.object,
+	TRAIN_MOTION_SENSOR: PropTypes.object,
 };
 
-export default withDevice([Device.TRAIN_CONTROLLER])(TrainView);
+export default withDevice([Device.TRAIN_CONTROLLER, Device.TRAIN_MOTION_SENSOR])(TrainView);

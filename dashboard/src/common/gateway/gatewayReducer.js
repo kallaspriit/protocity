@@ -3,6 +3,7 @@ import {
 	Action,
 	DeviceTitle,
 	SubscriptionType,
+	EventType,
 	MEASUREMENT_MAX_HISTORY_SIZE,
 	GATEWAY_DRIVER_NAME,
 } from './gatewayConstants';
@@ -11,11 +12,14 @@ const createDevice = data => ({
 	isLoading: false,
 	hasDataSubscription: false,
 	hasMeasurementsSubscription: false,
+	hasEventsSubscription: false,
 	data: {
 		...data,
 	},
 	measurements: {},
 	series: {},
+	lastMotionDetectedTime: 0,
+	lastActivatedTime: 0,
 });
 
 const initialState = {
@@ -264,23 +268,23 @@ export default handleActions({
 			const deviceName = Object.keys(state.deviceIds)[deviceIndex];
 			const deviceClassName = Object.keys(data).find(key => key.includes(GATEWAY_DRIVER_NAME));
 			const deviceData = data[deviceClassName];
+			const time = new Date(data.time).getTime();
 
-			if (!deviceName || !deviceClassName) {
+			if (!deviceName) {
 				return;
 			}
 
-			// rewrite data
-			if (stream.channel.includes(SubscriptionType.DATA)) {
+			if (stream.channel.includes(SubscriptionType.DATA) && deviceClassName) {
 				if (!devices[deviceName]) {
 					return;
 				}
 
+				// rewrite data
 				devices[deviceName].data = {
 					...devices[deviceName].data,
 					...deviceData,
 				};
-			} else if (stream.channel.includes(SubscriptionType.MEASUREMENTS)) {
-				const time = new Date(data.time).getTime();
+			} else if (stream.channel.includes(SubscriptionType.MEASUREMENTS) && deviceClassName) {
 				// loop all keys and push new info to that Array
 				// make sure to keep array size consistent to prevent memory leak
 				Object.entries(deviceData).forEach(([key, info]) => {
@@ -296,6 +300,18 @@ export default handleActions({
 						measurementArray.shift();
 					}
 				});
+			} else if (stream.channel.includes(SubscriptionType.EVENTS)) {
+				switch (data.type) {
+					case EventType.MOTION_DETECTED:
+						devices[deviceName].lastMotionDetectedTime = new Date(time).getTime();
+						break;
+
+					case EventType.CONTROLLER_ACTIVATED:
+						devices[deviceName].lastActivatedTime = new Date(time).getTime();
+						break;
+
+					// no default
+				}
 			}
 		});
 
@@ -340,6 +356,10 @@ export default handleActions({
 
 			case SubscriptionType.MEASUREMENTS:
 				device.hasMeasurementsSubscription = isSuccessful;
+				break;
+
+			case SubscriptionType.EVENTS:
+				device.hasEventsSubscription = isSuccessful;
 				break;
 
 			default:
@@ -388,6 +408,10 @@ export default handleActions({
 
 			case SubscriptionType.MEASUREMENTS:
 				device.hasMeasurementsSubscription = !isSuccessful;
+				break;
+
+			case SubscriptionType.EVENTS:
+				device.hasEventsSubscription = !isSuccessful;
 				break;
 
 			default:

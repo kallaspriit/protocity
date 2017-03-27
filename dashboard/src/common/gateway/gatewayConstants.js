@@ -5,6 +5,7 @@ export const Device = {
 	TRUCK_SOLAR_PANEL: 'TRUCK_SOLAR_PANEL',
 	PARKING_CONTROLLER: 'PARKING_CONTROLLER',
 	TRAIN_CONTROLLER: 'TRAIN_CONTROLLER',
+	TRAIN_MOTION_SENSOR: 'TRAIN_MOTION_SENSOR',
 };
 
 export const DeviceTitle = {
@@ -14,6 +15,7 @@ export const DeviceTitle = {
 	[Device.TRUCK_SOLAR_PANEL]: 'Truck solar panel',
 	[Device.PARKING_CONTROLLER]: 'Parking controller',
 	[Device.TRAIN_CONTROLLER]: 'Train controller',
+	[Device.TRAIN_MOTION_SENSOR]: 'Motion sensor: train',
 };
 
 export const SubscriptionType = {
@@ -21,6 +23,13 @@ export const SubscriptionType = {
 	MEASUREMENTS: 'measurements',
 	EVENTS: 'events',
 };
+
+
+export const EventType = {
+	MOTION_DETECTED: 'MotionDetectedEvent',
+	CONTROLLER_ACTIVATED: 'ControllerActivatedEvent',
+};
+
 
 export const Action = {
 	CREATE_SESSION: 'CREATE_SESSION',
