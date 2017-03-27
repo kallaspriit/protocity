@@ -2,19 +2,23 @@ import React, { PropTypes } from 'react';
 import withDevice from '../../services/connectDeviceService';
 import { Device } from '../../common/gateway/gatewayConstants';
 import Chart from '../../components/chart/Chart';
+import VideoCarousel from '../../components/video-carousel/VideoCarousel';
 import './weather-view.scss';
 
-export const WeatherView = ({ WEATHER_CONTROLLER: weather, LIGHTING_CONTROLLER: lighting }) => (
+export const WeatherView = ({
+	WEATHER_CONTROLLER: weather,
+	LIGHTING_CONTROLLER: lighting,
+	WEATHER_MOTION_SENSOR: motion,
+}) => (
 	<div className="weather-view">
 
-		<div className="demo-video demo-video--full demo-video--full-exit">
-			<video src="/videos/weather-introduction.eng.mp4" autoPlay loop />
-		</div>
-		<div className="demo-video demo-video--overlay demo-video--overlay-exit" />
-
-		<div className="demo-video">
-			<video src="/videos/weather-dashboard.eng.mp4" autoPlay loop />
-		</div>
+		<VideoCarousel
+			standbyUrl="/videos/general.eng.mp4"
+			tutorialUrl="/videos/weather-introduction.eng.mp4"
+			asideUrl="/videos/weather-dashboard.eng.mp4"
+			lastMotionTime={motion.lastMotionDetectedTime}
+			lastActivatedTime={weather.lastActivatedTime}
+		/>
 		<div className="container">
 			<div className="header">
 				<h1 className="header__title">Weather station</h1>
@@ -88,6 +92,11 @@ export const WeatherView = ({ WEATHER_CONTROLLER: weather, LIGHTING_CONTROLLER: 
 WeatherView.propTypes = {
 	WEATHER_CONTROLLER: PropTypes.object,
 	LIGHTING_CONTROLLER: PropTypes.object,
+	WEATHER_MOTION_SENSOR: PropTypes.object,
 };
 
-export default withDevice([Device.WEATHER_CONTROLLER, Device.LIGHTING_CONTROLLER])(WeatherView);
+export default withDevice([
+	Device.WEATHER_CONTROLLER,
+	Device.LIGHTING_CONTROLLER,
+	Device.WEATHER_MOTION_SENSOR,
+])(WeatherView);

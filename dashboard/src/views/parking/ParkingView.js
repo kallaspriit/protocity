@@ -3,19 +3,25 @@ import ReactInterval from 'react-interval';
 import classnames from 'classnames';
 import withDevice from '../../services/connectDeviceService';
 import { Device } from '../../common/gateway/gatewayConstants';
+import VideoCarousel from '../../components/video-carousel/VideoCarousel';
 import { formatCurrency } from '../../utils';
 import './parking-view.scss';
 
 class ParkingView extends Component {
 	static propTypes = {
 		PARKING_CONTROLLER: PropTypes.object,
+		PARKING_MOTION_SENSOR: PropTypes.object,
 	};
 
 	render = () => (
 		<div className="parking-view">
-			<div className="demo-video">
-				<video src="/videos/parking-dashboard.eng.mp4" autoPlay loop />
-			</div>
+			<VideoCarousel
+				standbyUrl="/videos/general.eng.mp4"
+				tutorialUrl="/videos/parking-introduction.eng.mp4"
+				asideUrl="/videos/parking-dashboard.eng.mp4"
+				lastMotionTime={this.props.PARKING_MOTION_SENSOR.lastMotionDetectedTime}
+				lastActivatedTime={this.props.PARKING_CONTROLLER.lastActivatedTime}
+			/>
 
 			<div className="container">
 				<div className="header">
@@ -158,4 +164,4 @@ class ParkingView extends Component {
 		&& this.props.PARKING_CONTROLLER.data.slots[slotNumber] !== undefined;
 }
 
-export default withDevice([Device.PARKING_CONTROLLER])(ParkingView);
+export default withDevice([Device.PARKING_CONTROLLER, Device.PARKING_MOTION_SENSOR])(ParkingView);
