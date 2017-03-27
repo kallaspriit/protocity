@@ -160,7 +160,7 @@ public class LightingController extends AbstractController {
 	private void handleLightsTurnedOn() {
 		log.debug("lights turned on, reporting event");
 
-		reportEvent(new ControllerActivatedEvent(this.getType()));
+		reportEvent(new ControllerActivatedEvent());
 	}
 
 	private void handleLightsTurnedOff() {

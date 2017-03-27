@@ -6,9 +6,9 @@ import com.cumulocity.rest.representation.event.EventRepresentation;
 
 public class ControllerDeactivatedEvent extends EventRepresentation {
 
-	public ControllerDeactivatedEvent(String controllerName) {
+	public ControllerDeactivatedEvent() {
 		setType("ControllerDeactivatedEvent");
-		setText(controllerName);
+		setText("Controller was deactivated");
 		setTime(new Date());
 	}
 }

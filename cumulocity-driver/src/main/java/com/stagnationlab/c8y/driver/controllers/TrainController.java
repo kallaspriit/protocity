@@ -507,7 +507,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 		public void start() {
 			log.debug("reporting controller deactivated event");
 
-			reportEvent(new ControllerDeactivatedEvent(TrainController.this.getType()));
+			reportEvent(new ControllerDeactivatedEvent());
 		}
 
 		@Override
@@ -859,7 +859,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 			log.debug("reporting controller activated event");
 
-			reportEvent(new ControllerActivatedEvent(this.getType()));
+			reportEvent(new ControllerActivatedEvent());
 		} else if (currentOperation instanceof DriveToStopTrainOperation) {
 			String targetStopName =((DriveToStopTrainOperation) currentOperation).getTargetStopName();
 

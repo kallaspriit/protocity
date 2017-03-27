@@ -6,9 +6,9 @@ import com.cumulocity.rest.representation.event.EventRepresentation;
 
 public class ControllerActivatedEvent extends EventRepresentation {
 
-	public ControllerActivatedEvent(String controllerName) {
+	public ControllerActivatedEvent() {
 		setType("ControllerActivatedEvent");
-		setText(controllerName);
+		setText("Controller was activated");
 		setTime(new Date());
 	}
 }

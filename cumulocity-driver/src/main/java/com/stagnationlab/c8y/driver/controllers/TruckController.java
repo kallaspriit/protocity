@@ -354,7 +354,7 @@ public class TruckController extends AbstractController {
 
 		log.debug("reporting controller activation ({}ms since last time)", timeSinceLastActivationReport);
 
-		reportEvent(new ControllerActivatedEvent(this.getType()));
+		reportEvent(new ControllerActivatedEvent());
 
 		lastActivationReportedTime = Util.now();
 	}
