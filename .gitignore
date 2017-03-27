@@ -21,3 +21,4 @@
 /experiments/NodeStressTest/node_modules
 /cumulocity-agent/debug.log.txt
 /scripts/node_modules
+/controller-firmware/platformio.pyc
