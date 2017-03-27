@@ -1,10 +1,10 @@
 import React, { PropTypes, Component } from 'react';
+import ReactInterval from 'react-interval';
+import classnames from 'classnames';
 import withDevice from '../../services/connectDeviceService';
 import { Device } from '../../common/gateway/gatewayConstants';
-import { formatCurrency, minutesAgo } from '../../utils';
+import { formatCurrency } from '../../utils';
 import './parking-view.scss';
-
-const ParkingDoneFeedbackMinutes = 1;
 
 class ParkingView extends Component {
 	static propTypes = {
@@ -60,20 +60,22 @@ class ParkingView extends Component {
 
 				<div className="parking__data">
 					<div className="parking__data__availability">
-						{this.getCarName(0)}
+						{this.renderCarName(0)}
 					</div>
 					<div className="parking__data__availability">
 						<p className="car-type">
-							{this.getCarName(1)}
+							{this.renderCarName(1)}
 						</p>
 					</div>
 					<div className="parking__data__availability car-type">
 						<p className="car-type">
-							{this.getCarName(2)}
+							{this.renderCarName(2)}
 						</p>
 					</div>
 				</div>
 			</div>
+
+			<ReactInterval timeout={1000} enabled callback={this.handleIntervalTick} />
 		</div>
 	);
 
@@ -109,36 +111,50 @@ class ParkingView extends Component {
 
 		if (slot.isOccupied) {
 			return (
-				<p className="cost">
+				<p className="parking__cost">
 					Parking fee<br />
-					<strong>{formatCurrency(slot.cost)}</strong>
-				</p>
-			);
-		} else if (!slot.isOccupied && slot.freedTimestamp > minutesAgo(ParkingDoneFeedbackMinutes)) {
-			return (
-				<p className="cost">
-					Total cost<br />
 					<strong>{formatCurrency(slot.cost)}</strong>
 				</p>
 			);
 		}
 
-		return null;
+		const className = classnames({
+			'parking__cost': true,
+			'parking__info--expired': this.isSlotInfoExpired(slot.freedTimestamp),
+		});
+
+		return (
+			<p className={className}>
+				Total cost<br />
+				<strong>{formatCurrency(slot.cost)}</strong>
+			</p>
+		);
 	}
 
-	getCarName = (slotNumber) => {
+	renderCarName = (slotNumber) => {
 		if (!this.hasSlotInfo(slotNumber)) {
 			return '';
 		}
 
 		const slot = this.props.PARKING_CONTROLLER.data.slots[slotNumber];
 
-		if (slot.freedTimestamp > minutesAgo(ParkingDoneFeedbackMinutes)) {
-			return '';
-		}
+		const className = classnames({
+			'parking__car-name': true,
+			'parking__info--expired': !slot.isOccupied && this.isSlotInfoExpired(slot.freedTimestamp),
+		});
 
-		return slot.occupantName.toLowerCase();
+		return (
+			<span className={className}>{slot.occupantName.toLowerCase()}</span>
+		);
 	}
+
+	handleIntervalTick = () => {
+		// periodically force update to evaluate which information should be displayed
+		this.forceUpdate();
+	}
+
+	// how long before information such as total cost and car name is removed
+	isSlotInfoExpired = freedTimestamp => freedTimestamp < Date.now() - (3 * 1000);
 
 	hasSlotInfo = slotNumber =>
 		this.props.PARKING_CONTROLLER.data.slots

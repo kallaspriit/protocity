@@ -63,6 +63,21 @@
 			}
 		}
 
+		// fade in the cost and car name
+		&__cost,
+		&__car-name {
+			animation: fadeIn 0.5s normal forwards ease-in-out;
+		}
+
+		// car name starts hidden, fades in after a short while
+		&__car-name {
+			opacity: 0;
+			animation-delay: 0.5s;
+		}
+
+		&__info--expired {
+			animation: fadeOut 1s normal forwards ease-in-out;
+		}
 
 		.parking__area {
 			display: flex;
@@ -114,5 +129,15 @@
 		width: 300px;
 		margin-top: -30px;
 		padding: 0 20px;
+	}
+
+	@keyframes fadeIn {
+		0% { opacity: 0; }
+		100% { opacity: 1; }
+	}
+
+	@keyframes fadeOut {
+		0% { opacity: 1; }
+		100% { opacity: 0; }
 	}
 }

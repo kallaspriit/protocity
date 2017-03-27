@@ -24,7 +24,6 @@ void TLC5940Capability::update(int deltaUs) {
 		return;
 	}
 
-	/*
 	timeSinceLastRefreshUs += deltaUs;
 
 	// periodically refresh the output values
@@ -35,7 +34,6 @@ void TLC5940Capability::update(int deltaUs) {
 
 		timeSinceLastRefreshUs = 0;
 	}
-	*/
 }
 
 CommandManager::Command::Response TLC5940Capability::handleCommand(CommandManager::Command *command) {

@@ -34,7 +34,7 @@ private:
 	void sendData();
 
 	static const int CHANNEL_COUNT = 16;
-	// static const int REFRESH_INTERVAL_US = 1000000;
+	static const int REFRESH_INTERVAL_US = 1 * 1000 * 1000;
 
 	const PinName mosiPin;
 	const PinName sclkPin;
@@ -46,7 +46,7 @@ private:
 	TLC5940 *tlc5940 = NULL;
 	bool isEnabled = false;
 	std::string activeTagName = "";
-	// int timeSinceLastRefreshUs = 0;
+	int timeSinceLastRefreshUs = 0;
 
 	unsigned short *values;
 };
