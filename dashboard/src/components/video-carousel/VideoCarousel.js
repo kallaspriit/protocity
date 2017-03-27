@@ -8,7 +8,7 @@ const VideoType = {
 };
 
 const TimeFromTutorialToStandbyMs = 1000 * 10;
-const TimeFromActiveToStandbyMs = 1000 * 20;
+const TimeFromActiveToStandbyMs = 1000 * 60;
 
 export default class VideoCarousel extends Component {
 	static propTypes = {
