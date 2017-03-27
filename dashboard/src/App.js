@@ -2,6 +2,7 @@ import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { Route, withRouter } from 'react-router-dom';
 
+import { GATEWAY_DRIVER_NAME } from './common/gateway/gatewayConstants';
 import * as gatewayActions from './common/gateway/gatewayActions';
 
 import HomeView from './views/home/HomeView';
@@ -25,12 +26,11 @@ export class App extends Component {
 
 	componentDidMount = () => {
 		this.props.createSession();
-		this.props.getInventory('com_stagnationlab_c8y_driver_fragments_Gateway');
+		this.props.getInventory(`${GATEWAY_DRIVER_NAME}_fragments_Gateway`);
 	}
 
 	componentDidUpdate = () => {
 		if (!this.props.isPolling && this.props.clientId) {
-			console.info('start polling', this.props.clientId); // eslint-disable-line
 			this.props.pollDeviceData(this.props.clientId);
 		}
 	}

@@ -16,15 +16,6 @@ export const DeviceTitle = {
 	[Device.TRAIN_CONTROLLER]: 'Train controller',
 };
 
-export const DeviceClass = {
-	[Device.WEATHER_CONTROLLER]: 'com_stagnationlab_c8y_driver_fragments_controllers_Weather',
-	[Device.LIGHTING_CONTROLLER]: 'com_stagnationlab_c8y_driver_fragments_controllers_Lighting',
-	[Device.TRUCK_CONTROLLER]: 'com_stagnationlab_c8y_driver_fragments_controllers_Truck',
-	[Device.TRUCK_SOLAR_PANEL]: 'com_stagnationlab_c8y_driver_fragments_sensors_AnalogInputSensor',
-	[Device.PARKING_CONTROLLER]: 'com_stagnationlab_c8y_driver_fragments_controllers_Parking',
-	[Device.TRAIN_CONTROLLER]: 'com_stagnationlab_c8y_driver_fragments_controllers_Train',
-};
-
 export const SubscriptionType = {
 	DATA: 'managedobjects',
 	MEASUREMENTS: 'measurements',
@@ -40,3 +31,7 @@ export const Action = {
 	SUBSCRIBE_DEVICE: 'SUBSCRIBE_DEVICE',
 	UNSUBSCRIBE_DEVICE: 'UNSUBSCRIBE_DEVICE',
 };
+
+export const GATEWAY_DRIVER_NAME = 'com_stagnationlab_c8y_driver';
+export const MEASUREMENT_FROM_MINUTES_AGO = 15;
+export const MEASUREMENT_MAX_HISTORY_SIZE = 100;

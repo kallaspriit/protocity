@@ -1,5 +1,11 @@
 import { handleActions } from 'redux-actions';
-import { Action, DeviceTitle, DeviceClass, SubscriptionType } from './gatewayConstants';
+import {
+	Action,
+	DeviceTitle,
+	SubscriptionType,
+	MEASUREMENT_MAX_HISTORY_SIZE,
+	GATEWAY_DRIVER_NAME,
+} from './gatewayConstants';
 
 const createDevice = data => ({
 	isLoading: false,
@@ -144,7 +150,7 @@ export default handleActions({
 		};
 
 		if (payload) {
-			const deviceClassName = DeviceClass[meta.name];
+			const deviceClassName = Object.keys(payload).find(key => key.includes(GATEWAY_DRIVER_NAME));
 
 			device.data = {
 				...device.data,
@@ -208,8 +214,10 @@ export default handleActions({
 
 				if (seriesName) {
 					device.measurements[seriesName].push([new Date(time).getTime(), series.max]);
-				} else {
-					// console.log('seriesName', index, device.series, payload.values)
+
+					if (device.measurements[seriesName].length > MEASUREMENT_MAX_HISTORY_SIZE) {
+						device.measurements[seriesName].shift();
+					}
 				}
 			});
 		});
@@ -231,7 +239,6 @@ export default handleActions({
 			payload,
 		} = action;
 
-
 		if (!Array.isArray(payload) || isLoading) {
 			return {
 				...state,
@@ -244,18 +251,54 @@ export default handleActions({
 			...state.devices,
 		};
 
-		Object.entries(DeviceClass).forEach(([deviceKey, deviceClass]) => {
-			payload.forEach((stream) => {
-				if (stream.channel.includes(SubscriptionType.DATA)) {
-					devices[deviceKey].data = {
-						...devices[deviceKey].data,
-						...stream.data.data[deviceClass],
-					};
-				} else if (stream.channel.includes(SubscriptionType.MEASUREMENTS)) {
-					/* todo: measurements implementation here */
+		payload.forEach((stream) => {
+			if (!stream.data) {
+				return;
+			}
+
+			const data = stream.data.data;
+
+			// get device name and class name
+			const deviceId = data.source ? data.source.id : data.id;
+			const deviceIndex = Object.values(state.deviceIds).findIndex(id => id === deviceId);
+			const deviceName = Object.keys(state.deviceIds)[deviceIndex];
+			const deviceClassName = Object.keys(data).find(key => key.includes(GATEWAY_DRIVER_NAME));
+			const deviceData = data[deviceClassName];
+
+			if (!deviceName || !deviceClassName) {
+				return;
+			}
+
+			// rewrite data
+			if (stream.channel.includes(SubscriptionType.DATA)) {
+				if (!devices[deviceName]) {
+					return;
 				}
-			});
+
+				devices[deviceName].data = {
+					...devices[deviceName].data,
+					...deviceData,
+				};
+			} else if (stream.channel.includes(SubscriptionType.MEASUREMENTS)) {
+				const time = new Date(data.time).getTime();
+				// loop all keys and push new info to that Array
+				// make sure to keep array size consistent to prevent memory leak
+				Object.entries(deviceData).forEach(([key, info]) => {
+					const measurementArray = devices[deviceName].measurements[key];
+					if (!measurementArray) {
+						// initial data has not been loaded
+						return;
+					}
+
+					measurementArray.push([time, info.value]);
+
+					if (measurementArray.length > MEASUREMENT_MAX_HISTORY_SIZE) {
+						measurementArray.shift();
+					}
+				});
+			}
 		});
+
 
 		return {
 			...state,
@@ -339,6 +382,10 @@ export default handleActions({
 		};
 
 		switch (meta.subscriptionType) {
+			case SubscriptionType.DATA:
+				device.hasDataSubscription = !isSuccessful;
+				break;
+
 			case SubscriptionType.MEASUREMENTS:
 				device.hasMeasurementsSubscription = !isSuccessful;
 				break;

@@ -1,13 +1,7 @@
 import React, { PureComponent, PropTypes } from 'react';
 import ReactHighCharts from 'react-highcharts';
 import roundTo from 'round-to';
-
-const getXAxisMin = (minutes, minTime) => {
-	const now = new Date().getTime() - (60000 * minutes);
-	const past = new Date(now).getTime();
-
-	return typeof minTime === 'number' ? Math.max(past, minTime) : past;
-};
+import { minutesAgo } from '../../utils';
 
 class Chart extends PureComponent {
 
@@ -70,7 +64,7 @@ class Chart extends PureComponent {
 
 				{this.props.icon && (
 					<div className={`data__chart__icon data__chart__icon--${this.props.icon}`} />
-                )}
+				)}
 			</div>
 
 			{this.props.children && (
@@ -85,18 +79,26 @@ class Chart extends PureComponent {
 		const chart = this.chartRef.getChart();
 		const series = chart.series[0];
 
-		// set new data
-		if (Array.isArray(props.data) && JSON.stringify(props.data) !== JSON.stringify(this.props.data)) {
-			series.setData(props.data, true, true);
-			chart.xAxis[0].setExtremes(
-				getXAxisMin(props.minutes, props.data[0][0]), props.data[props.data.length - 1][0],
-			);
-		}
+		if (props.data) {
+			const itemsToAdd = props.data.filter(item => item[0] > this.lastPointDateTime);
 
-		// add new and remove old point
-		if (props.currentValue !== this.props.currentValue && !Number.isNaN(props.currentValue)) {
-			series.addPoint([new Date().getTime(), props.currentValue], true, false);
-			chart.xAxis[0].setExtremes(getXAxisMin(props.minutes), new Date().getTime());
+			if (itemsToAdd.length === 0) {
+				return;
+			}
+
+			const lastItemToAdd = itemsToAdd[itemsToAdd.length - 1];
+			const hasPrevData = series.data.length > 0;
+
+			if (hasPrevData) {
+				itemsToAdd.forEach((item) => {
+					series.addPoint(item, true, false);
+				});
+			} else {
+				series.setData(itemsToAdd, true, false);
+			}
+
+			chart.xAxis[0].setExtremes(minutesAgo(props.minutes).getTime(), lastItemToAdd[0]);
+			this.lastPointDateTime = lastItemToAdd[0];
 		}
 	}
 
@@ -186,6 +188,7 @@ class Chart extends PureComponent {
 	}
 
 	chartRef = null;
+	lastPointDateTime = 0;
 }
 
 export default Chart;

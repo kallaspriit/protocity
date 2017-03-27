@@ -45,11 +45,9 @@ function connectToDevice(WrappedComponent) {
 				this.props.subscribeDevice(this.props.clientId, deviceId, deviceName, SubscriptionType.DATA);
 			}
 
-			/*
 			if (!device.hasMeasurementsSubscription) {
 				this.props.subscribeDevice(this.props.clientId, deviceId, deviceName, SubscriptionType.MEASUREMENTS);
 			}
-			*/
 		}
 
 		removeDevice = (deviceName) => {

@@ -1,5 +1,5 @@
 import { createAction } from 'redux-actions';
-import { Action } from './gatewayConstants';
+import { Action, MEASUREMENT_FROM_MINUTES_AGO } from './gatewayConstants';
 import * as deviceApi from '../../api/deviceApi';
 import { minutesAgo } from '../../utils';
 
@@ -32,7 +32,7 @@ export const getDeviceData = createAction(
 export const getDeviceMeasurements = createAction(
 	Action.GET_DEVICE_MEASUREMENTS,
 	(deviceId) => {
-		const from = minutesAgo(15);
+		const from = minutesAgo(MEASUREMENT_FROM_MINUTES_AGO);
 		const to = new Date();
 
 		return deviceApi.getDeviceMeasurements(deviceId, from.toISOString(), to.toISOString());
