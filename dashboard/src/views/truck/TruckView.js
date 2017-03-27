@@ -3,6 +3,15 @@ import withDevice from '../../services/connectDeviceService';
 import Chart from '../../components/chart/Chart';
 import './truck-view.scss';
 
+function getBatteryLevelOptions() {
+	return {
+		yAxis: {
+			min: 0,
+			max: 100,
+		},
+	};
+}
+
 function getPowerBalanceOptions() {
 	return {
 		yAxis: {
@@ -41,6 +50,7 @@ const TruckView = ({ TRUCK_CONTROLLER: truck, TRUCK_SOLAR_PANEL: solar }) => (
 					size="large"
 					className={truck.data.batteryChargePercentage <= 15 ? 'data__warning' : ''}
 					icon="not-charging"
+					options={getBatteryLevelOptions()}
 				/>
 				<Chart
 					title="Charging power"

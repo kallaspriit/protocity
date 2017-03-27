@@ -41,6 +41,13 @@ const getInfo = (isObstacleDetected, realSpeed, stationName) => {
 	);
 };
 
+const getBatteryLevelOptions = () => ({
+	yAxis: {
+		min: 0,
+		max: 100,
+	},
+});
+
 const TrainView = ({ TRAIN_CONTROLLER: train }) => (
 	<div className="train-view">
 		<div className="demo-video">
@@ -103,6 +110,7 @@ const TrainView = ({ TRAIN_CONTROLLER: train }) => (
 					unit="%"
 					size="large"
 					icon={train.data.isCharging ? 'charging' : 'not-charging'}
+					options={getBatteryLevelOptions()}
 				/>
 			</div>
 		</div>
