@@ -46,7 +46,6 @@ h2,
 	width: 50%;
 }
 
-
 .demo-video {
 	position: absolute;
 	top: 0;
@@ -66,6 +65,33 @@ h2,
 		background: no-repeat 50%;
 		background-size: contain;
 	}
+
+	&--full {
+		left: 0;
+		z-index: 50;
+		opacity: 1;
+		
+		&-exit {
+			animation: fade 2s forwards;
+			animation-delay: 1s;
+		}
+	}
+
+	&--overlay {
+		left: 0;
+		opacity: 1;
+		z-index: 40;
+
+		&-exit {
+			animation: fade 2s forwards;
+			animation-delay: 2s;
+			background-color: #fff;
+		}
+	}
+}
+
+@keyframes fade {
+	to { opacity: 0; }
 }
 
 .chart-container {
@@ -143,23 +169,16 @@ h2,
 		top: 77px;
 		left: 50%;
 		transform: translateX(-50%);
-		z-index: 10000;
+		z-index: 30;
 
 		&--charging {
 			background: url("./icons/charging.svg") no-repeat;
 			opacity: 0.9;
-			animation: pulsate 1s ease-out infinite;
 		}
 
 		&--not-charging {
 			opacity: 0.3;
 			background: url("./icons/not-charging.svg") no-repeat;
 		}
-	}
-
-	@keyframes pulsate {
-	    0% { opacity: 1.0; }
-	    50% { opacity: 0.5; }
-	    0% { opacity: 1.0; }
 	}
 }
