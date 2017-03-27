@@ -51,10 +51,7 @@ const getBatteryLevelOptions = () => ({
 const TrainView = ({ TRAIN_CONTROLLER: train }) => (
 	<div className="train-view">
 		<div className="demo-video">
-			<div
-				className="demo-video__placeholder"
-				style={{ backgroundImage: 'url(/videos/train-dashboard.eng.png)' }}
-			/>
+			<video src="/videos/train-dashboard.eng.mp4" autoPlay loop />
 		</div>
 
 		<div className="container">

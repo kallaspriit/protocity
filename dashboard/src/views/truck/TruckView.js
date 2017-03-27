@@ -28,10 +28,7 @@ function getPowerBalanceOptions() {
 const TruckView = ({ TRUCK_CONTROLLER: truck, TRUCK_SOLAR_PANEL: solar }) => (
 	<div className="truck-view">
 		<div className="demo-video">
-			<div
-				className="demo-video__placeholder"
-				style={{ backgroundImage: 'url(/videos/truck-dashboard.eng.png)' }}
-			/>
+			<video src="/videos/truck-dashboard.eng.mp4" autoPlay loop />
 		</div>
 
 		<div className="container">

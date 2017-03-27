@@ -14,10 +14,7 @@ class ParkingView extends Component {
 	render = () => (
 		<div className="parking-view">
 			<div className="demo-video">
-				<div
-					className="demo-video__placeholder"
-					style={{ backgroundImage: 'url(/videos/parking-dashboard.eng.png)' }}
-				/>
+				<video src="/videos/parking-dashboard.eng.mp4" autoPlay loop />
 			</div>
 
 			<div className="container">
