@@ -76,7 +76,7 @@ const TruckView = ({ TRUCK_CONTROLLER: truck, TRUCK_SOLAR_PANEL: solar }) => (
 
 				<Chart
 					title={truck.data.gridPowerBalance > 0 ? 'Selling to the grid' : 'Buying from the grid'}
-					data={truck.measurements.gridPowerBalance}
+					data={truck.measurements.gridPowerBalance ? truck.measurements.gridPowerBalance : [0]}
 					currentValue={truck.data.gridPowerBalance}
 					color={[0, 204, 102]}
 					negativeColor={[225, 35, 100]}
