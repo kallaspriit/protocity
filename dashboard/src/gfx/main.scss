@@ -148,11 +148,18 @@ h2,
 		&--charging {
 			background: url("./icons/charging.svg") no-repeat;
 			opacity: 0.9;
+			animation: pulsate 1s ease-out infinite;
 		}
 
 		&--not-charging {
 			opacity: 0.3;
 			background: url("./icons/not-charging.svg") no-repeat;
 		}
+	}
+
+	@keyframes pulsate {
+	    0% { opacity: 1.0; }
+	    50% { opacity: 0.5; }
+	    0% { opacity: 1.0; }
 	}
 }

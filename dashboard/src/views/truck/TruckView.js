@@ -49,7 +49,7 @@ const TruckView = ({ TRUCK_CONTROLLER: truck, TRUCK_SOLAR_PANEL: solar }) => (
 					unit="%"
 					size="large"
 					className={truck.data.batteryChargePercentage <= 15 ? 'data__warning' : ''}
-					icon="not-charging"
+					icon={truck.data.isCharging ? 'charging' : 'not-charging'}
 					options={getBatteryLevelOptions()}
 				/>
 				<Chart
