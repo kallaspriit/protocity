@@ -57,7 +57,9 @@ export default class VideoCarousel extends Component {
 				});
 			}
 		} else if (this.props.lastMotionTime !== nextProps.lastMotionTime) {
-			this.startStandbyTimer(TimeFromTutorialToStandbyMs);
+			this.startStandbyTimer(
+				this.state.activeVideoType === VideoType.ASIDE ? TimeFromActiveToStandbyMs : TimeFromTutorialToStandbyMs,
+			);
 
 			if (this.state.activeVideoType === VideoType.STANDBY) {
 				this.setState({

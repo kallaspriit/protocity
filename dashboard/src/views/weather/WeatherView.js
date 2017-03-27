@@ -17,7 +17,7 @@ export const WeatherView = ({
 			tutorialUrl="/videos/weather-introduction.eng.mp4"
 			asideUrl="/videos/weather-dashboard.eng.mp4"
 			lastMotionTime={motion.lastMotionDetectedTime}
-			lastActivatedTime={weather.lastActivatedTime}
+			lastActivatedTime={lighting.lastActivatedTime}
 		/>
 		<div className="container">
 			<div className="header">
