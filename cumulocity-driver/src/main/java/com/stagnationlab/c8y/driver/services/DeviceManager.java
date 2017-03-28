@@ -38,6 +38,12 @@ public class DeviceManager {
             device.set(hardware);
         }
 
+	    for (OperationExecutor operation : supportedOperations) {
+		    log.debug("registering supported operation type {} for {}", operation.supportedOperationType(), id);
+
+		    OpsUtil.addSupportedOperation(device, operation.supportedOperationType());
+	    }
+
 	    DeviceManagedObject deviceManagedObject = new DeviceManagedObject(platform);
 	    ID externalId = DeviceManager.buildExternalId(parent, device, id);
 	    GId globalId = deviceManagedObject.tryGetBinding(externalId);
@@ -52,12 +58,7 @@ public class DeviceManager {
 	    	return existingDevice;
 	    }
 
-	    for (OperationExecutor operation : supportedOperations) {
-		    log.debug("registering supported operation type {} for {}", operation.supportedOperationType(), id);
-
-		    OpsUtil.addSupportedOperation(device, operation.supportedOperationType());
-	    }
-
+	    // add fragments to a new device
         for (Object fragment : fragments) {
             if (fragment == null) {
                 continue;
