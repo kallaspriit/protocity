@@ -7,6 +7,8 @@ const VideoType = {
 	ASIDE: 'aside',
 };
 
+const SyncedVideos = [VideoType.STANDBY];
+
 const TimeFromTutorialToStandbyMs = 1000 * 10;
 const TimeFromActiveToStandbyMs = 1000 * 60;
 
@@ -52,8 +54,10 @@ export default class VideoCarousel extends Component {
 
 	componentWillUpdate = (nextProps, nextState) => {
 		if (this.state.activeVideoType !== nextState.activeVideoType) {
-			this.videoRefs[this.state.activeVideoType].pause();
-			this.videoRefs[nextState.activeVideoType].load();
+			if (SyncedVideos.indexOf(this.state.activeVideoType) === -1) {
+				this.videoRefs[this.state.activeVideoType].pause();
+				this.videoRefs[nextState.activeVideoType].load();
+			}
 		}
 	}
 
@@ -79,7 +83,13 @@ export default class VideoCarousel extends Component {
 		return (
 			<div className={className}>
 				<div className="video-carousel__content__label">{name}</div>
-				<video src={this.props[`${name}Url`]} autoPlay loop ref={(ref) => { this.videoRefs[name] = ref; }} />
+				<video
+					src={this.props[`${name}Url`]}
+					autoPlay
+					loop
+					ref={(ref) => { this.videoRefs[name] = ref; }}
+					onLoadedData={SyncedVideos.indexOf(name) !== -1 && this.syncVideo}
+				/>
 			</div>
 		);
 	}
@@ -93,6 +103,11 @@ export default class VideoCarousel extends Component {
 				activeVideoType: VideoType.STANDBY,
 			});
 		}, time);
+	}
+
+	syncVideo = (e) => {
+		const playedTime = (Date.now() / 1000) % (e.target.duration);
+		e.target.currentTime = playedTime; // eslint-disable-line bo-param-reassign
 	}
 
 	videoRefs = {
