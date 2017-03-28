@@ -54,8 +54,6 @@ public class TrainController extends AbstractController implements TrainStopEven
 		}
 
 		void initialize() {
-
-
 			portController.getCommander().getMessageTransport().addEventListener(new MessageTransport.EventListener() {
 
 				@Override
