@@ -106,14 +106,14 @@ const TrainView = ({ TRAIN_CONTROLLER: train, TRAIN_MOTION_SENSOR: motion }) => 
 			</div>
 
 			<div className="chart-container ticket-container">
-				{/*<div className="header">
+				{/* <div className="header">
 					<h1 className="header__title">Your train ticket</h1>
-				</div>*/}
+				</div> */}
 
 				<div className="ticket">
 					<div className="ticket__content">
 						<p className="ticket__info">
-							<span className="ticket__label">Your route:</span>
+							<span className="ticket__label">Your route</span>
 							A full tour in Telia city
 						</p>
 
@@ -123,11 +123,11 @@ const TrainView = ({ TRAIN_CONTROLLER: train, TRAIN_MOTION_SENSOR: motion }) => 
 								{train.data.numberOfTicketsBought}
 							</p>
 							<p className="ticket__info">
-								<span className="ticket__label">Date:</span>
-								{new Date().toLocaleDateString()}
+								<span className="ticket__label">Date</span>
+								{new Date().toLocaleDateString('ru-ru', { month: 'numeric', day: 'numeric' })}
 							</p>
 							<p className="ticket__info">
-								<span className="ticket__label">Price with mWallet:</span>
+								<span className="ticket__label">mTasku price</span>
 								0.80€
 							</p>
 						</div>
