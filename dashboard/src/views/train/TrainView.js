@@ -1,7 +1,7 @@
 import React, { PropTypes } from 'react';
 import { Device } from '../../common/gateway/gatewayConstants';
 import withDevice from '../../services/connectDeviceService';
-import Chart from '../../components/chart/Chart';
+// import Chart from '../../components/chart/Chart';
 import VideoCarousel from '../../components/video-carousel/VideoCarousel';
 import './train-view.scss';
 
@@ -42,12 +42,14 @@ const getInfo = (isObstacleDetected, realSpeed, stationName) => {
 	);
 };
 
+/*
 const getBatteryLevelOptions = () => ({
 	yAxis: {
 		min: 0,
 		max: 100,
 	},
 });
+*/
 
 const TrainView = ({ TRAIN_CONTROLLER: train, TRAIN_MOTION_SENSOR: motion }) => (
 	<div className="train-view">
@@ -103,8 +105,38 @@ const TrainView = ({ TRAIN_CONTROLLER: train, TRAIN_MOTION_SENSOR: motion }) => 
 				</div>
 			</div>
 
+			<div className="chart-container ticket-container">
+				<div className="header">
+					<h1 className="header__title">Your train ticket</h1>
+				</div>
+
+				<div className="ticket">
+					<div className="ticket__content">
+						<p className="ticket__info">
+							<span className="ticket__label">Your route:</span>
+							A full tour in lego city
+						</p>
+
+						<div className="ticket__info-group">
+							<p className="ticket__info">
+								<span className="ticket__label">Ticket No.</span>
+								{train.data.numberOfTicketsBought}
+							</p>
+							<p className="ticket__info">
+								<span className="ticket__label">Date:</span>
+								{new Date().toLocaleDateString()}
+							</p>
+							<p className="ticket__info">
+								<span className="ticket__label">Price with mWallet:</span>
+								0.80€
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			{/*
 			<div className="chart-container">
-				{/*
 				<Chart
 					title="Battery level"
 					data={train.measurements.chargePercentage}
@@ -116,9 +148,8 @@ const TrainView = ({ TRAIN_CONTROLLER: train, TRAIN_MOTION_SENSOR: motion }) => 
 					icon={train.data.isCharging ? 'charging' : 'not-charging'}
 					options={getBatteryLevelOptions()}
 				/>
-				*/}
-				Number of tickets bought: <strong>{train.data.numberOfTicketsBought}</strong>
 			</div>
+			*/}
 		</div>
 	</div>
 );

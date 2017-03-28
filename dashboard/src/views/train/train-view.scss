@@ -208,5 +208,73 @@
 	@keyframes blink-bg {
 		50% { background-color: $brand-color-alt; }
 	}
+	
+	.ticket-container {
+		flex-direction: column;
+	}
 
+	.ticket {
+		width: 510px;
+		margin: 0 auto 20px;
+		padding: 60px 0;
+		font: 20px/24px Courier, sans-serif;
+		text-transform: uppercase;
+		background-color: #9b009b;
+		border-radius: 20px;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		position: relative;
+		box-shadow: 0 0 16px rgba(0,0,0,0.3);
+
+		&:before,
+		&:after {
+			content: "";
+			position: absolute;
+			display: block;
+			width: 80px;
+			height: 30px;
+			background: no-repeat url("../../gfx/icons/ticket-stamp.svg");
+			background-size: contain;
+		}
+
+		&:before {
+			right: 0;
+			top: 14px;
+		}
+
+		&:after {
+			left: 0;
+			bottom: 14px;
+			transform: scaleX(-1);
+		}
+
+		&__content {
+			background: #f2f2f2 url("./img/ticket-bg.png");
+			padding: 20px 40px;
+		}
+
+		&__label {
+			display: block;
+			font-size: 15px;
+			text-transform: capitalize;
+			// font-weight: bold;
+			white-space: nowrap;
+			margin-bottom: 5px;
+		}
+
+		&__info {
+			margin: 10px 0;
+			font-weight: bold;
+		}
+
+		&__info + .ticket__info {
+			margin-left: 30px;
+		}
+
+		&__info-group {
+			display: flex;
+			margin-top: 20px;
+		}
+	}
 }
