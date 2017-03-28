@@ -5,7 +5,7 @@ import handleDeath from 'death';
 
 const config = {
     app: {
-        baseUrl: 'http://localhost:3000'
+        baseUrl: 'http://localhost'
     },
     env: {
         resolution: 1920,
@@ -29,6 +29,14 @@ const config = {
     }]
 };
 
+console.log('');
+console.log("-- Lego City --")
+console.log("starting lego city Cumulocity agent, then the dashboard server and finally open the browser windows");
+console.log("the whole process will take several minutes, please be patient");
+console.log("this script is located in protocity/scripts/run.js and triggered by protocity/run.bat");
+console.log("starting Cumulocity agent (protocity/cumulocity-agent > debug)");
+console.log("Cumulocity agent logs are available in protocity/cumulocity-agent/debug.log.txt, the logging can be configured from protocity/cumulocity-agent/cfg/logback-debug.xml")
+
 // start cumulocity agent
 runCommand(
     'debug', [], {
@@ -42,11 +50,13 @@ runCommand(
         }
 
         // console.info(message);
+        process.stdout.write(".");
     },
     (errorBuffer) => {
         const message = errorBuffer.toString();
 
         // console.error(message);
+        process.stdout.write("#");
     },
     (code, signal) => {
         console.log(`cumulocity agent closed (${code} - ${signal})`);
@@ -54,26 +64,29 @@ runCommand(
 );
 
 function handleGatewayRunning() {
-    console.log(`gateway is now running, starting dashboard server`);
+    console.log('');
+    console.log(`gateway is now running, starting dashboard server (protocity/dashboard > npm run build && npm run server)`);
 
     // start dashboard server
     runCommand(
-        'npm start', [], {
+        'npm run build && npm run server', [], {
             cwd: config.paths.dashboard
         },
         (outputBuffer) => {
             const message = outputBuffer.toString();
 
-            if (message.indexOf('app is running') !== -1) {
+            if (message.indexOf('Serving!') !== -1) {
                 handleDashboardRunning();
             }
 
             // console.info(message);
+            process.stdout.write(".");
         },
         (errorBuffer) => {
             const message = errorBuffer.toString();
 
             // console.error(message);
+            process.stdout.write("#");
         },
         (code, signal) => {
             console.log(`dashboard server closed (${code} - ${signal})`);
@@ -82,9 +95,12 @@ function handleGatewayRunning() {
 }
 
 function handleDashboardRunning() {
+    console.log('');
     console.log(`dashboard is now running, opening browser windows`);
 
     config.screens.forEach(screen => openScreen(screen));
+
+    console.log("done!")
 }
 
 
