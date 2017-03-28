@@ -9,8 +9,8 @@ const VideoType = {
 
 const SyncedVideos = [VideoType.STANDBY];
 
-const TimeFromTutorialToStandbyMs = 1000 * 10;
-const TimeFromActiveToStandbyMs = 1000 * 20;
+const TimeFromTutorialToStandbyMs = 1000 * 20;
+const TimeFromActiveToStandbyMs = 1000 * 60;
 
 export default class VideoCarousel extends Component {
 	static propTypes = {
@@ -95,14 +95,17 @@ export default class VideoCarousel extends Component {
 	isVideoActive = name => name === this.state.activeVideoType;
 
 	startStandbyTimer = (time) => {
-		const remaining = this.getVideoRemainingPlayTime(this.videoRefs[VideoType.STANDBY]) - time - 2000;
-
 		window.clearTimeout(this.standbyTimerId);
+
 		this.standbyTimerId = window.setTimeout(() => {
-			this.setState({
-				activeVideoType: VideoType.STANDBY,
-			});
-		}, time + remaining);
+			const remaining = this.getVideoRemainingPlayTime(this.videoRefs[VideoType.STANDBY]) - 2000;
+
+			this.standbyTimerId = window.setTimeout(() => {
+				this.setState({
+					activeVideoType: VideoType.STANDBY,
+				});
+			}, remaining);
+		}, time);
 	}
 
 	syncVideo = (e) => {
