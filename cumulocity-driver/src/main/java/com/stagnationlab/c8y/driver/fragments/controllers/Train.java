@@ -21,6 +21,7 @@ public class Train {
 	private String nextStationName;
 	private String previousStationName;
 	private long chargeStartTimestamp;
+	private int numberOfTicketsBought = 0;
 	// TODO keep track of number of tickets bought
 
 	public Train() {
@@ -158,5 +159,17 @@ public class Train {
 
 	public void setChargeStartTimestamp(long chargeStartTimestamp) {
 		this.chargeStartTimestamp = chargeStartTimestamp;
+	}
+
+	public int getNumberOfTicketsBought() {
+		return numberOfTicketsBought;
+	}
+
+	public void setNumberOfTicketsBought(int numberOfTicketsBought) {
+		this.numberOfTicketsBought = numberOfTicketsBought;
+	}
+
+	public void incrementNumberOfTicketsBought() {
+		this.numberOfTicketsBought = numberOfTicketsBought + 1;
 	}
 }

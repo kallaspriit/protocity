@@ -549,7 +549,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 		}
 	}
 
-	private final com.stagnationlab.c8y.driver.fragments.controllers.Train state = new com.stagnationlab.c8y.driver.fragments.controllers.Train();
+	private com.stagnationlab.c8y.driver.fragments.controllers.Train state = new com.stagnationlab.c8y.driver.fragments.controllers.Train();
 	private final List<TrainOperation> operations = new ArrayList<>();
 	private final Map<Integer, TrainStop> stopMap = new HashMap<>();
 	private Train train;
@@ -590,6 +590,8 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 		log.info("starting train controller");
 
+		restoreExistingState();
+
 		train.commander.getMessageTransport().addEventListener(new MessageTransport.EventListener() {
 			@Override
 			public void onOpen(boolean isFirstConnect) {
@@ -622,7 +624,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 				reportOperations();
 
 				if (!isFirstConnect) {
-					TextToSpeech.INSTANCE.speak("Wireless connection to the train has been reestablished", false);
+					TextToSpeech.INSTANCE.speak("5G connection to the train has been reestablished", false);
 				}
 			}
 
@@ -646,10 +648,24 @@ public class TrainController extends AbstractController implements TrainStopEven
 				log.debug("stopped train controller");
 
 				if (!isPlanned) {
-					TextToSpeech.INSTANCE.speak("Wireless connection to the train was lost, attempting to reestablish", false);
+					TextToSpeech.INSTANCE.speak("Connection to the train was lost", false);
 				}
 			}
 		});
+	}
+
+	private void restoreExistingState() {
+		log.debug("restoring existing state");
+
+		com.stagnationlab.c8y.driver.fragments.controllers.Train existingState = device.get(com.stagnationlab.c8y.driver.fragments.controllers.Train.class);
+
+		if (existingState != null) {
+			state = existingState;
+
+			log.debug("restored existing state");
+		} else {
+			log.info("no existing state found");
+		}
 	}
 
 	@Override
@@ -852,6 +868,10 @@ public class TrainController extends AbstractController implements TrainStopEven
 			log.debug("train is currently idle, starting new loop");
 
 			TextToSpeech.INSTANCE.speak("Train ticket has been bought", true);
+
+			state.incrementNumberOfTicketsBought();
+
+			log.debug("incremented the number of tickets bought to {}", state.getNumberOfTicketsBought());
 
 			startNextOperation();
 

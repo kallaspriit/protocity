@@ -104,6 +104,7 @@ const TrainView = ({ TRAIN_CONTROLLER: train, TRAIN_MOTION_SENSOR: motion }) => 
 			</div>
 
 			<div className="chart-container">
+				{/*
 				<Chart
 					title="Battery level"
 					data={train.measurements.chargePercentage}
@@ -115,6 +116,8 @@ const TrainView = ({ TRAIN_CONTROLLER: train, TRAIN_MOTION_SENSOR: motion }) => 
 					icon={train.data.isCharging ? 'charging' : 'not-charging'}
 					options={getBatteryLevelOptions()}
 				/>
+				*/}
+				Number of tickets bought: <strong>{train.data.numberOfTicketsBought}</strong>
 			</div>
 		</div>
 	</div>
