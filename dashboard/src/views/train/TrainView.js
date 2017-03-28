@@ -106,15 +106,15 @@ const TrainView = ({ TRAIN_CONTROLLER: train, TRAIN_MOTION_SENSOR: motion }) => 
 			</div>
 
 			<div className="chart-container ticket-container">
-				<div className="header">
+				{/*<div className="header">
 					<h1 className="header__title">Your train ticket</h1>
-				</div>
+				</div>*/}
 
 				<div className="ticket">
 					<div className="ticket__content">
 						<p className="ticket__info">
 							<span className="ticket__label">Your route:</span>
-							A full tour in lego city
+							A full tour in Telia city
 						</p>
 
 						<div className="ticket__info-group">
