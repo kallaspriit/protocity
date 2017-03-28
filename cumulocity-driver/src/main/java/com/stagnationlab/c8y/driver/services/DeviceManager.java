@@ -48,7 +48,7 @@ public class DeviceManager {
 	    ID externalId = DeviceManager.buildExternalId(parent, device, id);
 	    GId globalId = deviceManagedObject.tryGetBinding(externalId);
 
-	    log.info("GLOBAL ID OF '{}': {}", id, globalId == null ? "n/a" : globalId.getValue());
+	    log.debug("global id of '{}': {}", id, globalId == null ? "n/a" : globalId.getValue());
 
 	    ManagedObjectRepresentation existingDevice = platform.getInventoryApi().get(globalId);
 
