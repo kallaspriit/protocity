@@ -75,14 +75,6 @@ public abstract class AbstractDevice implements Driver {
     public void initialize() throws Exception {
 	    log.debug("initializing '{}' with {} {}", id, children.size(), children.size() == 1 ? "child" : "children");
 
-	    try {
-		    setup();
-	    } catch (Exception e) {
-		    log.warn("setup of device '{}' failed ({} - {})", id, e.getClass().getSimpleName(), e.getMessage(), e);
-
-		    return;
-	    }
-
 	    for (Driver child : children) {
 	    	try {
 			    child.initialize();
@@ -103,6 +95,14 @@ public abstract class AbstractDevice implements Driver {
         this.eventApi = platform.getEventApi();
         this.inventoryApi = platform.getInventoryApi();
         this.isApiReady = true;
+
+	    try {
+		    setup();
+	    } catch (Exception e) {
+		    log.warn("setup of device '{}' failed ({} - {})", id, e.getClass().getSimpleName(), e.getMessage(), e);
+
+		    return;
+	    }
 
 	    for (Driver child : children) {
 	    	try {

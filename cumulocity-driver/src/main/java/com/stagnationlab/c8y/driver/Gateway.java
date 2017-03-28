@@ -35,7 +35,7 @@ import c8y.lx.driver.OperationExecutor;
 @Slf4j
 public class Gateway extends AbstractDevice {
 
-	private static final String VERSION = "1.27.0";
+	private static final String VERSION = "1.28.0";
 
 	private final com.stagnationlab.c8y.driver.fragments.Gateway state = new com.stagnationlab.c8y.driver.fragments.Gateway();
 	private final Config config = new Config();
