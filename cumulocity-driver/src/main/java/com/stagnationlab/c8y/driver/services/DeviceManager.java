@@ -6,6 +6,7 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 import com.cumulocity.model.ID;
+import com.cumulocity.model.idtype.GId;
 import com.cumulocity.rest.representation.inventory.ManagedObjectRepresentation;
 import com.cumulocity.sdk.client.Platform;
 
@@ -17,7 +18,7 @@ import c8y.lx.driver.OpsUtil;
 @Slf4j
 public class DeviceManager {
 
-    public static ManagedObjectRepresentation create(
+    public static ManagedObjectRepresentation createOrUpdate(
             String id,
             String type,
             Platform platform,
@@ -26,22 +27,36 @@ public class DeviceManager {
             OperationExecutor[] supportedOperations,
             Object... fragments
     ) {
-        log.debug("creating managed object {} of type {}", id, type);
+        log.debug("creating/updating managed object {} of type {}", id, type);
 
         ManagedObjectRepresentation device = new ManagedObjectRepresentation();
 
         device.setType(type);
         device.setName(id);
 
-        for (OperationExecutor operation : supportedOperations) {
-            log.debug("registering supported operation type {} for {}", operation.supportedOperationType(), id);
-
-            OpsUtil.addSupportedOperation(device, operation.supportedOperationType());
-        }
-
         if (hardware != null) {
             device.set(hardware);
         }
+
+	    DeviceManagedObject deviceManagedObject = new DeviceManagedObject(platform);
+	    ID externalId = DeviceManager.buildExternalId(parent, device, id);
+	    GId globalId = deviceManagedObject.tryGetBinding(externalId);
+
+	    log.info("GLOBAL ID OF '{}': {}", id, globalId == null ? "n/a" : globalId.getValue());
+
+	    ManagedObjectRepresentation existingDevice = platform.getInventoryApi().get(globalId);
+
+	    if (existingDevice != null) {
+	    	log.debug("returning existing device for {} ()", id, globalId.getValue());
+
+	    	return existingDevice;
+	    }
+
+	    for (OperationExecutor operation : supportedOperations) {
+		    log.debug("registering supported operation type {} for {}", operation.supportedOperationType(), id);
+
+		    OpsUtil.addSupportedOperation(device, operation.supportedOperationType());
+	    }
 
         for (Object fragment : fragments) {
             if (fragment == null) {
@@ -51,18 +66,14 @@ public class DeviceManager {
             device.set(fragment);
         }
 
-        DeviceManagedObject deviceManagedObject = new DeviceManagedObject(platform);
-        ID externalId = DeviceManager.buildExternalId(parent, device, id);
         boolean wasCreated = deviceManagedObject.createOrUpdate(device, externalId, parent.getId());
 
-        if (wasCreated) {
-	        log.debug("created managed object {} of type {} with external id of {} and global id {}", id, type, externalId, device.getId().getValue());
-        }
+        log.debug("{} managed object {} of type {} with external id of {} and global id {}", wasCreated ? "created" : "updated", id, type, externalId, device.getId().getValue());
 
         return device;
     }
 
-    private static ID buildExternalId(ManagedObjectRepresentation parent, ManagedObjectRepresentation child, String id) {
+    public static ID buildExternalId(ManagedObjectRepresentation parent, ManagedObjectRepresentation child, String id) {
         List<String> tokens = new ArrayList<>();
         Hardware parentHardware = parent.get(Hardware.class);
         Hardware childHardware = child.get(Hardware.class);

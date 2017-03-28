@@ -138,7 +138,7 @@ public abstract class AbstractDevice implements Driver {
 		log.debug("discovering '{}' children for parent with id {}", id, parentId.getValue());
 		debugManagedObject(parent);
 
-		device = DeviceManager.create(
+		device = DeviceManager.createOrUpdate(
 				id,
 				getType(),
 				platform,
