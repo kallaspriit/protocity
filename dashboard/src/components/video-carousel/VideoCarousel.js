@@ -54,11 +54,8 @@ export default class VideoCarousel extends Component {
 
 	componentWillUpdate = (nextProps, nextState) => {
 		if (this.state.activeVideoType !== nextState.activeVideoType) {
-			if (SyncedVideos.indexOf(this.state.activeVideoType) === -1) {
-				console.log('pause', this.state.activeVideoType)
-				this.videoRefs[this.state.activeVideoType].pause();
-				this.videoRefs[nextState.activeVideoType].load();
-			}
+			this.videoRefs[this.state.activeVideoType].pause();
+			this.videoRefs[nextState.activeVideoType].load();
 		}
 	}
 
@@ -107,12 +104,6 @@ export default class VideoCarousel extends Component {
 	}
 
 	syncVideo = (e) => {
-		if (this.isSyncing) {
-			return;
-		}
-
-		this.isSyncing = true;
-
 		const video = e.target;
 		const now = Date.now();
 		const videoDuration = video.duration * 1000;
@@ -134,5 +125,4 @@ export default class VideoCarousel extends Component {
 	};
 
 	standbyTimerId = null;
-	isSyncing = false;
 }
