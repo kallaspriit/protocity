@@ -624,7 +624,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 				reportOperations();
 
 				if (!isFirstConnect) {
-					TextToSpeech.INSTANCE.speak("Wireless connection to the train has been reestablished", false);
+					TextToSpeech.INSTANCE.speak("5G connection to the train has been reestablished", false);
 				}
 			}
 
@@ -648,7 +648,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 				log.debug("stopped train controller");
 
 				if (!isPlanned) {
-					TextToSpeech.INSTANCE.speak("Wireless connection to the train was lost, attempting to reestablish", false);
+					TextToSpeech.INSTANCE.speak("Connection to the train was lost", false);
 				}
 			}
 		});
