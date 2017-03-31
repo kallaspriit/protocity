@@ -16,16 +16,16 @@ const config = {
     },
     screens: [{
         display: 1,
-        path: '/weather'
-    }, {
-        display: 2,
-        path: '/train'
-    }, {
-        display: 3,
         path: '/truck'
     }, {
-        display: 4,
+        display: 2,
         path: '/parking'
+    }, {
+        display: 3,
+        path: '/weather'
+    }, {
+        display: 4,
+        path: '/train'
     }]
 };
 
