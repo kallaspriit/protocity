@@ -525,11 +525,11 @@ public class TrainController extends AbstractController implements TrainStopEven
 		public boolean isComplete() {
 			long currentTime = System.currentTimeMillis();
 			long idleDuration = currentTime - startTime;
-			long notChargingThreshold = 10000; // ms
+			long notChargingThreshold = 10 * 1000;
 			boolean isIdleForLong = idleDuration >= notChargingThreshold;
 
 			// exit idle state if not charging and has been idle for a while
-			if (!state.isCharging && isIdleForLong) {
+			if (!state.getIsCharging() && isIdleForLong) {
 				TextToSpeech.INSTANCE.speak("Going for a lap", true);
 
 				return true;
