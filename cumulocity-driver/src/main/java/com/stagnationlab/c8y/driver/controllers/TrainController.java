@@ -308,7 +308,7 @@ public class TrainController extends AbstractController implements TrainStopEven
 			updateState(state);
 			reportMeasurement(new BatteryMeasurement(batteryVoltage, batteryChargePercentage, isCharging));
 
-			batteryMonitor.checkForLowBattery(batteryChargePercentage);
+			batteryMonitor.checkForLowBattery(batteryChargePercentage, isCharging);
 		}
 
 		private void handleObstacleDetectedEvent(float obstacleDistance) {

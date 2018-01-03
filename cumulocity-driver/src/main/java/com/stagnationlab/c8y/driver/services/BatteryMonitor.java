@@ -19,10 +19,10 @@ public class BatteryMonitor {
 		this.lowBatteryReportingInterval = lowBatteryReportingInterval;
 	}
 
-	public void checkForLowBattery(int batteryChargePercentage) {
+	public void checkForLowBattery(int batteryChargePercentage, boolean isCharging) {
 		lastBatteryPercentage = batteryChargePercentage;
 
-		if (batteryChargePercentage > lowBatteryPercentageThreshold) {
+		if (isCharging || (batteryChargePercentage > lowBatteryPercentageThreshold)) {
 			clearLowBatteryInterval();
 		} else {
 			startLowBatteryInterval();

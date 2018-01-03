@@ -257,7 +257,7 @@ public class TruckController extends AbstractController {
 
 		updateGridPower();
 
-		batteryMonitor.checkForLowBattery(batteryChargePercentage);
+		batteryMonitor.checkForLowBattery(batteryChargePercentage, isCharging);
 	}
 
 	private void handleTruckStartedCharging() {
