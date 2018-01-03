@@ -497,6 +497,8 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 	class IdleTrainOperation extends TrainOperation {
 
+		private long startTime = 0;
+
 		IdleTrainOperation(Train train) {
 			super(train);
 		}
@@ -506,6 +508,8 @@ public class TrainController extends AbstractController implements TrainStopEven
 			log.debug("reporting controller deactivated event");
 
 			reportEvent(new ControllerDeactivatedEvent());
+
+			startTime = System.currentTimeMillis();
 		}
 
 		@Override
@@ -519,6 +523,18 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 		@Override
 		public boolean isComplete() {
+			long currentTime = System.currentTimeMillis();
+			long idleDuration = currentTime - startTime;
+			long notChargingThreshold = 10000; // ms
+			boolean isIdleForLong = idleDuration >= notChargingThreshold;
+
+			// exit idle state if not charging and has been idle for a while
+			if (!state.isCharging && isIdleForLong) {
+				TextToSpeech.INSTANCE.speak("Going for a lap", true);
+
+				return true;
+			}
+
 			return false;
 		}
 	}
