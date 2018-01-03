@@ -78,7 +78,7 @@ void Application::loopObstacleDetection(unsigned long deltaTime)
   // report new obstacle distance if it changes by considerable amount
   float reportedDistanceDiff = fabs(obstacleDistance - lastReportedObstacleDistance);
 
-  if (isObstacleDetected && reportedDistanceDiff >= OBSTACLE_DISTSNCE_CHANGED_THRESHOLD_CM)
+  if (isObstacleDetected && reportedDistanceDiff >= OBSTACLE_DISTANCE_CHANGED_THRESHOLD_CM)
   {
     sendEventMessage("obstacle-changed", String(obstacleDistance));
 

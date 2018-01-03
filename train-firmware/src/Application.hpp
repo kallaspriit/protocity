@@ -13,7 +13,7 @@ public:
 
 private:
   // provide version number
-  virtual String getVersion() { return "2.41.0"; };
+  virtual String getVersion() { return "2.43.0"; };
 
   // override main setup hooks
   virtual void setupBefore();
@@ -75,11 +75,11 @@ private:
   const int MAX_ANALOG_WRITE_VALUE = 1023;
 
   // obstacle detection config, apply some hysteresis
-  const float DEFAULT_OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM = 10.0f;
-  const float DEFAULT_OBSTACLE_CLEARED_DISTANCE_THRESHOLD_CM = DEFAULT_OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM + 0.1f;
+  const float DEFAULT_OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM = 12.0f;
+  const float DEFAULT_OBSTACLE_CLEARED_DISTANCE_THRESHOLD_CM = DEFAULT_OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM + 0.2f;
   const int DEFAULT_BRAKE_DURATION = 250;
   const int MIN_BRAKE_PAUSE = 5000;
-  const float OBSTACLE_DISTSNCE_CHANGED_THRESHOLD_CM = 0.5f;
+  const float OBSTACLE_DISTANCE_CHANGED_THRESHOLD_CM = 0.5f;
   const unsigned long OBSTACLE_DETECTED_THRESHOLD_DURATION = 0;
 
   // how often to run the main loop
@@ -96,7 +96,7 @@ private:
   // runtime config
   float obstacleDetectedDistanceThreshold = DEFAULT_OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM;
   float obstacleClearedDistanceThreshold = DEFAULT_OBSTACLE_CLEARED_DISTANCE_THRESHOLD_CM;
-  float lastReportedObstacleDistance = -OBSTACLE_DISTSNCE_CHANGED_THRESHOLD_CM;
+  float lastReportedObstacleDistance = -OBSTACLE_DISTANCE_CHANGED_THRESHOLD_CM;
   int brakeDuration = DEFAULT_BRAKE_DURATION;
 
   // runtime info
