@@ -13,7 +13,7 @@ public:
 
 private:
   // provide version number
-  virtual String getVersion() { return "2.43.0"; };
+  virtual String getVersion() { return "2.44.0"; };
 
   // override main setup hooks
   virtual void setupBefore();
@@ -75,7 +75,7 @@ private:
   const int MAX_ANALOG_WRITE_VALUE = 1023;
 
   // obstacle detection config, apply some hysteresis
-  const float DEFAULT_OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM = 12.0f;
+  const float DEFAULT_OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM = 13.0f;
   const float DEFAULT_OBSTACLE_CLEARED_DISTANCE_THRESHOLD_CM = DEFAULT_OBSTACLE_DETECTED_DISTANCE_THRESHOLD_CM + 0.2f;
   const int DEFAULT_BRAKE_DURATION = 250;
   const int MIN_BRAKE_PAUSE = 5000;
