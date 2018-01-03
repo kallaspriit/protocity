@@ -1,15 +1,14 @@
 #include "Commander.hpp"
 
-Commander::Commander() :
-  isValid(false),
-  id(0),
-  parameterCount(0),
-  command("")
+Commander::Commander() : isValid(false),
+                         id(0),
+                         parameterCount(0),
+                         command("")
 {
-
 }
 
-void Commander::parseCommand(String buffer) {
+void Commander::parseCommand(String buffer)
+{
   isValid = false;
   id = 0;
   command = "";
@@ -18,10 +17,12 @@ void Commander::parseCommand(String buffer) {
   int lastDelimiterPos = -1;
   int tokenIndex = 0;
 
-  while (true) {
+  while (true)
+  {
     int delimiterPos = buffer.indexOf(':', lastDelimiterPos + 1);
 
-    if (delimiterPos == -1) {
+    if (delimiterPos == -1)
+    {
       break;
     }
 
@@ -40,14 +41,20 @@ void Commander::parseCommand(String buffer) {
   handleToken(tokenIndex, token);
 }
 
-void Commander::handleToken(int tokenIndex, String token) {
-  if (tokenIndex == 1) {
+void Commander::handleToken(int tokenIndex, String token)
+{
+  if (tokenIndex == 1)
+  {
     id = token.toInt();
-  } else if (tokenIndex == 2) {
+  }
+  else if (tokenIndex == 2)
+  {
     command = token;
 
     isValid = true;
-  } else {
+  }
+  else
+  {
     parameters[parameterCount++] = token;
   }
 }

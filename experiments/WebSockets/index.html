@@ -1,80 +1,94 @@
 <html>
-<head>
-    <meta charset="utf-8">
-    <title>WS Client</title>
-    <meta name="HandheldFriendly" content="True">
-    <meta name="viewport" content="width=device-width, initial-scale=1, minimal-ui">
-    <meta http-equiv="cleartype" content="on">
-    <style>
 
+<head>
+  <meta charset="utf-8">
+  <title>WS Client</title>
+  <meta name="HandheldFriendly" content="True">
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimal-ui">
+  <meta http-equiv="cleartype" content="on">
+  <style>
     .row {
-        padding: 10px 0;
+      padding: 10px 0;
     }
+
     .led-unknown,
     .led-on,
     .led-off {
-        background-color: #CCC;
-    }
-    .led-on {
-        background-color: #0F0;
-    }
-    .led-off {
-        background-color: #F00;
-    }
-    .charging-on {
-        color: #0F0;
-    }
-    .charging-off {
-        color : #F00;
+      background-color: #CCC;
     }
 
-    </style>
+    .led-on {
+      background-color: #0F0;
+    }
+
+    .led-off {
+      background-color: #F00;
+    }
+
+    .charging-on {
+      color: #0F0;
+    }
+
+    .charging-off {
+      color: #F00;
+    }
+  </style>
 </head>
 
 </html>
+
 <body>
-    <h1>Train Conductor</h1>
-    <div class="row">
-        <button id="led-indicator" onClick="toggleLed()" class="led-unknown">Toggle LED</button>
-    </div>
-    <div class="row">
-        <button onClick="setMotorSpeed(-100)">&lt;&lt; 100%</button>
-        <button onClick="setMotorSpeed(-80)">&lt;&lt; 80%</button>
-        <button onClick="setMotorSpeed(-50)">&lt; 50%</button>
-        <button onClick="stopMotor()">Stop</button>
-        <button onClick="brakeMotor()">Brake</button>
-        <button onClick="setMotorSpeed(50)">&gt; 50%</button>
-        <button onClick="setMotorSpeed(80)">&gt; 80%</button>
-        <button onClick="setMotorSpeed(100)">&gt;&gt; 100%</button>
-    </div>
-	<div class="row">
-        <button onClick="testStopToCharge();">Test stop to charge</button>
-        <button onClick="testNodeServer();">Test node server</button>
-        <button onClick="requestObstacleDistance();">Get obstacle distance</button>
-    </div>
-    <div class="row">
-        <input id="slider" type="range" min="-100" max="100" step="10" style="width: 100%;" />
-    </div>
-    <div class="row">
-        <strong>Battery voltage: </strong><span id="train-voltage">waiting..</span><br/>
-        <strong>Target speed: </strong><span id="train-target-speed">waiting..</span><br/>
-        <strong>Current speed: </strong><span id="train-current-speed">waiting..</span><br/>
-        <strong>Train obstacle distance: </strong><span id="train-obstacle-distance">waiting..</span>
-    </div>
-    <h1>Truck status</h1>
-    <div class="row">
-        <strong>Truck voltage: </strong><span id="truck-voltage">waiting..</span>
-    </div>
-    <div class="row">
-        <strong>Charging status: </strong><span id="truck-charging">waiting..</span>
-    </div>
+  <h1>Train Conductor</h1>
+  <div class="row">
+    <button id="led-indicator" onClick="toggleLed()" class="led-unknown">Toggle LED</button>
+  </div>
+  <div class="row">
+    <button onClick="setMotorSpeed(-100)">&lt;&lt; 100%</button>
+    <button onClick="setMotorSpeed(-80)">&lt;&lt; 80%</button>
+    <button onClick="setMotorSpeed(-50)">&lt; 50%</button>
+    <button onClick="stopMotor()">Stop</button>
+    <button onClick="brakeMotor()">Brake</button>
+    <button onClick="setMotorSpeed(50)">&gt; 50%</button>
+    <button onClick="setMotorSpeed(80)">&gt; 80%</button>
+    <button onClick="setMotorSpeed(100)">&gt;&gt; 100%</button>
+  </div>
+  <div class="row">
+    <button onClick="testStopToCharge();">Test stop to charge</button>
+    <button onClick="testNodeServer();">Test node server</button>
+    <button onClick="requestObstacleDistance();">Get obstacle distance</button>
+  </div>
+  <div class="row">
+    <input id="slider" type="range" min="-100" max="100" step="10" style="width: 100%;" />
+  </div>
+  <div class="row">
+    <strong>Battery voltage: </strong>
+    <span id="train-voltage">waiting..</span>
+    <br/>
+    <strong>Target speed: </strong>
+    <span id="train-target-speed">waiting..</span>
+    <br/>
+    <strong>Current speed: </strong>
+    <span id="train-current-speed">waiting..</span>
+    <br/>
+    <strong>Train obstacle distance: </strong>
+    <span id="train-obstacle-distance">waiting..</span>
+  </div>
+  <h1>Truck status</h1>
+  <div class="row">
+    <strong>Truck voltage: </strong>
+    <span id="truck-voltage">waiting..</span>
+  </div>
+  <div class="row">
+    <strong>Charging status: </strong>
+    <span id="truck-charging">waiting..</span>
+  </div>
 </body>
 <script>
-var ip = window.location.host;
-var port = '3000';
-var ws = new WebSocket("ws://" + ip + ":" + port);
+  var ip = window.location.host;
+  var port = '3000';
+  var ws = new WebSocket("ws://" + ip + ":" + port);
 
-ws.onopen = function(event) {
+  ws.onopen = function (event) {
     console.log('opened');
 
     requestLedState();
@@ -83,14 +97,14 @@ ws.onopen = function(event) {
     requestBatteryVoltage('truck');
     //requestObstacleDistance();
 
-    setInterval(function() {
-        requestBatteryVoltage('train');
-        requestBatteryVoltage('truck');
-        //requestObstacleDistance();
+    setInterval(function () {
+      requestBatteryVoltage('train');
+      requestBatteryVoltage('truck');
+      //requestObstacleDistance();
     }, 60000);
-};
+  };
 
-ws.onmessage = function (event) {
+  ws.onmessage = function (event) {
     var message = event.data;
     var tokens = message.split(':');
     var command = tokens[0];
@@ -99,103 +113,103 @@ ws.onmessage = function (event) {
     console.log('< ' + message, command, parameters);
 
     switch (command) {
-        case 'led':
-            var isLedOn = parameters[0] === '1';
+      case 'led':
+        var isLedOn = parameters[0] === '1';
 
-            document.getElementById('led-indicator').className = isLedOn ? 'led-on' : 'led-off';
+        document.getElementById('led-indicator').className = isLedOn ? 'led-on' : 'led-off';
 
-            break;
+        break;
 
-        case 'motor':
-            if (parameters.length !== 2) {
-                break;
-            }
+      case 'motor':
+        if (parameters.length !== 2) {
+          break;
+        }
 
-            var currentSpeed = parseInt(parameters[0]);
-            var targetSpeed = parseInt(parameters[1]);
+        var currentSpeed = parseInt(parameters[0]);
+        var targetSpeed = parseInt(parameters[1]);
 
-            document.getElementById('slider').value = targetSpeed;
-            document.getElementById('train-current-speed').innerHTML = currentSpeed.toFixed(0) + '%';
-            document.getElementById('train-target-speed').innerHTML = targetSpeed.toFixed(0) + '%';
+        document.getElementById('slider').value = targetSpeed;
+        document.getElementById('train-current-speed').innerHTML = currentSpeed.toFixed(0) + '%';
+        document.getElementById('train-target-speed').innerHTML = targetSpeed.toFixed(0) + '%';
 
-            break;
+        break;
 
-        case 'battery':
-            var voltage = parseFloat(parameters[1]);
-            document.getElementById(parameters[0] + '-voltage').innerHTML = voltage.toFixed(3) + 'V';
+      case 'battery':
+        var voltage = parseFloat(parameters[1]);
+        document.getElementById(parameters[0] + '-voltage').innerHTML = voltage.toFixed(3) + 'V';
 
-            break;
+        break;
 
-        case 'obstacle-distance':
-            var distance = parseFloat(parameters[0]);
-            document.getElementById('train-obstacle-distance').innerHTML = distance.toFixed(1) + 'cm';
+      case 'obstacle-distance':
+        var distance = parseFloat(parameters[0]);
+        document.getElementById('train-obstacle-distance').innerHTML = distance.toFixed(1) + 'cm';
 
-            break;
+        break;
 
-        case 'truck':
-            switch(parameters[0]) {
-                case 'charging':
-                    var isCharging = parameters[1] === 'true';
-                    document.getElementById('truck-charging').innerHTML = isCharging ? 'CHARGING' : 'NOT CHARGING';
-                    document.getElementById('truck-charging').className = isCharging ? 'charging-on' : 'charging-off';
-            }
-            break;
+      case 'truck':
+        switch (parameters[0]) {
+          case 'charging':
+            var isCharging = parameters[1] === 'true';
+            document.getElementById('truck-charging').innerHTML = isCharging ? 'CHARGING' : 'NOT CHARGING';
+            document.getElementById('truck-charging').className = isCharging ? 'charging-on' : 'charging-off';
+        }
+        break;
     }
-}
+  }
 
-function send(message) {
+  function send(message) {
     console.log('> ' + message);
 
     ws.send(message);
-}
+  }
 
-function toggleLed() {
+  function toggleLed() {
     send('toggle-led');
-}
+  }
 
-function setMotorSpeed(speed) {
+  function setMotorSpeed(speed) {
     send('motor:' + speed);
 
     document.getElementById('slider').value = speed;
-}
+  }
 
-function stopMotor() {
+  function stopMotor() {
     setMotorSpeed(0);
-}
+  }
 
-function brakeMotor() {
+  function brakeMotor() {
     send('brake');
     //stopMotor()
-}
+  }
 
-function requestLedState() {
+  function requestLedState() {
     send('get-led-state');
-}
+  }
 
-function requestMotorState() {
+  function requestMotorState() {
     send('get-motor-state');
-}
+  }
 
-function requestBatteryVoltage(client) {
+  function requestBatteryVoltage(client) {
     send('get-battery-voltage:' + client);
-}
+  }
 
-function requestObstacleDistance() {
+  function requestObstacleDistance() {
     send('get-obstacle-distance');
-}
+  }
 
-function testStopToCharge() {
-	send('charge');
-}
+  function testStopToCharge() {
+    send('charge');
+  }
 
-function testNodeServer() {
-	send('test-node-server');
-}
+  function testNodeServer() {
+    send('test-node-server');
+  }
 
-document.getElementById('slider').addEventListener('input', function(e) {
+  document.getElementById('slider').addEventListener('input', function (e) {
     var value = e.target.value;
 
     setMotorSpeed(value);
-});
+  });
 
 </script>

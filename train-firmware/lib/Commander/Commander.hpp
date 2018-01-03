@@ -5,11 +5,12 @@
 
 #define COMMANDER_MAX_PARAMETER_COUNT 10
 
-class Commander {
-  
+class Commander
+{
+
 public:
   Commander();
-  
+
   void parseCommand(String buffer);
 
   bool isValid;
