@@ -702,11 +702,11 @@ public class TrainController extends AbstractController implements TrainStopEven
 
 			lastStepTime = currentTime;
 
-			try {
-				Thread.sleep(16); // around 60 FPS
-			} catch (InterruptedException e) {
-				log.debug("train thread was interrupted");
-			}
+			//try {
+			//	Thread.sleep(16); // around 60 FPS
+			//} catch (InterruptedException e) {
+			//	log.debug("train thread was interrupted");
+			//}
 		}
 
 		log.debug("stopped train update thread");
