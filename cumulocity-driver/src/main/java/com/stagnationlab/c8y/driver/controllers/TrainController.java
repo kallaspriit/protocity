@@ -825,8 +825,10 @@ public class TrainController extends AbstractController implements TrainStopEven
 								case ACTION_UID: {
 									String action = arguments.get(1);
 									String uid = arguments.get(2);
+									//boolean isValidTag = tagUidList.contains(uid);
+									boolean isValidTag = true; // disabled checking tag - any tag will do
 
-									if (action.equals(ACTION_ENTER) && tagUidList.contains(uid)) {
+									if (action.equals(ACTION_ENTER) && isValidTag) {
 										handleTrainTicketBought();
 									}
 
